@@ -1,4 +1,4 @@
-package transport
+package server
 
 import (
 	"net"
@@ -28,10 +28,12 @@ type serverSet struct {
 }
 
 func getServers(listeners *listenerSet, opts *serverOpts) *serverSet {
-	http := opts.HTTPMux
+	http := chi.NewMux()
 	if len(opts.HTTPMiddlewares) > 0 {
-		http = http.With(opts.HTTPMiddlewares...)
+		http.Use(opts.HTTPMiddlewares...)
 	}
+	http.Mount("/", opts.HTTPMux)
+
 	srv := &serverSet{
 		grpc: grpc.NewServer(opts.GRPCOpts...),
 		http: http,

@@ -10,6 +10,8 @@ import (
 
 	pb "github.com/utrack/clay/doc/example/pb"
 	"github.com/utrack/clay/transport"
+	"github.com/utrack/clay/transport/middlewares/mwhttp"
+	"github.com/utrack/clay/transport/server"
 	"golang.org/x/net/context"
 
 	// We're using statik-compiled files of Swagger UI
@@ -24,6 +26,10 @@ type SumImpl struct{}
 func (s *SumImpl) Sum(ctx context.Context, r *pb.SumRequest) (*pb.SumResponse, error) {
 	if r.GetA() == 0 {
 		return nil, errors.New("a is zero")
+	}
+
+	if r.GetB() == 65536 {
+		panic(errors.New("We've got a problem!"))
 	}
 
 	sum := r.GetA() + r.GetB()
@@ -48,7 +54,13 @@ func main() {
 	hmux.Mount("/", http.FileServer(staticFS))
 
 	impl := &SumImpl{}
-	srv := transport.NewServer(12345, transport.OptsHTTPMux(hmux))
+	srv := server.NewServer(
+		12345,
+		// Pass our mux with Swagger UI
+		server.WithHTTPMux(hmux),
+		// Recover from panics
+		server.WithHTTPMiddlewares(mwhttp.Recover()),
+	)
 	err = srv.Run(impl)
 	if err != nil {
 		logrus.Fatal(err)

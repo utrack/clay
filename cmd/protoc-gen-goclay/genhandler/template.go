@@ -104,19 +104,19 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 	  var req {{$m.RequestType.GetName}}
 	  err := jsonpb.Unmarshal(r.Body, &req)
 	  if err != nil {
-	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't read request JSON"))
+	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't read request JSON"),nil)
 	    return
 	  }
 	  ret,err := d.svc.{{$m.GetName}}(r.Context(),&req)
 	  if err != nil {
-	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"returned from handler"))
+	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"returned from handler"),nil)
 	    return
 	  }
 
 	  m := &jsonpb.Marshaler{}
 	  err = m.Marshal(w, ret)
 	  if err != nil {
-	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't write response"))
+	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't write response"),nil)
 	    return
 	  }
       })

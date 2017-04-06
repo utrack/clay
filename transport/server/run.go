@@ -1,16 +1,18 @@
-package transport
+package server
 
 import (
 	"bytes"
 	"io"
 	"net/http"
 
+	"github.com/utrack/clay/transport"
+
 	"github.com/pkg/errors"
 )
 
 // Run starts processing requests to the service.
 // It blocks indefinitely, run asynchronously to do anything after that.
-func (s *Server) Run(svc Service) error {
+func (s *Server) Run(svc transport.Service) error {
 	desc := svc.GetDescription()
 
 	var err error

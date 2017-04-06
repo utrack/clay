@@ -1,4 +1,4 @@
-package transport
+package server
 
 import (
 	"net/http"
@@ -43,23 +43,23 @@ func NewServer(rpcPort int, opts ...Option) *Server {
 	return &Server{opts: serverOpts}
 }
 
-// OptsGRPCOpts sets gRPC server options.
-func OptsGRPCOpts(opts []grpc.ServerOption) Option {
+// WithGRPCOpts sets gRPC server options.
+func WithGRPCOpts(opts []grpc.ServerOption) Option {
 	return func(o *serverOpts) {
 		o.GRPCOpts = opts
 	}
 }
 
-// OptsHTTPPort sets HTTP RPC port to listen on.
+// WithHTTPPort sets HTTP RPC port to listen on.
 // Set same port as main to use single port.
-func OptsHTTPPort(port int) Option {
+func WithHTTPPort(port int) Option {
 	return func(o *serverOpts) {
 		o.HTTPPort = port
 	}
 }
 
-// OptsHTTPMiddlewares sets up HTTP middlewares to work with.
-func OptsHTTPMiddlewares(mws ...mwhttp.Middleware) Option {
+// WithHTTPMiddlewares sets up HTTP middlewares to work with.
+func WithHTTPMiddlewares(mws ...mwhttp.Middleware) Option {
 	mwGeneric := make([]func(http.Handler) http.Handler, 0, len(mws))
 	for _, mw := range mws {
 		mwGeneric = append(mwGeneric, mw)
@@ -69,8 +69,8 @@ func OptsHTTPMiddlewares(mws ...mwhttp.Middleware) Option {
 	}
 }
 
-// OptsHTTPMux sets existing HTTP muxer to use instead of creating new one.
-func OptsHTTPMux(mux *chi.Mux) Option {
+// WithHTTPMux sets existing HTTP muxer to use instead of creating new one.
+func WithHTTPMux(mux *chi.Mux) Option {
 	return func(o *serverOpts) {
 		o.HTTPMux = mux
 	}
