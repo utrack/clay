@@ -1,0 +1,24 @@
+syntax = "proto3";
+package sumpb;
+
+import "google/api/annotations.proto";
+
+service Summator {
+	rpc Sum(SumRequest) returns (SumResponse) {
+		option (google.api.http) = {
+			post: "/v1/example/sum"
+      body: "*"
+		};
+  }
+}
+// SumRequest is a request for Summator service.
+message SumRequest {
+  // A is the number we're adding to. Can't be zero for the sake of example.
+  int64 a = 1;
+  // B is the number we're adding.
+  int64 b = 2;
+}
+
+message SumResponse {
+  int64 sum = 1;
+}
