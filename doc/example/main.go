@@ -9,7 +9,9 @@ import (
 	"github.com/rakyll/statik/fs"
 
 	pb "github.com/utrack/clay/doc/example/pb"
+	"github.com/utrack/clay/log"
 	"github.com/utrack/clay/transport"
+	"github.com/utrack/clay/transport/middlewares/mwgrpc"
 	"github.com/utrack/clay/transport/middlewares/mwhttp"
 	"github.com/utrack/clay/transport/server"
 	"golang.org/x/net/context"
@@ -58,8 +60,10 @@ func main() {
 		12345,
 		// Pass our mux with Swagger UI
 		server.WithHTTPMux(hmux),
-		// Recover from panics
-		server.WithHTTPMiddlewares(mwhttp.Recover()),
+		// Recover from HTTP panics
+		server.WithHTTPMiddlewares(mwhttp.Recover(log.Default), mwhttp.CloseNotifier()),
+		// Recover from gRPC panics
+		server.WithGRPCUnaryMiddlewares(mwgrpc.UnaryPanicHandler(log.Default)),
 	)
 	err = srv.Run(impl)
 	if err != nil {

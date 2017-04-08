@@ -6,6 +6,7 @@ import (
 	"github.com/pressly/chi"
 	"github.com/utrack/clay/transport/middlewares/mwhttp"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 )
 
@@ -46,7 +47,7 @@ func NewServer(rpcPort int, opts ...Option) *Server {
 // WithGRPCOpts sets gRPC server options.
 func WithGRPCOpts(opts []grpc.ServerOption) Option {
 	return func(o *serverOpts) {
-		o.GRPCOpts = opts
+		o.GRPCOpts = append(o.GRPCOpts, opts...)
 	}
 }
 
@@ -66,6 +67,20 @@ func WithHTTPMiddlewares(mws ...mwhttp.Middleware) Option {
 	}
 	return func(o *serverOpts) {
 		o.HTTPMiddlewares = mwGeneric
+	}
+}
+
+// WithGRPCUnaryMiddlewares sets up unary middlewares for gRPC server.
+func WithGRPCUnaryMiddlewares(mws ...grpc.UnaryServerInterceptor) Option {
+	return func(o *serverOpts) {
+		o.GRPCOpts = append(o.GRPCOpts, grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(mws...)))
+	}
+}
+
+// WithGRPCStreamMiddlewares sets up stream middlewares for gRPC server.
+func WithGRPCStreamMiddlewares(mws ...grpc.StreamServerInterceptor) Option {
+	return func(o *serverOpts) {
+		o.GRPCOpts = append(o.GRPCOpts, grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(mws...)))
 	}
 }
 

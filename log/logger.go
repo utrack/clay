@@ -1,5 +1,7 @@
 package log
 
+import "context"
+
 // Level is the message urgency level.
 type Level uint
 
@@ -17,11 +19,17 @@ const (
 	LevelFatal
 )
 
-// Dumper accepts messages along with the Level.
-type Dumper interface {
+// Writer accepts messages along with the Level.
+type Writer interface {
 	Log(Level, ...interface{})
 	Logf(Level, string, ...interface{})
 }
 
+// WriterC is the context-aware Writer.
+type WriterC interface {
+	Logc(context.Context, Level, ...interface{})
+	Logcf(context.Context, Level, string, ...interface{})
+}
+
 // Default is the default logger.
-var Default Dumper
+var Default Writer
