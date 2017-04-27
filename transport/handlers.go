@@ -23,5 +23,5 @@ type ServiceDesc interface {
 // Router routes HTTP requests around.
 type Router interface {
 	Handle(pattern string, h http.Handler)
-	HandleFunc(pattern string, h http.HandlerFunc)
+	HandleFunc(pattern string, h func(http.ResponseWriter, *http.Request))
 }
