@@ -11,7 +11,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
-	gen "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/generator"
 	options "google.golang.org/genproto/googleapis/api/annotations"
 )
 
@@ -19,8 +18,6 @@ type Generator struct {
 	reg         *descriptor.Registry
 	baseImports []descriptor.GoPackage
 }
-
-var _ gen.Generator = &Generator{}
 
 // New returns a new generator which generates handler wrappers.
 func New(reg *descriptor.Registry) *Generator {
@@ -55,11 +52,11 @@ func New(reg *descriptor.Registry) *Generator {
 	return &Generator{reg: reg, baseImports: imports}
 }
 
-func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGeneratorResponse_File, error) {
+func (g *Generator) Generate(targets []*descriptor.File, swagBuffer []byte) ([]*plugin.CodeGeneratorResponse_File, error) {
 	var files []*plugin.CodeGeneratorResponse_File
 	for _, file := range targets {
 		glog.V(1).Infof("Processing %s", file.GetName())
-		code, err := g.getTemplate(file)
+		code, err := g.getTemplate(swagBuffer, file)
 
 		if err == errNoTargetService {
 			glog.V(1).Infof("%s: %v", file.GetName(), err)
@@ -88,7 +85,7 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 	return files, nil
 }
 
-func (g *Generator) getTemplate(f *descriptor.File) (string, error) {
+func (g *Generator) getTemplate(swagBuffer []byte, f *descriptor.File) (string, error) {
 	pkgSeen := make(map[string]bool)
 	var imports []descriptor.GoPackage
 	for _, pkg := range g.baseImports {
@@ -109,7 +106,7 @@ func (g *Generator) getTemplate(f *descriptor.File) (string, error) {
 		}
 	}
 
-	return applyTemplate(param{File: f, Imports: imports})
+	return applyTemplate(param{SwagBuffer: swagBuffer, File: f, Imports: imports})
 }
 
 func annotateString(str string) string {

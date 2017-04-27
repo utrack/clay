@@ -2,10 +2,6 @@ package genhandler
 
 import (
 	"bytes"
-	"fmt"
-	"io/ioutil"
-	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
@@ -18,7 +14,8 @@ var (
 
 type param struct {
 	*descriptor.File
-	Imports []descriptor.GoPackage
+	Imports    []descriptor.GoPackage
+	SwagBuffer []byte
 }
 
 func applyTemplate(p param) (string, error) {
@@ -31,18 +28,7 @@ func applyTemplate(p param) (string, error) {
 		return "", err
 	}
 
-	// Slurp Swagger file
-	swaggerFile := p.File.GetName()
-	ext := filepath.Ext(swaggerFile)
-	swBase := strings.TrimSuffix(swaggerFile, ext)
-	swaggerFile = fmt.Sprintf("%s.swagger.json", swBase)
-
-	swagger, err := ioutil.ReadFile(swaggerFile)
-	if err != nil {
-		return "", errors.Wrap(err, "Couldn't find Swagger definition for file")
-	}
-
-	if err := footerTemplate.Execute(w, string(swagger)); err != nil {
+	if err := footerTemplate.Execute(w, string(p.SwagBuffer)); err != nil {
 		return "", err
 	}
 

@@ -62,13 +62,12 @@ func main() {
 	}
 
 	reg.SetPrefix(*importPrefix)
-	reg.SetAllowDeleteBody(*allowDeleteBody)
 	for k, v := range pkgMap {
 		reg.AddPkgMap(k, v)
 	}
 	g := genhandler.New(reg)
 
-	if err := reg.Load(req); err != nil {
+	if err = reg.Load(req); err != nil {
 		emitError(err)
 		return
 	}
@@ -82,13 +81,28 @@ func main() {
 		targets = append(targets, f)
 	}
 
-	out, err := g.Generate(targets)
+	swagBuf, err := genSwaggerDef(req, pkgMap)
+	if err != nil {
+		emitError(err)
+		return
+	}
+
+	// TODO only one Swagger file is supported now
+	out, err := g.Generate(targets, swagBuf)
 	glog.V(1).Info("Processed code generator request")
 	if err != nil {
 		emitError(err)
 		return
 	}
-	emitFiles(out)
+	emitFiles(os.Stdout, out)
+}
+
+func ptrOfInt32(i int32) *int32 {
+	return &i
+}
+
+func ptrOfString(s string) *string {
+	return &s
 }
 
 // parseReqParam parses a CodeGeneratorRequest parameter and adds the
@@ -126,20 +140,20 @@ func parseReqParam(param string, f *flag.FlagSet, pkgMap map[string]string) erro
 	return nil
 }
 
-func emitFiles(out []*plugin.CodeGeneratorResponse_File) {
-	emitResp(&plugin.CodeGeneratorResponse{File: out})
+func emitFiles(w io.Writer, out []*plugin.CodeGeneratorResponse_File) {
+	emitResp(w, &plugin.CodeGeneratorResponse{File: out})
 }
 
 func emitError(err error) {
-	emitResp(&plugin.CodeGeneratorResponse{Error: proto.String(err.Error())})
+	emitResp(os.Stdout, &plugin.CodeGeneratorResponse{Error: proto.String(err.Error())})
 }
 
-func emitResp(resp *plugin.CodeGeneratorResponse) {
+func emitResp(out io.Writer, resp *plugin.CodeGeneratorResponse) {
 	buf, err := proto.Marshal(resp)
 	if err != nil {
 		glog.Fatal(err)
 	}
-	if _, err := os.Stdout.Write(buf); err != nil {
+	if _, err := out.Write(buf); err != nil {
 		glog.Fatal(err)
 	}
 }
