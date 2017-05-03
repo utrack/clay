@@ -14,8 +14,9 @@ var (
 
 type param struct {
 	*descriptor.File
-	Imports    []descriptor.GoPackage
-	SwagBuffer []byte
+	Imports          []descriptor.GoPackage
+	SwagBuffer       []byte
+	EmitJSONDefaults bool
 }
 
 func applyTemplate(p param) (string, error) {
@@ -99,8 +100,7 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 	    return
 	  }
 
-	  m := &jsonpb.Marshaler{}
-	  err = m.Marshal(w, ret)
+	  err = _{{$svc.GetName}}_pbMarshaler.Marshal(w, ret)
 	  if err != nil {
 	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't write response"),nil)
 	    return
@@ -108,6 +108,9 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
       })
       {{end}}
       {{end}}
+}
+var _{{$svc.GetName}}_pbMarshaler = &jsonpb.Marshaler{
+      EmitDefaults: {{$.EmitJSONDefaults}},
 }
 {{end}}
 `))
