@@ -34,7 +34,7 @@ func MarshalerForRequest(r *http.Request) (Marshaler, Marshaler) {
 }
 
 func marshalerOrDefault(t string) Marshaler {
-	sepIdx := strings.Index(t, ";")
+	sepIdx := strings.IndexAny(t, ";,")
 	// TODO we're not negotiating really. Account the q= param and additional
 	// options
 	if sepIdx > 0 {
