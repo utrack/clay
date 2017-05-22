@@ -17,10 +17,9 @@ import (
 )
 
 var (
-	importPrefix     = flag.String("import_prefix", "", "prefix to be added to go package paths for imported proto files")
-	file             = flag.String("file", "stdin", "where to load data from")
-	allowDeleteBody  = flag.Bool("allow_delete_body", false, "unless set, HTTP DELETE methods may not have a body")
-	emitJsonDefaults = flag.Bool("json_emit_defaults", false, "Emit default/zero values at JSON")
+	importPrefix    = flag.String("import_prefix", "", "prefix to be added to go package paths for imported proto files")
+	file            = flag.String("file", "stdin", "where to load data from")
+	allowDeleteBody = flag.Bool("allow_delete_body", false, "unless set, HTTP DELETE methods may not have a body")
 )
 
 func parseReq(r io.Reader) (*plugin.CodeGeneratorRequest, error) {
@@ -89,7 +88,7 @@ func main() {
 	}
 
 	// TODO only one Swagger file is supported now
-	out, err := g.Generate(targets, swagBuf, *emitJsonDefaults)
+	out, err := g.Generate(targets, swagBuf)
 	glog.V(1).Info("Processed code generator request")
 	if err != nil {
 		emitError(err)

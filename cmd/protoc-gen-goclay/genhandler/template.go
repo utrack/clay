@@ -14,9 +14,8 @@ var (
 
 type param struct {
 	*descriptor.File
-	Imports          []descriptor.GoPackage
-	SwagBuffer       []byte
-	EmitJSONDefaults bool
+	Imports    []descriptor.GoPackage
+	SwagBuffer []byte
 }
 
 func applyTemplate(p param) (string, error) {
@@ -88,8 +87,10 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 	{{range $b := $m.Bindings}}
 	mux.HandleFunc("/"+pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}, func(w http.ResponseWriter, r *http.Request) {
 	  //TODO only POST is supported atm
+
+          inbound,outbound := httpruntime.MarshalerForRequest(r)
 	  var req {{$m.RequestType.GetName}}
-	  err := jsonpb.Unmarshal(r.Body, &req)
+	  err := inbound.Unmarshal(r.Body, &req)
 	  if err != nil {
 	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't read request JSON"),nil)
 	    return
@@ -100,7 +101,8 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 	    return
 	  }
 
-	  err = _{{$svc.GetName}}_pbMarshaler.Marshal(w, ret)
+          w.Header().Set("Content-Type", outbound.ContentType())
+	  err = outbound.Marshal(w, ret)
 	  if err != nil {
 	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't write response"),nil)
 	    return
@@ -108,9 +110,6 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
       })
       {{end}}
       {{end}}
-}
-var _{{$svc.GetName}}_pbMarshaler = &jsonpb.Marshaler{
-      EmitDefaults: {{$.EmitJSONDefaults}},
 }
 {{end}}
 `))

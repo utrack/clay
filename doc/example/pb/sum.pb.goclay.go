@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/pkg/errors"
 	"github.com/utrack/clay/transport"
 	"github.com/utrack/clay/transport/httpruntime"
@@ -47,8 +46,10 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 
 	mux.HandleFunc("/"+pattern_goclay_Summator_Sum_0, func(w http.ResponseWriter, r *http.Request) {
 		//TODO only POST is supported atm
+
+		inbound, outbound := httpruntime.MarshalerForRequest(r)
 		var req SumRequest
-		err := jsonpb.Unmarshal(r.Body, &req)
+		err := inbound.Unmarshal(r.Body, &req)
 		if err != nil {
 			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't read request JSON"), nil)
 			return
@@ -59,8 +60,8 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 			return
 		}
 
-		m := &jsonpb.Marshaler{}
-		err = m.Marshal(w, ret)
+		w.Header().Set("Content-Type", outbound.ContentType())
+		err = outbound.Marshal(w, ret)
 		if err != nil {
 			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"), nil)
 			return
