@@ -15,10 +15,8 @@ type Marshaler interface {
 	Marshal(io.Writer, proto.Message) error
 }
 
-var defaultMarshaler = MarshalerPbJSON{Marshaler: &jsonpb.Marshaler{}}
-
 var marshalDict = map[string]Marshaler{
-	"application/json": defaultMarshaler,
+	"application/json": MarshalerPbJSON{Marshaler: &jsonpb.Marshaler{}},
 }
 
 // OverrideMarshaler replaces marshaler for given content-type.
@@ -45,7 +43,7 @@ func marshalerOrDefault(t string) Marshaler {
 	if m, ok := marshalDict[t]; ok {
 		return m
 	}
-	return defaultMarshaler
+	return marshalDict[MarshalerPbJSON{}.ContentType()]
 }
 
 type MarshalerPbJSON struct {
