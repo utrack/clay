@@ -16,7 +16,10 @@ type Marshaler interface {
 }
 
 var marshalDict = map[string]Marshaler{
-	"application/json": MarshalerPbJSON{Marshaler: &jsonpb.Marshaler{}},
+	"application/json": MarshalerPbJSON{
+		Marshaler:   &jsonpb.Marshaler{},
+		Unmarshaler: &jsonpb.Unmarshaler{},
+	},
 }
 
 // OverrideMarshaler replaces marshaler for given content-type.
@@ -47,15 +50,16 @@ func marshalerOrDefault(t string) Marshaler {
 }
 
 type MarshalerPbJSON struct {
-	Marshaler *jsonpb.Marshaler
+	Marshaler   *jsonpb.Marshaler
+	Unmarshaler *jsonpb.Unmarshaler
 }
 
 func (MarshalerPbJSON) ContentType() string {
 	return "application/json"
 }
 
-func (MarshalerPbJSON) Unmarshal(r io.Reader, dst proto.Message) error {
-	return jsonpb.Unmarshal(r, dst)
+func (m MarshalerPbJSON) Unmarshal(r io.Reader, dst proto.Message) error {
+	return m.Unmarshaler.Unmarshal(r, dst)
 }
 
 func (m MarshalerPbJSON) Marshal(w io.Writer, src proto.Message) error {
