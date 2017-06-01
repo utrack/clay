@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	gogojsonpb "github.com/gogo/protobuf/jsonpb"
+	gogoproto "github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 )
@@ -17,8 +19,9 @@ type Marshaler interface {
 
 var marshalDict = map[string]Marshaler{
 	"application/json": MarshalerPbJSON{
-		Marshaler:   &jsonpb.Marshaler{},
-		Unmarshaler: &jsonpb.Unmarshaler{},
+		Marshaler:       &jsonpb.Marshaler{},
+		Unmarshaler:     &jsonpb.Unmarshaler{},
+		GogoUnmarshaler: &gogojsonpb.Unmarshaler{},
 	},
 }
 
@@ -50,8 +53,9 @@ func marshalerOrDefault(t string) Marshaler {
 }
 
 type MarshalerPbJSON struct {
-	Marshaler   *jsonpb.Marshaler
-	Unmarshaler *jsonpb.Unmarshaler
+	Marshaler       *jsonpb.Marshaler
+	Unmarshaler     *jsonpb.Unmarshaler
+	GogoUnmarshaler *gogojsonpb.Unmarshaler
 }
 
 func (MarshalerPbJSON) ContentType() string {
@@ -59,6 +63,9 @@ func (MarshalerPbJSON) ContentType() string {
 }
 
 func (m MarshalerPbJSON) Unmarshal(r io.Reader, dst proto.Message) error {
+	if gogoproto.MessageName(dst) != "" {
+		return m.GogoUnmarshaler.Unmarshal(r, dst)
+	}
 	return m.Unmarshaler.Unmarshal(r, dst)
 }
 
