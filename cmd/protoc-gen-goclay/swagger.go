@@ -7,7 +7,7 @@ import (
 	"github.com/utrack/grpc-gateway/protoc-gen-swagger/genswagger"
 )
 
-func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) ([]byte, error) {
+func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) (map[string][]byte, error) {
 	reg := descriptor.NewRegistry()
 	reg.SetPrefix(*importPrefix)
 	reg.SetAllowDeleteBody(*allowDeleteBody)
@@ -35,5 +35,9 @@ func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) (
 	if err != nil {
 		return nil, err
 	}
-	return []byte(outSwag[0].GetContent()), nil
+	ret := make(map[string][]byte, len(outSwag))
+	for pos := range outSwag {
+		ret[req.FileToGenerate[pos]] = []byte(outSwag[pos].GetContent())
+	}
+	return ret, nil
 }

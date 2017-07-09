@@ -87,7 +87,6 @@ func main() {
 		return
 	}
 
-	// TODO only one Swagger file is supported now
 	out, err := g.Generate(targets, swagBuf)
 	glog.V(1).Info("Processed code generator request")
 	if err != nil {
