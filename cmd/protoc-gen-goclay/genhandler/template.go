@@ -47,7 +47,7 @@ func applyTemplate(p param) (string, error) {
 
 var (
 	funcMap = template.FuncMap{
-		"dotToUnderscore": func(s string) string { return strings.Replace(s, ".", "_", -1) },
+		"dotToUnderscore": func(s string) string { return strings.Replace(strings.Replace(s, ".", "_", -1), "/", "_", -1) },
 		"byteStr":         func(b []byte) string { return string(b) },
 	}
 

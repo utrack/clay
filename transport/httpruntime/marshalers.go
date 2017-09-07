@@ -21,6 +21,7 @@ var marshalDict = map[string]Marshaler{
 	"application/json": MarshalerPbJSON{
 		Marshaler:       &jsonpb.Marshaler{},
 		Unmarshaler:     &jsonpb.Unmarshaler{},
+		GogoMarshaler:   &gogojsonpb.Marshaler{},
 		GogoUnmarshaler: &gogojsonpb.Unmarshaler{},
 	},
 }
@@ -55,6 +56,7 @@ func marshalerOrDefault(t string) Marshaler {
 type MarshalerPbJSON struct {
 	Marshaler       *jsonpb.Marshaler
 	Unmarshaler     *jsonpb.Unmarshaler
+	GogoMarshaler   *gogojsonpb.Marshaler
 	GogoUnmarshaler *gogojsonpb.Unmarshaler
 }
 
@@ -70,5 +72,8 @@ func (m MarshalerPbJSON) Unmarshal(r io.Reader, dst proto.Message) error {
 }
 
 func (m MarshalerPbJSON) Marshal(w io.Writer, src proto.Message) error {
+	if gogoproto.MessageName(src) != "" {
+		return m.GogoMarshaler.Marshal(w, src)
+	}
 	return m.Marshaler.Marshal(w, src)
 }
