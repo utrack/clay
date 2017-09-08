@@ -49,6 +49,7 @@ var (
 	funcMap = template.FuncMap{
 		"dotToUnderscore": func(s string) string { return strings.Replace(strings.Replace(s, ".", "_", -1), "/", "_", -1) },
 		"byteStr":         func(b []byte) string { return string(b) },
+		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
 	}
 
 	headerTemplate = template.Must(template.New("header").Parse(`
@@ -126,7 +127,7 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 `))
 
 	footerTemplate = template.Must(template.New("footer").Funcs(funcMap).Parse(`
-var _swaggerDef_{{dotToUnderscore .GetName}} = []byte(` + "`" + `{{byteStr .SwagBuffer}}` + `
+var _swaggerDef_{{dotToUnderscore .GetName}} = []byte(` + "`" + `{{escapeBackTicks (byteStr .SwagBuffer)}}` + `
 ` + "`)" + `
 `))
 
