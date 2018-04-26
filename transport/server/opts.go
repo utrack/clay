@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 	"github.com/utrack/clay/transport/middlewares/mwhttp"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"

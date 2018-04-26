@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 	"github.com/soheilhy/cmux"
 )
 

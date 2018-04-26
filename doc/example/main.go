@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 	"github.com/rakyll/statik/fs"
 
 	pb "github.com/utrack/clay/doc/example/pb"

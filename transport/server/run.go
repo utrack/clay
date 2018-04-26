@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 	"github.com/utrack/clay/transport"
 
 	"github.com/pkg/errors"
