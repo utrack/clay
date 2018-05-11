@@ -99,6 +99,7 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 	{{range $b := $m.Bindings}}
 	mux.HandleFunc("/"+pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}, func(w http.ResponseWriter, r *http.Request) {
 	  //TODO only POST is supported atm
+          defer r.Body.Close()
 
           inbound,outbound := httpruntime.MarshalerForRequest(r)
 	  var req {{$m.RequestType.GetName}}
