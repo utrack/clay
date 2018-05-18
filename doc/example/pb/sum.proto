@@ -20,9 +20,6 @@ message SumRequest {
 }
 
 message SumResponse {
-        SumResponseData data = 1;
-        string error = 2;
-}
-message SumResponseData {
         int64 sum = 1;
+        string error = 2;
 }

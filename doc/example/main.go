@@ -31,7 +31,7 @@ func (s *SumImpl) Sum(ctx context.Context, r *pb.SumRequest) (*pb.SumResponse, e
 	}
 
 	if r.GetB() == 65536 {
-		panic(errors.New("we've got a problem!"))
+		panic(errors.New("we've got a problem"))
 	}
 
 	sum := r.GetA() + r.GetB()

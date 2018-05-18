@@ -19,6 +19,9 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Update your shared lib or downgrade generator to v1 if there's an error
+var _ = transport.IsVersion2
+
 // SummatorDesc is a descriptor/registrator for the SummatorServer.
 type SummatorDesc struct {
 	svc SummatorServer
@@ -36,41 +39,42 @@ func (d *SummatorDesc) RegisterGRPC(s *grpc.Server) {
 
 // SwaggerDef returns this file's Swagger definition.
 func (d *SummatorDesc) SwaggerDef() []byte {
-	return _swaggerDef
+	return _swaggerDef_sum_proto
 }
 
 // RegisterHTTP registers this service's HTTP handlers/bindings.
 func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
+	//TODO only POST is supported atm
 
 	// Handlers for Sum
 
-	mux.HandleFunc("/"+pattern_goclay_Summator_Sum_0, func(w http.ResponseWriter, r *http.Request) {
-		//TODO only POST is supported atm
+	mux.MethodFunc("/"+pattern_goclay_Summator_Sum_0, "POST", func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 
 		inbound, outbound := httpruntime.MarshalerForRequest(r)
 		var req SumRequest
 		err := inbound.Unmarshal(r.Body, &req)
 		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't read request JSON"), nil)
+			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't read request JSON"))
 			return
 		}
 		ret, err := d.svc.Sum(r.Context(), &req)
 		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"), nil)
+			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
 			return
 		}
 
 		w.Header().Set("Content-Type", outbound.ContentType())
 		err = outbound.Marshal(w, ret)
 		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"), nil)
+			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"))
 			return
 		}
 	})
 
 }
 
-var _swaggerDef = []byte(`{
+var _swaggerDef_sum_proto = []byte(`{
   "swagger": "2.0",
   "info": {
     "title": "sum.proto",
@@ -150,20 +154,12 @@ var _swaggerDef = []byte(`{
     "sumpbSumResponse": {
       "type": "object",
       "properties": {
-        "data": {
-          "$ref": "#/definitions/sumpbSumResponseData"
-        },
-        "error": {
-          "type": "string"
-        }
-      }
-    },
-    "sumpbSumResponseData": {
-      "type": "object",
-      "properties": {
         "sum": {
           "type": "string",
           "format": "int64"
+        },
+        "error": {
+          "type": "string"
         }
       }
     }

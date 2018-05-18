@@ -22,6 +22,9 @@ type ServiceDesc interface {
 
 // Router routes HTTP requests around.
 type Router interface {
-	Handle(pattern string, h http.Handler)
-	HandleFunc(pattern string, h func(http.ResponseWriter, *http.Request))
+	http.Handler
+	Method(pattern string, method string, h http.Handler)
+	MethodFunc(pattern string, method string, h func(http.ResponseWriter, *http.Request))
+	// Use makes this router use middlewares passed.
+	Use(middlewares ...func(http.Handler) http.Handler)
 }

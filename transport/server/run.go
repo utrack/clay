@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/go-chi/chi"
 	"github.com/utrack/clay/transport"
 
 	"github.com/pkg/errors"
@@ -33,14 +32,6 @@ func (s *Server) Run(svc transport.Service) error {
 	desc.RegisterGRPC(s.srv.grpc)
 
 	return s.run(s.listeners, s.srv)
-}
-
-type chiWrapper struct {
-	chi.Router
-}
-
-func (c *chiWrapper) HandleFunc(pattern string, h func(http.ResponseWriter, *http.Request)) {
-	c.Router.HandleFunc(pattern, h)
 }
 
 func (Server) run(l *listenerSet, s *serverSet) error {

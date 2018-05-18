@@ -69,6 +69,9 @@ import (
 	{{range $i := .Imports}}{{if not $i.Standard}}{{$i | printf "%s\n"}}{{end}}{{end}}
 )
 
+// Update your shared lib or downgrade generator to v1 if there's an error
+var _ = transport.IsVersion2
+
 `))
 	regTemplate = template.Must(template.New("svc-reg").Funcs(funcMap).Parse(`
 {{range $svc := .Services}}
@@ -94,30 +97,30 @@ func (d *{{$svc.GetName}}Desc) SwaggerDef() []byte {
 
 // RegisterHTTP registers this service's HTTP handlers/bindings.
 func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
+	//TODO only POST is supported atm
 	{{range $m := $svc.Methods}}
 	// Handlers for {{$m.GetName}}
 	{{range $b := $m.Bindings}}
-	mux.HandleFunc("/"+pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}, func(w http.ResponseWriter, r *http.Request) {
-	  //TODO only POST is supported atm
+	mux.MethodFunc("/"+pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}},"POST", func(w http.ResponseWriter, r *http.Request) {
           defer r.Body.Close()
 
           inbound,outbound := httpruntime.MarshalerForRequest(r)
 	  var req {{$m.RequestType.GetName}}
 	  err := inbound.Unmarshal(r.Body, &req)
 	  if err != nil {
-	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't read request JSON"),nil)
+	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't read request JSON"))
 	    return
 	  }
 	  ret,err := d.svc.{{$m.GetName}}(r.Context(),&req)
 	  if err != nil {
-	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"returned from handler"),nil)
+	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"returned from handler"))
 	    return
 	  }
 
           w.Header().Set("Content-Type", outbound.ContentType())
 	  err = outbound.Marshal(w, ret)
 	  if err != nil {
-	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't write response"),nil)
+	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't write response"))
 	    return
 	  }
       })

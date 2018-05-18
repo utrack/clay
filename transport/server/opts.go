@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/utrack/clay/transport"
 	"github.com/utrack/clay/transport/middlewares/mwhttp"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
@@ -17,7 +18,7 @@ type serverOpts struct {
 	RPCPort int
 	// If HTTPPort is the same then muxing listener is created.
 	HTTPPort int
-	HTTPMux  chi.Router
+	HTTPMux  transport.Router
 
 	HTTPMiddlewares []func(http.Handler) http.Handler
 
@@ -28,7 +29,7 @@ func defaultServerOpts(mainPort int) *serverOpts {
 	return &serverOpts{
 		RPCPort:  mainPort,
 		HTTPPort: mainPort,
-		HTTPMux:  chi.NewMux(),
+		HTTPMux:  &chiWrapper{Router: chi.NewMux()},
 	}
 }
 
@@ -86,6 +87,12 @@ func WithGRPCStreamMiddlewares(mws ...grpc.StreamServerInterceptor) Option {
 
 // WithHTTPMux sets existing HTTP muxer to use instead of creating new one.
 func WithHTTPMux(mux *chi.Mux) Option {
+	return func(o *serverOpts) {
+		o.HTTPMux = &chiWrapper{Router: mux}
+	}
+}
+
+func WithHTTPRouterMux(mux transport.Router) Option {
 	return func(o *serverOpts) {
 		o.HTTPMux = mux
 	}

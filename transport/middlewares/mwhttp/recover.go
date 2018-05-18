@@ -22,8 +22,7 @@ func Recover(logger interface{}) Middleware {
 					httpruntime.SetError(
 						r.Context(),
 						r, w,
-						errors.Errorf("recovered from panic: %v", rec),
-						map[string]string{"stack": stack},
+						errors.Errorf("recovered from panic: %v\nstack:%v", rec, stack),
 					)
 					logFunc(r.Context(), fmt.Sprintf("recovered from panic: %v, %v ", rec, stack))
 				}
