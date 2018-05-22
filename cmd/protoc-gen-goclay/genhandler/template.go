@@ -25,7 +25,7 @@ func applyTemplate(p param) (string, error) {
 		return "", err
 	}
 
-	if err := regTemplate.Execute(w, p); err != nil {
+	if err := regTemplate.ExecuteTemplate(w, "base", p); err != nil {
 		return "", err
 	}
 
@@ -74,6 +74,7 @@ var _ = transport.IsVersion2
 
 `))
 	regTemplate = template.Must(template.New("svc-reg").Funcs(funcMap).Parse(`
+{{define "base"}}
 {{range $svc := .Services}}
 // {{$svc.GetName}}Desc is a descriptor/registrator for the {{$svc.GetName}}Server.
 type {{$svc.GetName}}Desc struct {
@@ -97,20 +98,16 @@ func (d *{{$svc.GetName}}Desc) SwaggerDef() []byte {
 
 // RegisterHTTP registers this service's HTTP handlers/bindings.
 func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
-	//TODO only POST is supported atm
 	{{range $m := $svc.Methods}}
 	// Handlers for {{$m.GetName}}
 	{{range $b := $m.Bindings}}
 	mux.MethodFunc("/"+pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}},"POST", func(w http.ResponseWriter, r *http.Request) {
           defer r.Body.Close()
 
-          inbound,outbound := httpruntime.MarshalerForRequest(r)
 	  var req {{$m.RequestType.GetName}}
-	  err := inbound.Unmarshal(r.Body, &req)
-	  if err != nil {
-	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't read request JSON"))
-	    return
-	  }
+
+          {{template "unpost" .}}
+
 	  ret,err := d.svc.{{$m.GetName}}(r.Context(),&req)
 	  if err != nil {
 	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"returned from handler"))
@@ -127,6 +124,15 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
       {{end}}
       {{end}}
 }
+{{end}}
+{{end}} // base service handler ended
+{{define "unpost"}}
+          inbound,outbound := httpruntime.MarshalerForRequest(r)
+	  err := inbound.Unmarshal(r.Body, &req)
+	  if err != nil {
+	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't read request JSON"))
+	    return
+	  }
 {{end}}
 `))
 

@@ -44,20 +44,21 @@ func (d *SummatorDesc) SwaggerDef() []byte {
 
 // RegisterHTTP registers this service's HTTP handlers/bindings.
 func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
-	//TODO only POST is supported atm
 
 	// Handlers for Sum
 
 	mux.MethodFunc("/"+pattern_goclay_Summator_Sum_0, "POST", func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
-		inbound, outbound := httpruntime.MarshalerForRequest(r)
 		var req SumRequest
+
+		inbound, outbound := httpruntime.MarshalerForRequest(r)
 		err := inbound.Unmarshal(r.Body, &req)
 		if err != nil {
 			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't read request JSON"))
 			return
 		}
+
 		ret, err := d.svc.Sum(r.Context(), &req)
 		if err != nil {
 			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))

@@ -132,8 +132,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for Summator service
-
+// SummatorClient is the client API for Summator service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SummatorClient interface {
 	Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error)
 }
@@ -148,15 +149,14 @@ func NewSummatorClient(cc *grpc.ClientConn) SummatorClient {
 
 func (c *summatorClient) Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error) {
 	out := new(SumResponse)
-	err := grpc.Invoke(ctx, "/sumpb.Summator/Sum", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/sumpb.Summator/Sum", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for Summator service
-
+// SummatorServer is the server API for Summator service.
 type SummatorServer interface {
 	Sum(context.Context, *SumRequest) (*SumResponse, error)
 }
