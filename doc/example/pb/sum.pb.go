@@ -39,7 +39,7 @@ func (m *SumRequest) Reset()         { *m = SumRequest{} }
 func (m *SumRequest) String() string { return proto.CompactTextString(m) }
 func (*SumRequest) ProtoMessage()    {}
 func (*SumRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_sum_f0ce87d1f8f3f621, []int{0}
+	return fileDescriptor_sum_179ee1cd7782bcb6, []int{0}
 }
 func (m *SumRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SumRequest.Unmarshal(m, b)
@@ -85,7 +85,7 @@ func (m *SumResponse) Reset()         { *m = SumResponse{} }
 func (m *SumResponse) String() string { return proto.CompactTextString(m) }
 func (*SumResponse) ProtoMessage()    {}
 func (*SumResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_sum_f0ce87d1f8f3f621, []int{1}
+	return fileDescriptor_sum_179ee1cd7782bcb6, []int{1}
 }
 func (m *SumResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SumResponse.Unmarshal(m, b)
@@ -196,9 +196,9 @@ var _Summator_serviceDesc = grpc.ServiceDesc{
 	Metadata: "sum.proto",
 }
 
-func init() { proto.RegisterFile("sum.proto", fileDescriptor_sum_f0ce87d1f8f3f621) }
+func init() { proto.RegisterFile("sum.proto", fileDescriptor_sum_179ee1cd7782bcb6) }
 
-var fileDescriptor_sum_f0ce87d1f8f3f621 = []byte{
+var fileDescriptor_sum_179ee1cd7782bcb6 = []byte{
 	// 213 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x8f, 0xc1, 0x4a, 0x03, 0x41,
 	0x0c, 0x86, 0xd9, 0x2e, 0x15, 0x1b, 0x3d, 0x68, 0x10, 0xac, 0x45, 0x50, 0xf6, 0xd4, 0xd3, 0x0e,

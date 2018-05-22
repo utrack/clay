@@ -28,7 +28,7 @@ func New(reg *descriptor.Registry) *Generator {
 		"github.com/utrack/clay/transport",
 		"github.com/utrack/clay/transport/httpruntime",
 
-		"github.com/utrack/grpc-gateway/runtime",
+		"github.com/grpc-ecosystem/grpc-gateway/runtime",
 
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",

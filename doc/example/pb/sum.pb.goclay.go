@@ -13,10 +13,10 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	"github.com/utrack/clay/transport"
 	"github.com/utrack/clay/transport/httpruntime"
-	"github.com/utrack/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
 
