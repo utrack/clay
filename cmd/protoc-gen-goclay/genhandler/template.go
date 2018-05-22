@@ -38,7 +38,7 @@ func applyTemplate(p param) (string, error) {
 		return "", err
 	}
 
-	if err := patternsTemplate.Execute(w, p); err != nil {
+	if err := patternsTemplate.ExecuteTemplate(w, "base", p); err != nil {
 		return "", err
 	}
 
@@ -72,6 +72,7 @@ import (
 // Update your shared lib or downgrade generator to v1 if there's an error
 var _ = transport.IsVersion2
 
+var _ chi.Router
 `))
 	regTemplate = template.Must(template.New("svc-reg").Funcs(funcMap).Parse(`
 {{define "base"}}
@@ -101,12 +102,15 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 	{{range $m := $svc.Methods}}
 	// Handlers for {{$m.GetName}}
 	{{range $b := $m.Bindings}}
-	mux.MethodFunc("/"+pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}},"POST", func(w http.ResponseWriter, r *http.Request) {
+	mux.MethodFunc(pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}},"{{$b.HTTPMethod}}", func(w http.ResponseWriter, r *http.Request) {
           defer r.Body.Close()
 
 	  var req {{$m.RequestType.GetName}}
-
-          {{template "unpost" .}}
+          err := unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}(r,&req)
+	  if err != nil {
+	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't parse request"))
+	    return
+	  }
 
 	  ret,err := d.svc.{{$m.GetName}}(r.Context(),&req)
 	  if err != nil {
@@ -114,6 +118,7 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 	    return
 	  }
 
+          _,outbound := httpruntime.MarshalerForRequest(r)
           w.Header().Set("Content-Type", outbound.ContentType())
 	  err = outbound.Marshal(w, ret)
 	  if err != nil {
@@ -126,14 +131,6 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 }
 {{end}}
 {{end}} // base service handler ended
-{{define "unpost"}}
-          inbound,outbound := httpruntime.MarshalerForRequest(r)
-	  err := inbound.Unmarshal(r.Body, &req)
-	  if err != nil {
-	    httpruntime.SetError(r.Context(),r,w,errors.Wrap(err,"couldn't read request JSON"))
-	    return
-	  }
-{{end}}
 `))
 
 	footerTemplate = template.Must(template.New("footer").Funcs(funcMap).Parse(`
@@ -142,14 +139,38 @@ var _swaggerDef_{{dotToUnderscore .GetName}} = []byte(` + "`" + `{{escapeBackTic
 `))
 
 	patternsTemplate = template.Must(template.New("patterns").Parse(`
+{{define "base"}}
 var (
 {{range $svc := .Services}}
 {{range $m := $svc.Methods}}
 {{range $b := $m.Bindings}}
-	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = strings.Join({{$b.PathTmpl.Pool | printf "%#v"}},"/")
+	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = "{{$b.PathTmpl.Template}}"
+        unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *http.Request,req *{{$m.RequestType.GetName}}) error {
+        {{if eq $b.HTTPMethod "GET" }}
+          {{template "unget" .}}
+        {{end}}
+        {{if eq $b.HTTPMethod "POST" }}
+          {{template "unpost" .}}
+        {{end}}
+        }
 {{end}}
 {{end}}
 {{end}}
 )
+{{end}}
+{{define "unpost"}}
+          inbound,_ := httpruntime.MarshalerForRequest(r)
+	  return errors.Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON")
+{{end}}
+{{define "unget"}}
+	  rctx := chi.RouteContext(r.Context())
+          if rctx == nil {
+            panic("Only chi router is supported for GETs atm")
+	  }
+          for pos,k := range rctx.URLParams.Keys {
+	    runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
+          }
+          return nil
+{{end}}
 `))
 )

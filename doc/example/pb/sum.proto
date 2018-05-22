@@ -6,9 +6,10 @@ import "google/api/annotations.proto";
 service Summator {
 	rpc Sum(SumRequest) returns (SumResponse) {
 		option (google.api.http) = {
-			post: "/v1/example/sum"
-      body: "*"
-		};
+			get: "/v1/example/sum/{a}/{b}"
+			// post: "/v1/example/sum"
+      // body: "*"
+};
   }
 }
 // SumRequest is a request for Summator service.

@@ -11,16 +11,19 @@ package sumpb
 
 import (
 	"net/http"
-	"strings"
 
+	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 	"github.com/utrack/clay/transport"
 	"github.com/utrack/clay/transport/httpruntime"
+	"github.com/utrack/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
 
 // Update your shared lib or downgrade generator to v1 if there's an error
 var _ = transport.IsVersion2
+
+var _ chi.Router
 
 // SummatorDesc is a descriptor/registrator for the SummatorServer.
 type SummatorDesc struct {
@@ -47,15 +50,13 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 
 	// Handlers for Sum
 
-	mux.MethodFunc("/"+pattern_goclay_Summator_Sum_0, "POST", func(w http.ResponseWriter, r *http.Request) {
+	mux.MethodFunc(pattern_goclay_Summator_Sum_0, "GET", func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
 		var req SumRequest
-
-		inbound, outbound := httpruntime.MarshalerForRequest(r)
-		err := inbound.Unmarshal(r.Body, &req)
+		err := unmarshaler_goclay_Summator_Sum_0(r, &req)
 		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't read request JSON"))
+			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
 			return
 		}
 
@@ -65,6 +66,7 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 			return
 		}
 
+		_, outbound := httpruntime.MarshalerForRequest(r)
 		w.Header().Set("Content-Type", outbound.ContentType())
 		err = outbound.Marshal(w, ret)
 		if err != nil {
@@ -92,8 +94,8 @@ var _swaggerDef_sum_proto = []byte(`{
     "application/json"
   ],
   "paths": {
-    "/v1/example/sum": {
-      "post": {
+    "/v1/example/sum/{a}/{b}": {
+      "get": {
         "operationId": "Sum",
         "responses": {
           "200": {
@@ -101,32 +103,22 @@ var _swaggerDef_sum_proto = []byte(`{
             "schema": {
               "$ref": "#/definitions/sumpbSumResponse"
             }
-          },
-          "default": {
-            "description": "Error object is returned on error.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "error": {
-                  "type": "string",
-                  "description": "Error string."
-                },
-                "data": {
-                  "type": "object",
-                  "description": "Freeform auxilliary data set of string-string."
-                }
-              }
-            }
           }
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
+            "name": "a",
+            "in": "path",
             "required": true,
-            "schema": {
-              "$ref": "#/definitions/sumpbSumRequest"
-            }
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "b",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -170,5 +162,17 @@ var _swaggerDef_sum_proto = []byte(`{
 `)
 
 var (
-	pattern_goclay_Summator_Sum_0 = strings.Join([]string{"v1", "example", "sum"}, "/")
+	pattern_goclay_Summator_Sum_0     = "/v1/example/sum/{a}/{b}"
+	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request, req *SumRequest) error {
+
+		rctx := chi.RouteContext(r.Context())
+		if rctx == nil {
+			panic("Only chi router is supported for GETs atm")
+		}
+		for pos, k := range rctx.URLParams.Keys {
+			runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
+		}
+		return nil
+
+	}
 )

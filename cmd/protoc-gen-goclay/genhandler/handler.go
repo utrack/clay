@@ -24,12 +24,14 @@ func New(reg *descriptor.Registry) *Generator {
 	var imports []descriptor.GoPackage
 	for _, pkgpath := range []string{
 		"net/http",
-		"strings",
 
 		"github.com/utrack/clay/transport",
 		"github.com/utrack/clay/transport/httpruntime",
 
+		"github.com/utrack/grpc-gateway/runtime",
+
 		"google.golang.org/grpc",
+		"github.com/go-chi/chi",
 		"github.com/pkg/errors",
 	} {
 		pkg := descriptor.GoPackage{
