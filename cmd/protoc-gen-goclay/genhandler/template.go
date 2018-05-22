@@ -73,6 +73,7 @@ import (
 var _ = transport.IsVersion2
 
 var _ chi.Router
+var _ runtime.Marshaler
 `))
 	regTemplate = template.Must(template.New("svc-reg").Funcs(funcMap).Parse(`
 {{define "base"}}

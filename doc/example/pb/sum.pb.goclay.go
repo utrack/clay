@@ -24,6 +24,7 @@ import (
 var _ = transport.IsVersion2
 
 var _ chi.Router
+var _ runtime.Marshaler
 
 // SummatorDesc is a descriptor/registrator for the SummatorServer.
 type SummatorDesc struct {
