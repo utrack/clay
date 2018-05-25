@@ -17,6 +17,7 @@ var SetError func(context.Context, *http.Request, http.ResponseWriter, error) = 
 
 // DefaultSetError is the default error output.
 func DefaultSetError(ctx context.Context, req *http.Request, w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 	enc := json.NewEncoder(w)
 	enc.Encode(errResponse{Error: err.Error()})
