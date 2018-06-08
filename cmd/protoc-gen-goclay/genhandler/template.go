@@ -147,17 +147,14 @@ var (
 {{range $b := $m.Bindings}}
 	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = "{{$b.PathTmpl.Template}}"
         unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *http.Request,req *{{$m.RequestType.GetName}}) error {
-        {{if eq $b.HTTPMethod "GET" }}
-          {{template "unget" .}}
+
+        {{if not $b.Body}}
+        {{else}}
+          {{template "unmbody" .}}
         {{end}}
-        {{if eq $b.HTTPMethod "POST" }}
-          {{template "unpost" .}}
-        {{end}}
-		{{if eq $b.HTTPMethod "PUT" }}
-          {{template "unpost" .}}
-        {{end}}
-		{{if eq $b.HTTPMethod "DELETE" }}
-          {{template "unpost" .}}
+        {{if not $b.PathParams}}
+        {{ else }}
+          {{template "unmpath" .}}
         {{end}}
         }
 {{end}}
@@ -165,19 +162,11 @@ var (
 {{end}}
 )
 {{end}}
-{{define "unpost"}}
-	  rctx := chi.RouteContext(r.Context())
-          if rctx == nil {
-            panic("Only chi router is supported")
-	  }
-          for pos,k := range rctx.URLParams.Keys {
-	    runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
-          }
-
+{{define "unmbody"}}
           inbound,_ := httpruntime.MarshalerForRequest(r)
 	  return errors.Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON")
 {{end}}
-{{define "unget"}}
+{{define "unmpath"}}
 	  rctx := chi.RouteContext(r.Context())
           if rctx == nil {
             panic("Only chi router is supported for GETs atm")

@@ -7,8 +7,8 @@ service Summator {
 	rpc Sum(SumRequest) returns (SumResponse) {
 		option (google.api.http) = {
 			get: "/v1/example/sum/{a}/{b}"
-			// post: "/v1/example/sum"
-      // body: "*"
+			//post: "/v1/example/sum"
+      //body: "*"
 };
   }
 }

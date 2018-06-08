@@ -27,9 +27,9 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 // SumRequest is a request for Summator service.
 type SumRequest struct {
 	// A is the number we're adding to. Can't be zero for the sake of example.
-	A int64 `protobuf:"varint,1,opt,name=a" json:"a,omitempty"`
+	A int64 `protobuf:"varint,1,opt,name=a,proto3" json:"a,omitempty"`
 	// B is the number we're adding.
-	B                    int64    `protobuf:"varint,2,opt,name=b" json:"b,omitempty"`
+	B                    int64    `protobuf:"varint,2,opt,name=b,proto3" json:"b,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -74,8 +74,8 @@ func (m *SumRequest) GetB() int64 {
 }
 
 type SumResponse struct {
-	Sum                  int64    `protobuf:"varint,1,opt,name=sum" json:"sum,omitempty"`
-	Error                string   `protobuf:"bytes,2,opt,name=error" json:"error,omitempty"`
+	Sum                  int64    `protobuf:"varint,1,opt,name=sum,proto3" json:"sum,omitempty"`
+	Error                string   `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
