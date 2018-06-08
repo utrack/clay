@@ -153,6 +153,12 @@ var (
         {{if eq $b.HTTPMethod "POST" }}
           {{template "unpost" .}}
         {{end}}
+		{{if eq $b.HTTPMethod "PUT" }}
+          {{template "unpost" .}}
+        {{end}}
+		{{if eq $b.HTTPMethod "DELETE" }}
+          {{template "unpost" .}}
+        {{end}}
         }
 {{end}}
 {{end}}
@@ -160,6 +166,14 @@ var (
 )
 {{end}}
 {{define "unpost"}}
+	  rctx := chi.RouteContext(r.Context())
+          if rctx == nil {
+            panic("Only chi router is supported")
+	  }
+          for pos,k := range rctx.URLParams.Keys {
+	    runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
+          }
+
           inbound,_ := httpruntime.MarshalerForRequest(r)
 	  return errors.Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON")
 {{end}}
