@@ -13,13 +13,15 @@ import (
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/grpc-ecosystem/grpc-gateway/codegenerator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 )
 
 var (
-	importPrefix    = flag.String("import_prefix", "", "prefix to be added to go package paths for imported proto files")
-	file            = flag.String("file", "stdin", "where to load data from")
-	allowDeleteBody = flag.Bool("allow_delete_body", false, "unless set, HTTP DELETE methods may not have a body")
+	importPrefix         = flag.String("import_prefix", "", "prefix to be added to go package paths for imported proto files")
+	file                 = flag.String("file", "-", "where to load data from")
+	allowDeleteBody      = flag.Bool("allow_delete_body", false, "unless set, HTTP DELETE methods may not have a body")
+	grpcAPIConfiguration = flag.String("grpc_api_configuration", "", "path to gRPC API Configuration in YAML format")
 )
 
 func parseReq(r io.Reader) (*plugin.CodeGeneratorRequest, error) {
@@ -45,17 +47,23 @@ func main() {
 	reg := descriptor.NewRegistry()
 
 	glog.V(1).Info("Processing code generator request")
-	f := os.Stdin
-	if *file != "stdin" {
-		f, _ = os.Open("input.txt")
+	fs := os.Stdin
+	if *file != "-" {
+		var err error
+		fs, err = os.Open(*file)
+		if err != nil {
+			glog.Fatal(err)
+		}
 	}
-	req, err := parseReq(f)
+	glog.V(1).Info("Parsing code generator request")
+	req, err := codegenerator.ParseRequest(fs)
 	if err != nil {
 		glog.Fatal(err)
 	}
+
 	pkgMap := make(map[string]string)
 	if req.Parameter != nil {
-		err := parseReqParam(req.GetParameter(), flag.CommandLine, pkgMap)
+		err = parseReqParam(req.GetParameter(), flag.CommandLine, pkgMap)
 		if err != nil {
 			glog.Fatalf("Error parsing flags: %v", err)
 		}
@@ -65,6 +73,13 @@ func main() {
 	for k, v := range pkgMap {
 		reg.AddPkgMap(k, v)
 	}
+	if *grpcAPIConfiguration != "" {
+		if err = reg.LoadGrpcAPIServiceFromYAML(*grpcAPIConfiguration); err != nil {
+			emitError(err)
+			return
+		}
+	}
+
 	g := genhandler.New(reg)
 
 	if err = reg.Load(req); err != nil {
@@ -74,7 +89,8 @@ func main() {
 
 	var targets []*descriptor.File
 	for _, target := range req.FileToGenerate {
-		f, err := reg.LookupFile(target)
+		var f *descriptor.File
+		f, err = reg.LookupFile(target)
 		if err != nil {
 			glog.Fatal(err)
 		}

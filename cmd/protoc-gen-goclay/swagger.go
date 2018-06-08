@@ -16,6 +16,12 @@ func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) (
 		reg.AddPkgMap(k, v)
 	}
 
+	if *grpcAPIConfiguration != "" {
+		if err := reg.LoadGrpcAPIServiceFromYAML(*grpcAPIConfiguration); err != nil {
+			return nil, err
+		}
+	}
+
 	gsw := genswagger.New(reg)
 
 	if err := reg.Load(req); err != nil {
