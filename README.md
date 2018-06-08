@@ -4,9 +4,9 @@ Minimal server platform for gRPC and REST+Swagger APIs
 Using clay you can automatically spin up HTTP handlers for your gRPC server with complete Swagger defs with a few lines of code.
 
 ## Why?
-There's an excellent [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) proxy generator, but it requires you to spin up (at least) one proxy instance in addition to your services. `clay` allows you to serve HTTP traffic by server instances themselves for easier debugging/testing. 
-
-It can also be used to serve production traffic, but grpc-gateway is a better fit, since you'll need an HTTP balancer for that. You can use both grpc-gateway for production and clay for testing.
+There's an excellent [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) proxy generator, 
+but it requires you to spin up (at least) one proxy instance in addition to your services.
+`clay` allows you to serve HTTP traffic by server instances themselves for easier debugging/testing. 
 
 ## How?
 See [example server](https://github.com/utrack/clay/blob/master/doc/example/main.go).
@@ -49,6 +49,10 @@ func (s *SumImpl) GetDescription() transport.ServiceDesc {
 }
 ```
 
-Now, you can [run the server](https://github.com/utrack/clay/blob/master/doc/example/main.go#L68). Swagger definition will be served at `/swagger.json`.
+Now, you can [run the server](https://github.com/utrack/clay/blob/master/doc/example/main.go#L68). 
+Swagger definition will be served at `/swagger.json`.
 
-clay.Server is easily extendable, as you can pass any options gRPC server can use, but if it's not extendable enough then you can use the `.GetDescription()` method of your implementation to register the service in your own custom server (see [ServiceDesc](https://github.com/utrack/clay/blob/master/transport/handlers.go#L17)).
+`clay.Server` is easily extendable, as you can pass any options gRPC server can use, 
+but if it's not extendable enough then you can use the `.GetDescription()` method 
+of your implementation to register the service in your own custom server 
+(see [ServiceDesc](https://github.com/utrack/clay/blob/master/transport/handlers.go#L17)).
