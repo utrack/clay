@@ -73,6 +73,7 @@ func main() {
 	for k, v := range pkgMap {
 		reg.AddPkgMap(k, v)
 	}
+
 	if *grpcAPIConfiguration != "" {
 		if err = reg.LoadGrpcAPIServiceFromYAML(*grpcAPIConfiguration); err != nil {
 			emitError(err)
