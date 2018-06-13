@@ -148,13 +148,15 @@ var (
 	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = "{{$b.PathTmpl.Template}}"
         unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *http.Request,req *{{$m.RequestType.GetName}}) error {
 
-        {{if not $b.Body}}
-        {{else}}
+        {{if $b.Body}}
           {{template "unmbody" .}}
         {{end}}
-        {{if not $b.PathParams}}
-        {{ else }}
+        {{if $b.PathParams}}
           {{template "unmpath" .}}
+        {{end}}
+
+        {{if and (not $b.Body) (not $b.PathParams)}}
+        return nil
         {{end}}
         }
 {{end}}
