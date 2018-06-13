@@ -29,7 +29,7 @@ func defaultServerOpts(mainPort int) *serverOpts {
 	return &serverOpts{
 		RPCPort:  mainPort,
 		HTTPPort: mainPort,
-		HTTPMux:  &chiWrapper{Router: chi.NewMux()},
+		HTTPMux:  chi.NewMux(),
 	}
 }
 
@@ -88,7 +88,7 @@ func WithGRPCStreamMiddlewares(mws ...grpc.StreamServerInterceptor) Option {
 // WithHTTPMux sets existing HTTP muxer to use instead of creating new one.
 func WithHTTPMux(mux *chi.Mux) Option {
 	return func(o *serverOpts) {
-		o.HTTPMux = &chiWrapper{Router: mux}
+		o.HTTPMux = mux
 	}
 }
 

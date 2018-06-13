@@ -23,7 +23,7 @@ type listenerSet struct {
 }
 
 type serverSet struct {
-	http *chiWrapper
+	http chi.Router
 	grpc *grpc.Server
 }
 
@@ -36,7 +36,7 @@ func getServers(listeners *listenerSet, opts *serverOpts) *serverSet {
 
 	srv := &serverSet{
 		grpc: grpc.NewServer(opts.GRPCOpts...),
-		http: &chiWrapper{Router: http},
+		http: http,
 	}
 	return srv
 }

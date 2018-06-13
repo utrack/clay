@@ -24,7 +24,7 @@ type ServiceDesc interface {
 type Router interface {
 	http.Handler
 	Method(pattern string, method string, h http.Handler)
-	MethodFunc(pattern string, method string, h func(http.ResponseWriter, *http.Request))
+	MethodFunc(pattern string, method string, h http.HandlerFunc)
 	// Use makes this router use middlewares passed.
 	Use(middlewares ...func(http.Handler) http.Handler)
 }
