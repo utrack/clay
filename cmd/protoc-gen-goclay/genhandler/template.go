@@ -20,6 +20,8 @@ type param struct {
 }
 
 func applyTemplate(p param) (string, error) {
+	// r := &http.Request{}
+	// r.URL.Query()
 	w := bytes.NewBuffer(nil)
 	if err := headerTemplate.Execute(w, p); err != nil {
 		return "", err
@@ -41,6 +43,7 @@ func applyTemplate(p param) (string, error) {
 	if err := patternsTemplate.ExecuteTemplate(w, "base", p); err != nil {
 		return "", err
 	}
+	//spew.Dump(p.Services[0].Methods[0].Bindings)
 
 	return w.String(), nil
 }
@@ -103,7 +106,7 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 	{{range $m := $svc.Methods}}
 	// Handlers for {{$m.GetName}}
 	{{range $b := $m.Bindings}}
-	mux.MethodFunc(pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}},"{{$b.HTTPMethod}}", func(w http.ResponseWriter, r *http.Request) {
+	mux.MethodFunc("{{$b.HTTPMethod}}",pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}, func(w http.ResponseWriter, r *http.Request) {
           defer r.Body.Close()
 
 	  var req {{$m.RequestType.GetName}}
