@@ -148,6 +148,7 @@ var (
 	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = "{{$b.PathTmpl.Template}}"
         unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *http.Request,req *{{$m.RequestType.GetName}}) error {
 
+        var err error
         {{if $b.Body}}
           {{template "unmbody" .}}
         {{end}}
@@ -155,9 +156,7 @@ var (
           {{template "unmpath" .}}
         {{end}}
 
-        {{if and (not $b.Body) (not $b.PathParams)}}
-        return nil
-        {{end}}
+        return err
         }
 {{end}}
 {{end}}
@@ -166,7 +165,10 @@ var (
 {{end}}
 {{define "unmbody"}}
           inbound,_ := httpruntime.MarshalerForRequest(r)
-	  return errors.Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON")
+	  err = errors.Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON")
+          if err != nil {
+            return err
+          }
 {{end}}
 {{define "unmpath"}}
 	  rctx := chi.RouteContext(r.Context())
@@ -176,7 +178,6 @@ var (
           for pos,k := range rctx.URLParams.Keys {
 	    runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
           }
-          return nil
 {{end}}
 `))
 )
