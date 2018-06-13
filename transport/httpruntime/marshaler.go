@@ -23,9 +23,15 @@ type marshalGetterFunc = func(ContentTypeOptions) Marshaler
 // headers.
 type ContentTypeOptions map[string]string
 
-// OverrideMarshaler replaces MarshalGetter for given content-type.
-func OverrideMarshaler(contentType string, m func(ContentTypeOptions) Marshaler) {
-	marshalDict[strings.ToLower(contentType)] = m
+// OverrideMarshaler replaces Marshaler for given content-type.
+func OverrideMarshaler(contentType string, m Marshaler) {
+	marshalDict[strings.ToLower(contentType)] = func(ContentTypeOptions) Marshaler { return m }
+}
+
+// OverrideParametrizedMarshaler replaces MarshalGetter for given content-type.
+// Use it if your marshaler needs ContentTypeOptions to successfully unmarshal the request.
+func OverrideParametrizedMarshaler(contentType string, f func(ContentTypeOptions) Marshaler) {
+	marshalDict[strings.ToLower(contentType)] = f
 }
 
 // MarshalerForRequest returns marshalers for inbound and outbound bodies.
