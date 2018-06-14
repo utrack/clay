@@ -51,7 +51,7 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 
 	// Handlers for Sum
 
-	mux.MethodFunc(pattern_goclay_Summator_Sum_0, "GET", func(w http.ResponseWriter, r *http.Request) {
+	mux.MethodFunc("GET", pattern_goclay_Summator_Sum_0, func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
 		var req SumRequest
@@ -166,6 +166,8 @@ var (
 	pattern_goclay_Summator_Sum_0     = "/v1/example/sum/{a}/{b}"
 	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request, req *SumRequest) error {
 
+		var err error
+
 		rctx := chi.RouteContext(r.Context())
 		if rctx == nil {
 			panic("Only chi router is supported for GETs atm")
@@ -173,7 +175,7 @@ var (
 		for pos, k := range rctx.URLParams.Keys {
 			runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
 		}
-		return nil
 
+		return err
 	}
 )
