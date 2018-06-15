@@ -210,7 +210,7 @@ func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc
 
 	if rsp.StatusCode >= 400 {
 		b, _ := ioutil.ReadAll(rsp.Body)
-		return nil, errors.Errorf("%V %V: server returned HTTP %v: '%v'", req.Method, req.URL.String, rsp.StatusCode, string(b))
+		return nil, errors.Errorf("%v %v: server returned HTTP %v: '%v'", req.Method, req.URL.String(), rsp.StatusCode, string(b))
 	}
 
 	ret := &SumResponse{}

@@ -255,7 +255,7 @@ func (c *{{$svc.GetName}}_httpClient) {{$m.GetName}}(ctx context.Context,in *{{$
 
 	if rsp.StatusCode>= 400 {
 		b,_ := ioutil.ReadAll(rsp.Body)
-		return nil,errors.Errorf("%v %v: server returned HTTP %v: '%v'",req.Method,req.URL.String,rsp.StatusCode,string(b))
+		return nil,errors.Errorf("%v %v: server returned HTTP %v: '%v'",req.Method,req.URL.String(),rsp.StatusCode,string(b))
 	}
 
 	ret := &{{$m.ResponseType.GetName}}{}
