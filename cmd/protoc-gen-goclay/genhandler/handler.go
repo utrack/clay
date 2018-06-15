@@ -23,6 +23,11 @@ type Generator struct {
 func New(reg *descriptor.Registry) *Generator {
 	var imports []descriptor.GoPackage
 	for _, pkgpath := range []string{
+		"bytes",
+		"context",
+		"fmt",
+		"strings",
+
 		"net/http",
 
 		"github.com/utrack/clay/transport",
