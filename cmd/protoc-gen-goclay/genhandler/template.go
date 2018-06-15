@@ -221,7 +221,7 @@ host string
 // Pass addr in format "http://host[:port]".
 func New{{$svc.GetName}}HTTPClient(c *http.Client,addr string) {{$svc.GetName}}Client {
 if !strings.HasSuffix(addr,"/") {
-  hostname += "/"
+  addr += "/"
 }
 return &{{$svc.GetName}}_httpClient{c:c,host:addr}
 }

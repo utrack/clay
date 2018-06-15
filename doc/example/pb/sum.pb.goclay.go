@@ -176,7 +176,7 @@ type Summator_httpClient struct {
 // Pass addr in format "http://host[:port]".
 func NewSummatorHTTPClient(c *http.Client, addr string) SummatorClient {
 	if !strings.HasSuffix(addr, "/") {
-		hostname += "/"
+		addr += "/"
 	}
 	return &Summator_httpClient{c: c, host: addr}
 }
