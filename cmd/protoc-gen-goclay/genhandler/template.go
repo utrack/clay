@@ -220,10 +220,10 @@ host string
 // New{{$svc.GetName}}HTTPClient creates new HTTP client for {{$svc.GetName}}Server.
 // Pass addr in format "http://host[:port]".
 func New{{$svc.GetName}}HTTPClient(c *http.Client,addr string) {{$svc.GetName}}Client {
-if !strings.HasSuffix(addr,"/") {
-  addr += "/"
-}
-return &{{$svc.GetName}}_httpClient{c:c,host:addr}
+	if strings.HasSuffix(addr, "/") {
+		addr = addr[:len(addr)-1]
+	}
+        return &{{$svc.GetName}}_httpClient{c:c,host:addr}
 }
 {{range $m := $svc.Methods}}
 {{range $b := $m.Bindings}}
@@ -251,8 +251,13 @@ func (c *{{$svc.GetName}}_httpClient) {{$m.GetName}}(ctx context.Context,in *{{$
 	if err != nil {
 		return nil, errors.Wrap(err, "error from client")
 	}
-
 	defer rsp.Body.Close()
+
+	if rsp.StatusCode>= 400 {
+		b,_ := ioutil.ReadAll(rsp.Body)
+		return nil,errors.Errorf("%v %v: server returned HTTP %v: '%v'",req.Method,req.URL.String,rsp.StatusCode,string(b))
+	}
+
 	ret := &{{$m.ResponseType.GetName}}{}
 	err = m.Unmarshal(rsp.Body, ret)
 	return ret, errors.Wrap(err, "can't unmarshal response")

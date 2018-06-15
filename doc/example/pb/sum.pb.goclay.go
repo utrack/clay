@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -175,8 +176,8 @@ type Summator_httpClient struct {
 // NewSummatorHTTPClient creates new HTTP client for SummatorServer.
 // Pass addr in format "http://host[:port]".
 func NewSummatorHTTPClient(c *http.Client, addr string) SummatorClient {
-	if !strings.HasSuffix(addr, "/") {
-		addr += "/"
+	if strings.HasSuffix(addr, "/") {
+		addr = addr[:len(addr)-1]
 	}
 	return &Summator_httpClient{c: c, host: addr}
 }
@@ -205,8 +206,13 @@ func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc
 	if err != nil {
 		return nil, errors.Wrap(err, "error from client")
 	}
-
 	defer rsp.Body.Close()
+
+	if rsp.StatusCode >= 400 {
+		b, _ := ioutil.ReadAll(rsp.Body)
+		return nil, errors.Errorf("%V %V: server returned HTTP %v: '%v'", req.Method, req.URL.String, rsp.StatusCode, string(b))
+	}
+
 	ret := &SumResponse{}
 	err = m.Unmarshal(rsp.Body, ret)
 	return ret, errors.Wrap(err, "can't unmarshal response")

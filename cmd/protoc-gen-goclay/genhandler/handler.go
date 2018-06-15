@@ -26,6 +26,7 @@ func New(reg *descriptor.Registry) *Generator {
 		"bytes",
 		"context",
 		"fmt",
+		"io/ioutil",
 		"strings",
 
 		"net/http",
