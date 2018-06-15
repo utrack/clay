@@ -189,18 +189,18 @@ func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc
 
 	buf := bytes.NewBuffer(nil)
 
+	m := httpruntime.DefaultMarshaler(nil)
+	err := m.Marshal(buf, in)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't marshal request")
+	}
+
 	req, err := http.NewRequest("GET", c.host+path, buf)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't initiate HTTP request")
 	}
 
-	m := httpruntime.DefaultMarshaler(nil)
 	req.Header.Add("Accept", m.ContentType())
-
-	err = m.Marshal(buf, in)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't marshal request")
-	}
 
 	rsp, err := c.c.Do(req)
 	if err != nil {
