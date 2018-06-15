@@ -215,7 +215,7 @@ func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc
 var (
 	pattern_goclay_Summator_Sum_0         = "/v1/example/sum/{b}"
 	pattern_goclay_Summator_Sum_0_builder = func(
-		int64 b,
+		b int64,
 	) string {
 		return fmt.Sprintf("/v1/example/sum/%v", b)
 	}

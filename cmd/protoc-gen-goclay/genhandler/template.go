@@ -172,7 +172,7 @@ var (
 {{range $b := $m.Bindings}}
 	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = "{{$b.PathTmpl.Template}}"
 	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder = func(
-{{range $p := $b.PathParams}}{{toGoType $p.Target.GetType}} {{$p.Target.GetName}},
+{{range $p := $b.PathParams}}{{$p.Target.GetName}} {{toGoType $p.Target.GetType}},
 {{end}}) string {
 return fmt.Sprintf("{{arrayToPathInterp $b.PathTmpl.Template}}",{{range $p := $b.PathParams}}{{$p.Target.GetName}},{{end}})
 }
