@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	pbdescriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/protoc-gen-go/generator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/pkg/errors"
 )
@@ -59,6 +60,7 @@ var (
 	)
 	funcMap = template.FuncMap{
 		"varName":         func(s string) string { return varNameReplacer.Replace(s) },
+		"goTypeName":      func(s string) string { return generator.CamelCase(s) },
 		"byteStr":         func(b []byte) string { return string(b) },
 		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
 		"toGoType":        func(t pbdescriptor.FieldDescriptorProto_Type) string { return primitiveTypeToGo(t) },
@@ -230,7 +232,7 @@ func New{{$svc.GetName}}HTTPClient(c *http.Client,addr string) {{$svc.GetName}}C
 func (c *{{$svc.GetName}}_httpClient) {{$m.GetName}}(ctx context.Context,in *{{$m.RequestType.GetName}},_ ...grpc.CallOption) (*{{$m.ResponseType.GetName}},error) {
 
         //TODO path params aren't supported atm
-        path := pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder({{range $p := $b.PathParams}}{{end}})
+        path := pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder({{range $p := $b.PathParams}}in.{{goTypeName $p.String}},{{end}})
 
 	buf := bytes.NewBuffer(nil)
 
