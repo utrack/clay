@@ -59,8 +59,14 @@ var (
 		"-", "_",
 	)
 	funcMap = template.FuncMap{
-		"varName":         func(s string) string { return varNameReplacer.Replace(s) },
-		"goTypeName":      func(s string) string { return generator.CamelCase(s) },
+		"varName": func(s string) string { return varNameReplacer.Replace(s) },
+		"goTypeName": func(s string) string {
+			toks := strings.Split(s, ".")
+			for pos := range toks {
+				toks[pos] = generator.CamelCase(toks[pos])
+			}
+			return strings.Join(toks, ".")
+		},
 		"byteStr":         func(b []byte) string { return string(b) },
 		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
 		"toGoType":        func(t pbdescriptor.FieldDescriptorProto_Type) string { return primitiveTypeToGo(t) },
