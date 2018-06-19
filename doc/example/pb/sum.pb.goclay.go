@@ -185,7 +185,7 @@ func NewSummatorHTTPClient(c *http.Client, addr string) SummatorClient {
 func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc.CallOption) (*SumResponse, error) {
 
 	//TODO path params aren't supported atm
-	path := pattern_goclay_Summator_Sum_0_builder()
+	path := pattern_goclay_Summator_Sum_0_builder(in.B)
 
 	buf := bytes.NewBuffer(nil)
 
