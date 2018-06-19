@@ -49,8 +49,13 @@ func applyTemplate(p param) (string, error) {
 }
 
 var (
+	varNameReplacer = strings.NewReplacer(
+		".", "_",
+		"/", "_",
+		"-", "_",
+	)
 	funcMap = template.FuncMap{
-		"dotToUnderscore": func(s string) string { return strings.Replace(strings.Replace(s, ".", "_", -1), "/", "_", -1) },
+		"varName":         func(s string) string { return varNameReplacer.Replace(s) },
 		"byteStr":         func(b []byte) string { return string(b) },
 		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
 	}
@@ -98,7 +103,7 @@ func (d *{{$svc.GetName}}Desc) RegisterGRPC(s *grpc.Server) {
 
 // SwaggerDef returns this file's Swagger definition.
 func (d *{{$svc.GetName}}Desc) SwaggerDef() []byte {
-      return _swaggerDef_{{dotToUnderscore $.GetName}}
+      return _swaggerDef_{{varName $.GetName}}
 }
 
 // RegisterHTTP registers this service's HTTP handlers/bindings.
@@ -138,7 +143,7 @@ func (d *{{$svc.GetName}}Desc) RegisterHTTP(mux transport.Router) {
 `))
 
 	footerTemplate = template.Must(template.New("footer").Funcs(funcMap).Parse(`
-var _swaggerDef_{{dotToUnderscore .GetName}} = []byte(` + "`" + `{{escapeBackTicks (byteStr .SwagBuffer)}}` + `
+var _swaggerDef_{{varName .GetName}} = []byte(` + "`" + `{{escapeBackTicks (byteStr .SwagBuffer)}}` + `
 ` + "`)" + `
 `))
 
