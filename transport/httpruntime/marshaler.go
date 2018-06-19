@@ -50,7 +50,14 @@ func marshalerOrDefault(t string, params map[string]string) Marshaler {
 	if m, ok := marshalDict[t]; ok {
 		return m(params)
 	}
-	return marshalDict[MarshalerPbJSON{}.ContentType()](params)
+	return DefaultMarshaler(params)
+}
+
+var defaultMIME = MarshalerPbJSON{}.ContentType()
+
+// DefaultMarshaler returns a default marshaler for the platform.
+func DefaultMarshaler(params map[string]string) Marshaler {
+	return marshalDict[defaultMIME](params)
 }
 
 var marshalDict = map[string]marshalGetterFunc{

@@ -4,4 +4,4 @@ config_version: 3
 http:
   rules:
   - selector: sumpb.Summator.Sum
-    get: '/v1/example/sum/{a}/{b}'
+    get: '/v1/example/sum/{b}'

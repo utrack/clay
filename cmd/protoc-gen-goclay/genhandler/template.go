@@ -5,6 +5,8 @@ import (
 	"strings"
 	"text/template"
 
+	pbdescriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/protoc-gen-go/generator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/pkg/errors"
 )
@@ -39,11 +41,13 @@ func applyTemplate(p param) (string, error) {
 	if err := footerTemplate.Execute(w, p); err != nil {
 		return "", err
 	}
+	if err := clientTemplate.Execute(w, p); err != nil {
+		return "", err
+	}
 
 	if err := patternsTemplate.ExecuteTemplate(w, "base", p); err != nil {
 		return "", err
 	}
-	//spew.Dump(p.Services[0].Methods[0].Bindings)
 
 	return w.String(), nil
 }
@@ -55,9 +59,30 @@ var (
 		"-", "_",
 	)
 	funcMap = template.FuncMap{
-		"varName":         func(s string) string { return varNameReplacer.Replace(s) },
+		"varName": func(s string) string { return varNameReplacer.Replace(s) },
+		"goTypeName": func(s string) string {
+			toks := strings.Split(s, ".")
+			for pos := range toks {
+				toks[pos] = generator.CamelCase(toks[pos])
+			}
+			return strings.Join(toks, ".")
+		},
 		"byteStr":         func(b []byte) string { return string(b) },
 		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
+		"toGoType":        func(t pbdescriptor.FieldDescriptorProto_Type) string { return primitiveTypeToGo(t) },
+		// arrayToPathInterp replaces chi-style path to fmt.Sprint-style path.
+		"arrayToPathInterp": func(tpl string) string {
+			vv := strings.Split(tpl, "/")
+			ret := []string{}
+			for _, v := range vv {
+				if strings.HasPrefix(v, "{") {
+					ret = append(ret, "%v")
+					continue
+				}
+				ret = append(ret, v)
+			}
+			return strings.Join(ret, "/")
+		},
 	}
 
 	headerTemplate = template.Must(template.New("header").Parse(`
@@ -147,13 +172,18 @@ var _swaggerDef_{{varName .GetName}} = []byte(` + "`" + `{{escapeBackTicks (byte
 ` + "`)" + `
 `))
 
-	patternsTemplate = template.Must(template.New("patterns").Parse(`
+	patternsTemplate = template.Must(template.New("patterns").Funcs(funcMap).Parse(`
 {{define "base"}}
 var (
 {{range $svc := .Services}}
 {{range $m := $svc.Methods}}
 {{range $b := $m.Bindings}}
 	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = "{{$b.PathTmpl.Template}}"
+	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder = func(
+{{range $p := $b.PathParams}}{{$p.Target.GetName}} {{toGoType $p.Target.GetType}},
+{{end}}) string {
+return fmt.Sprintf("{{arrayToPathInterp $b.PathTmpl.Template}}",{{range $p := $b.PathParams}}{{$p.Target.GetName}},{{end}})
+}
         unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *http.Request,req *{{$m.RequestType.GetName}}) error {
 
         var err error
@@ -186,6 +216,62 @@ var (
           for pos,k := range rctx.URLParams.Keys {
 	    runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
           }
+{{end}}
+`))
+	clientTemplate = template.Must(template.New("http-client").Funcs(funcMap).Parse(`
+{{range $svc := .Services}}
+type {{$svc.GetName}}_httpClient struct {
+c *http.Client
+host string
+}
+
+// New{{$svc.GetName}}HTTPClient creates new HTTP client for {{$svc.GetName}}Server.
+// Pass addr in format "http://host[:port]".
+func New{{$svc.GetName}}HTTPClient(c *http.Client,addr string) {{$svc.GetName}}Client {
+	if strings.HasSuffix(addr, "/") {
+		addr = addr[:len(addr)-1]
+	}
+        return &{{$svc.GetName}}_httpClient{c:c,host:addr}
+}
+{{range $m := $svc.Methods}}
+{{range $b := $m.Bindings}}
+func (c *{{$svc.GetName}}_httpClient) {{$m.GetName}}(ctx context.Context,in *{{$m.RequestType.GetName}},_ ...grpc.CallOption) (*{{$m.ResponseType.GetName}},error) {
+
+        //TODO path params aren't supported atm
+        path := pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder({{range $p := $b.PathParams}}in.{{goTypeName $p.String}},{{end}})
+
+	buf := bytes.NewBuffer(nil)
+
+	m := httpruntime.DefaultMarshaler(nil)
+	err := m.Marshal(buf, in)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't marshal request")
+	}
+
+	req, err := http.NewRequest("{{$b.HTTPMethod}}", c.host+path, buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't initiate HTTP request")
+	}
+
+	req.Header.Add("Accept", m.ContentType())
+
+	rsp, err := c.c.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "error from client")
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode>= 400 {
+		b,_ := ioutil.ReadAll(rsp.Body)
+		return nil,errors.Errorf("%v %v: server returned HTTP %v: '%v'",req.Method,req.URL.String(),rsp.StatusCode,string(b))
+	}
+
+	ret := &{{$m.ResponseType.GetName}}{}
+	err = m.Unmarshal(rsp.Body, ret)
+	return ret, errors.Wrap(err, "can't unmarshal response")
+}
+{{end}}
+{{end}}
 {{end}}
 `))
 )
