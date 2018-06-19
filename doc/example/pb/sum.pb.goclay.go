@@ -100,7 +100,7 @@ var _swaggerDef_sum_proto = []byte(`{
     "application/json"
   ],
   "paths": {
-    "/v1/example/sum/{b}": {
+    "/v1/example/sum/{a}/{b}": {
       "get": {
         "operationId": "Sum",
         "responses": {
@@ -113,17 +113,16 @@ var _swaggerDef_sum_proto = []byte(`{
         },
         "parameters": [
           {
-            "name": "b",
+            "name": "a",
             "in": "path",
             "required": true,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "a",
-            "description": "A is the number we're adding to. Can't be zero for the sake of example.",
-            "in": "query",
-            "required": false,
+            "name": "b",
+            "in": "path",
+            "required": true,
             "type": "string",
             "format": "int64"
           }
@@ -185,7 +184,7 @@ func NewSummatorHTTPClient(c *http.Client, addr string) SummatorClient {
 func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc.CallOption) (*SumResponse, error) {
 
 	//TODO path params aren't supported atm
-	path := pattern_goclay_Summator_Sum_0_builder(in.B)
+	path := pattern_goclay_Summator_Sum_0_builder(in.A, in.B)
 
 	buf := bytes.NewBuffer(nil)
 
@@ -219,11 +218,12 @@ func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc
 }
 
 var (
-	pattern_goclay_Summator_Sum_0         = "/v1/example/sum/{b}"
+	pattern_goclay_Summator_Sum_0         = "/v1/example/sum/{a}/{b}"
 	pattern_goclay_Summator_Sum_0_builder = func(
+		a int64,
 		b int64,
 	) string {
-		return fmt.Sprintf("/v1/example/sum/%v", b)
+		return fmt.Sprintf("/v1/example/sum/%v/%v", a, b)
 	}
 	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request, req *SumRequest) error {
 
