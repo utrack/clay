@@ -30,7 +30,7 @@ func primitiveTypeToGo(t pbdescriptor.FieldDescriptorProto_Type) (format string)
 	case pbdescriptor.FieldDescriptorProto_TYPE_BYTES:
 		ret = "byte"
 	case pbdescriptor.FieldDescriptorProto_TYPE_UINT32:
-		ret = "int64"
+		ret = "uint32"
 	case pbdescriptor.FieldDescriptorProto_TYPE_SFIXED32:
 		ret = "int32"
 	case pbdescriptor.FieldDescriptorProto_TYPE_SFIXED64:
