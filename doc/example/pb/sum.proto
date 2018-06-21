@@ -1,6 +1,8 @@
 syntax = "proto3";
 package sumpb;
 
+option go_package="sumpb";
+
 // uncomment for inline HTTP desc google.api.http
 //import "google/api/annotations.proto";
 

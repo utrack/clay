@@ -83,13 +83,7 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 		name := file.GetName()
 		ext := filepath.Ext(name)
 		base := strings.TrimSuffix(name, ext)
-
-		goPkg := ""
-		if file.GoPkg.Path != "." {
-			goPkg = file.GoPkg.Path
-		}
-		output := fmt.Sprintf(filepath.Join(goPkg, g.options.DescPath, "%s.pb.goclay.go"), base)
-		output = filepath.Clean(output)
+		output := fmt.Sprintf("%s.pb.goclay.go", base)
 
 		files = append(files, &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(output),
@@ -98,7 +92,7 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 		glog.V(1).Infof("Will emit %s", output)
 
 		if g.options.Impl {
-			output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), base)
+			output := fmt.Sprintf("%s.pb.impl.go", base)
 			output = filepath.Clean(output)
 
 			if !g.options.Force && fileExists(output) {

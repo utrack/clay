@@ -163,7 +163,7 @@ func (d *{{ $svc.GetName }}Desc) SwaggerDef(options ...swagger.Option) (result [
 }
 
 // RegisterHTTP registers this service's HTTP handlers/bindings.
-func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux transport.Router) error {
+func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux transport.Router) {
     chiMux, isChi := mux.(chi.Router)
     var h http.HandlerFunc
     {{ range $m := $svc.Methods }}
@@ -197,7 +197,7 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux transport.Router) error {
         chiMux.Method("{{ $b.HTTPMethod }}",pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}, h)
     } else {
         {{if $b.PathParams -}}
-            return errors.New("query URI params supported only for chi.Router")
+            panic("query URI params supported only for chi.Router")
         {{- else -}}
             mux.Handle(pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
                 if r.Method != "{{ $b.HTTPMethod }}" {
@@ -210,7 +210,6 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux transport.Router) error {
     }
     {{ end }}
     {{ end }}
-    return nil
 }
 {{ end }}
 {{ end }} // base service handler ended
