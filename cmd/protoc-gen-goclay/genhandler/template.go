@@ -59,6 +59,14 @@ var (
 		"-", "_",
 	)
 	funcMap = template.FuncMap{
+		"hasAsterisk": func(ss []string) bool {
+			for _, s := range ss {
+				if s == "*" {
+					return true
+				}
+			}
+			return false
+		},
 		"varName": func(s string) string { return varNameReplacer.Replace(s) },
 		"goTypeName": func(s string) string {
 			toks := strings.Split(s, ".")
@@ -184,8 +192,21 @@ var (
 {{end}}) string {
 return fmt.Sprintf("{{arrayToPathInterp $b.PathTmpl.Template}}",{{range $p := $b.PathParams}}{{$p.Target.GetName}},{{end}})
 }
-        unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *http.Request,req *{{$m.RequestType.GetName}}) error {
-
+{{if not (hasAsterisk $b.ExplicitParams)}}
+         unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_boundParams = map[string]struct{}{
+{{range $n := $b.ExplicitParams}}"{{$n}}": struct{}{},
+{{end}}
+{{end}}
+}
+         unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *http.Request,req *{{$m.RequestType.GetName}}) error {
+{{if not (hasAsterisk $b.ExplicitParams)}}
+         for k,v := range r.URL.Query() {
+            if _,ok := unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_boundParams[strings.ToLower(k)];ok {
+              continue
+            }
+	    runtime.PopulateFieldFromPath(req, k, v[0])
+         }
+{{end}}
         var err error
         {{if $b.Body}}
           {{template "unmbody" .}}
@@ -237,7 +258,6 @@ func New{{$svc.GetName}}HTTPClient(c *http.Client,addr string) {{$svc.GetName}}C
 {{range $b := $m.Bindings}}
 func (c *{{$svc.GetName}}_httpClient) {{$m.GetName}}(ctx context.Context,in *{{$m.RequestType.GetName}},_ ...grpc.CallOption) (*{{$m.ResponseType.GetName}},error) {
 
-        //TODO path params aren't supported atm
         path := pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder({{range $p := $b.PathParams}}in.{{goTypeName $p.String}},{{end}})
 
 	buf := bytes.NewBuffer(nil)
