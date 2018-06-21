@@ -1,6 +1,9 @@
 package transport
 
-import "google.golang.org/grpc"
+import (
+	"github.com/utrack/clay/transport/swagger"
+	"google.golang.org/grpc"
+)
 
 type CompoundServiceDesc struct {
 	svc []ServiceDesc
@@ -22,10 +25,10 @@ func (d *CompoundServiceDesc) RegisterHTTP(r Router) {
 	}
 }
 
-func (d *CompoundServiceDesc) SwaggerDef() []byte {
+func (d *CompoundServiceDesc) SwaggerDef(options ...swagger.Option) []byte {
 	j := &swagJoiner{}
 	for _, svc := range d.svc {
-		j.AddDefinition(svc.SwaggerDef())
+		j.AddDefinition(svc.SwaggerDef(options...))
 	}
 	return j.SumDefinitions()
 }
