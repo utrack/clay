@@ -4,17 +4,15 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
-
-	"github.com/utrack/clay/cmd/protoc-gen-goclay/genhandler"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/codegenerator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
+	"github.com/utrack/clay/cmd/protoc-gen-goclay/genhandler"
 )
 
 var (
@@ -22,31 +20,21 @@ var (
 	file                 = flag.String("file", "-", "where to load data from")
 	allowDeleteBody      = flag.Bool("allow_delete_body", false, "unless set, HTTP DELETE methods may not have a body")
 	grpcAPIConfiguration = flag.String("grpc_api_configuration", "", "path to gRPC API Configuration in YAML format")
+	withImpl             = flag.Bool("impl", false, "generate simple implementations for proto Services. Implementation will not be generated if it already exists. See also `force` option")
+	withSwagger          = flag.Bool("swagger", true, "generate swagger.json")
+	descPath             = flag.String("desc_path", "", "path where the http description is generated")
+	implPath             = flag.String("impl_path", "", "path where the implementation is generated (for impl = true)")
+	forceImpl            = flag.Bool("force", false, "force regenerate implementation if it already exists (for impl = true)")
 )
-
-func parseReq(r io.Reader) (*plugin.CodeGeneratorRequest, error) {
-	glog.V(1).Info("Parsing code generator request")
-	input, err := ioutil.ReadAll(r)
-	if err != nil {
-		glog.Errorf("Failed to read code generator request: %v", err)
-		return nil, err
-	}
-	req := new(plugin.CodeGeneratorRequest)
-	if err = proto.Unmarshal(input, req); err != nil {
-		glog.Errorf("Failed to unmarshal code generator request: %v", err)
-		return nil, err
-	}
-	glog.V(1).Info("Parsed code generator request")
-	return req, nil
-}
 
 func main() {
 	flag.Parse()
+	flag.Lookup("logtostderr").Value.Set("true")
 	defer glog.Flush()
 
 	reg := descriptor.NewRegistry()
 
-	glog.V(1).Info("Processing code generator request")
+	glog.V(2).Info("Processing code generator request")
 	fs := os.Stdin
 	if *file != "-" {
 		var err error
@@ -55,7 +43,8 @@ func main() {
 			glog.Fatal(err)
 		}
 	}
-	glog.V(1).Info("Parsing code generator request")
+
+	glog.V(2).Info("Parsing code generator request")
 	req, err := codegenerator.ParseRequest(fs)
 	if err != nil {
 		glog.Fatal(err)
@@ -81,12 +70,28 @@ func main() {
 		}
 	}
 
-	g := genhandler.New(reg)
-
 	if err = reg.Load(req); err != nil {
 		emitError(err)
 		return
 	}
+
+	opts := []genhandler.Option{
+		genhandler.Impl(*withImpl),
+		genhandler.ImplPath(*implPath),
+		genhandler.DescPath(*descPath),
+		genhandler.Force(*forceImpl),
+	}
+
+	if *withSwagger {
+		swagBuf, err := genSwaggerDef(req, pkgMap)
+		if err != nil {
+			emitError(err)
+			return
+		}
+		opts = append(opts, genhandler.SwaggerDef(swagBuf))
+	}
+
+	g := genhandler.New(reg, opts...)
 
 	var targets []*descriptor.File
 	for _, target := range req.FileToGenerate {
@@ -98,27 +103,13 @@ func main() {
 		targets = append(targets, f)
 	}
 
-	swagBuf, err := genSwaggerDef(req, pkgMap)
-	if err != nil {
-		emitError(err)
-		return
-	}
-
-	out, err := g.Generate(targets, swagBuf)
-	glog.V(1).Info("Processed code generator request")
+	out, err := g.Generate(targets)
+	glog.V(2).Info("Processed code generator request")
 	if err != nil {
 		emitError(err)
 		return
 	}
 	emitFiles(os.Stdout, out)
-}
-
-func ptrOfInt32(i int32) *int32 {
-	return &i
-}
-
-func ptrOfString(s string) *string {
-	return &s
 }
 
 // parseReqParam parses a CodeGeneratorRequest parameter and adds the
@@ -152,6 +143,14 @@ func parseReqParam(param string, f *flag.FlagSet, pkgMap map[string]string) erro
 		if err := f.Set(name, value); err != nil {
 			return fmt.Errorf("Cannot set flag %s: %v", p, err)
 		}
+	}
+	*descPath = strings.Trim(*descPath, "/")
+	if *descPath == "." {
+		*descPath = ""
+	}
+	*implPath = strings.Trim(*implPath, "/")
+	if *implPath == "." {
+		*implPath = ""
 	}
 	return nil
 }
