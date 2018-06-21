@@ -3,6 +3,7 @@ package transport
 import (
 	"net/http"
 
+	"github.com/utrack/clay/transport/swagger"
 	"google.golang.org/grpc"
 )
 
@@ -17,10 +18,11 @@ type Service interface {
 type ServiceDesc interface {
 	RegisterGRPC(*grpc.Server)
 	RegisterHTTP(Router) error
-	SwaggerDef(options ...SwaggerOption) []byte
+	SwaggerDef(options ...swagger.Option) []byte
 }
 
 // Router routes HTTP requests around.
 type Router interface {
 	Handle(pattern string, h http.Handler)
+	ServeHTTP(http.ResponseWriter, *http.Request)
 }

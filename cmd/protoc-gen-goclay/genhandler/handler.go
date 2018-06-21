@@ -137,6 +137,7 @@ func (g *Generator) getDescTemplate(swagger *spec.Swagger, f *descriptor.File) (
 	for _, pkg := range []string{
 		"net/http",
 		"github.com/utrack/clay/transport/httpruntime",
+		"github.com/utrack/clay/transport/swagger",
 		"github.com/grpc-ecosystem/grpc-gateway/runtime",
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",

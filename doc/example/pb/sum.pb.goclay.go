@@ -18,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/utrack/clay/transport"
 	"github.com/utrack/clay/transport/httpruntime"
+	"github.com/utrack/clay/transport/swagger"
 	"google.golang.org/grpc"
 )
 
@@ -43,7 +44,7 @@ func (d *SummatorDesc) RegisterGRPC(s *grpc.Server) {
 }
 
 // SwaggerDef returns this file's Swagger definition.
-func (d *SummatorDesc) SwaggerDef(options ...transport.SwaggerOption) (result []byte) {
+func (d *SummatorDesc) SwaggerDef(options ...swagger.Option) (result []byte) {
 	if len(options) > 0 {
 		var err error
 		var swagger = &spec.Swagger{}

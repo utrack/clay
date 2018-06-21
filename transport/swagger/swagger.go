@@ -1,18 +1,18 @@
-package transport
+package swagger
 
 import (
 	"github.com/go-openapi/spec"
 )
 
-type SwaggerOption func(swagger *spec.Swagger)
+type Option func(swagger *spec.Swagger)
 
-func WithHost(host string) SwaggerOption {
+func WithHost(host string) Option {
 	return func(swagger *spec.Swagger) {
 		swagger.Host = host
 	}
 }
 
-func WithVersion(version string) SwaggerOption {
+func WithVersion(version string) Option {
 	return func(swagger *spec.Swagger) {
 		if swagger.Info == nil {
 			swagger.Info = &spec.Info{}
@@ -21,7 +21,7 @@ func WithVersion(version string) SwaggerOption {
 	}
 }
 
-func WithTitle(title string) SwaggerOption {
+func WithTitle(title string) Option {
 	return func(swagger *spec.Swagger) {
 		if swagger.Info == nil {
 			swagger.Info = &spec.Info{}
@@ -30,7 +30,7 @@ func WithTitle(title string) SwaggerOption {
 	}
 }
 
-func WithDescription(desc string) SwaggerOption {
+func WithDescription(desc string) Option {
 	return func(swagger *spec.Swagger) {
 		if swagger.Info == nil {
 			swagger.Info = &spec.Info{}
@@ -39,7 +39,7 @@ func WithDescription(desc string) SwaggerOption {
 	}
 }
 
-func WithSecurityDefinitions(secDef spec.SecurityDefinitions) SwaggerOption {
+func WithSecurityDefinitions(secDef spec.SecurityDefinitions) Option {
 	return func(swagger *spec.Swagger) {
 		swagger.SecurityDefinitions = secDef
 	}

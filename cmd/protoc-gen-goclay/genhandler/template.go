@@ -110,7 +110,7 @@ func (d *{{ $svc.GetName }}Desc) RegisterGRPC(s *grpc.Server) {
 }
 
 // SwaggerDef returns this file's Swagger definition.
-func (d *{{ $svc.GetName }}Desc) SwaggerDef(options ...transport.SwaggerOption) (result []byte) {
+func (d *{{ $svc.GetName }}Desc) SwaggerDef(options ...swagger.Option) (result []byte) {
     {{ if $.SwaggerBuffer }}if len(options) > 0 {
         var err error
         var swagger = &spec.Swagger{}
