@@ -5,6 +5,8 @@ import (
 	"strings"
 	"text/template"
 
+	pbdescriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/protoc-gen-go/generator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/pkg/errors"
 )
@@ -47,11 +49,13 @@ func applyDescTemplate(p param) (string, error) {
 			return "", err
 		}
 	}
+	if err := clientTemplate.Execute(w, p); err != nil {
+		return "", err
+	}
 
 	if err := patternsTemplate.ExecuteTemplate(w, "base", p); err != nil {
 		return "", err
 	}
-	//spew.Dump(p.Services[0].Methods[0].Bindings)
 
 	return w.String(), nil
 }
@@ -63,9 +67,38 @@ var (
 		"-", "_",
 	)
 	funcMap = template.FuncMap{
-		"varName":         func(s string) string { return varNameReplacer.Replace(s) },
+		"hasAsterisk": func(ss []string) bool {
+			for _, s := range ss {
+				if s == "*" {
+					return true
+				}
+			}
+			return false
+		},
+		"varName": func(s string) string { return varNameReplacer.Replace(s) },
+		"goTypeName": func(s string) string {
+			toks := strings.Split(s, ".")
+			for pos := range toks {
+				toks[pos] = generator.CamelCase(toks[pos])
+			}
+			return strings.Join(toks, ".")
+		},
 		"byteStr":         func(b []byte) string { return string(b) },
 		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
+		"toGoType":        func(t pbdescriptor.FieldDescriptorProto_Type) string { return primitiveTypeToGo(t) },
+		// arrayToPathInterp replaces chi-style path to fmt.Sprint-style path.
+		"arrayToPathInterp": func(tpl string) string {
+			vv := strings.Split(tpl, "/")
+			ret := []string{}
+			for _, v := range vv {
+				if strings.HasPrefix(v, "{") {
+					ret = append(ret, "%v")
+					continue
+				}
+				ret = append(ret, v)
+			}
+			return strings.Join(ret, "/")
+		},
 	}
 
 	headerTemplate = template.Must(template.New("header").Parse(`
@@ -188,44 +221,68 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux transport.Router) error {
 ` + "`)" + `
 `))
 
-	patternsTemplate = template.Must(template.New("patterns").Parse(`
-{{ define "base" }}
+	patternsTemplate = template.Must(template.New("patterns").Funcs(funcMap).Parse(`
+{{define "base"}}
 var (
-{{ range $svc := .Services }}
-{{ range $m := $svc.Methods }}
-{{ range $b := $m.Bindings }}
-    pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = "{{ $b.PathTmpl.Template }}"
-    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *http.Request,req *{{ $m.RequestType.GetName }}) error {
+{{range $svc := .Services}}
+{{range $m := $svc.Methods}}
+{{range $b := $m.Bindings}}
+
+	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = "{{$b.PathTmpl.Template}}"
+
+	pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder = func(
+{{range $p := $b.PathParams}}{{$p.Target.GetName}} {{toGoType $p.Target.GetType}},
+{{end}}) string {
+return fmt.Sprintf("{{arrayToPathInterp $b.PathTmpl.Template}}",{{range $p := $b.PathParams}}{{$p.Target.GetName}},{{end}})
+}
+
+{{if not (hasAsterisk $b.ExplicitParams)}}
+         unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_boundParams = map[string]struct{}{ {{ range $n := $b.ExplicitParams }}
+"{{$n}}": struct{}{},
+{{- end -}}
+{{end}}
+}
+         unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *http.Request,req *{{$m.RequestType.GetName}}) error {
+{{if not (hasAsterisk $b.ExplicitParams)}}
+         for k,v := range r.URL.Query() {
+            if _,ok := unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_boundParams[strings.ToLower(k)];ok {
+              continue
+            }
+	    runtime.PopulateFieldFromPath(req, k, v[0])
+         }
+{{end}}
+        var err error
         {{- if $b.Body -}}
             {{- template "unmbody" . -}}
         {{- end -}}
+
         {{- if $b.PathParams -}}
             {{- template "unmpath" . -}}
-        {{- end -}}
-        return nil
+        {{ end }}
+
+        return err
     }
 {{ end }}
 {{ end }}
 {{ end }}
 )
 {{ end }}
-{{ define "unmbody" }}
-    inbound,_ := httpruntime.MarshalerForRequest(r)
-    if err := errors.Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON"); err != nil {
-        return err
-    }
-{{ end }}
-{{ define "unmpath" }}
-    rctx := chi.RouteContext(r.Context())
-    if rctx == nil {
-        panic("Only chi router is supported for GETs atm")
-    }
-    for pos,k := range rctx.URLParams.Keys {
-        if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from URL"); err != nil {
+{{define "unmbody"}}
+          inbound,_ := httpruntime.MarshalerForRequest(r)
+	  err = errors.Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON")
+          if err != nil {
             return err
-        }
-    }
-{{ end }}
+          }
+{{end}}
+{{define "unmpath"}}
+	  rctx := chi.RouteContext(r.Context())
+          if rctx == nil {
+            panic("Only chi router is supported for GETs atm")
+	  }
+          for pos,k := range rctx.URLParams.Keys {
+	    runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
+          }
+{{end}}
 `))
 
 	implTemplate = template.Must(template.New("impl").Funcs(funcMap).Parse(`
@@ -261,5 +318,60 @@ func (i *{{ $service.GetName }}Implementation) GetDescription() transport.Servic
 }
 
 {{ end }}
+`))
+	clientTemplate = template.Must(template.New("http-client").Funcs(funcMap).Parse(`
+{{range $svc := .Services}}
+type {{$svc.GetName}}_httpClient struct {
+c *http.Client
+host string
+}
+
+// New{{$svc.GetName}}HTTPClient creates new HTTP client for {{$svc.GetName}}Server.
+// Pass addr in format "http://host[:port]".
+func New{{$svc.GetName}}HTTPClient(c *http.Client,addr string) {{$svc.GetName}}Client {
+	if strings.HasSuffix(addr, "/") {
+		addr = addr[:len(addr)-1]
+	}
+        return &{{$svc.GetName}}_httpClient{c:c,host:addr}
+}
+{{range $m := $svc.Methods}}
+{{range $b := $m.Bindings}}
+func (c *{{$svc.GetName}}_httpClient) {{$m.GetName}}(ctx context.Context,in *{{$m.RequestType.GetName}},_ ...grpc.CallOption) (*{{$m.ResponseType.GetName}},error) {
+
+        path := pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder({{range $p := $b.PathParams}}in.{{goTypeName $p.String}},{{end}})
+
+	buf := bytes.NewBuffer(nil)
+
+	m := httpruntime.DefaultMarshaler(nil)
+	err := m.Marshal(buf, in)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't marshal request")
+	}
+
+	req, err := http.NewRequest("{{$b.HTTPMethod}}", c.host+path, buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't initiate HTTP request")
+	}
+
+	req.Header.Add("Accept", m.ContentType())
+
+	rsp, err := c.c.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "error from client")
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode>= 400 {
+		b,_ := ioutil.ReadAll(rsp.Body)
+		return nil,errors.Errorf("%v %v: server returned HTTP %v: '%v'",req.Method,req.URL.String(),rsp.StatusCode,string(b))
+	}
+
+	ret := &{{$m.ResponseType.GetName}}{}
+	err = m.Unmarshal(rsp.Body, ret)
+	return ret, errors.Wrap(err, "can't unmarshal response")
+}
+{{end}}
+{{end}}
+{{end}}
 `))
 )

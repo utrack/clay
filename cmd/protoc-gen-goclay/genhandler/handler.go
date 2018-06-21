@@ -36,6 +36,7 @@ func New(reg *descriptor.Registry, opts ...Option) *Generator {
 		reg:     reg,
 	}
 	g.imports = append(g.imports,
+		g.newGoPackage("context"),
 		g.newGoPackage("github.com/pkg/errors"),
 		g.newGoPackage("github.com/utrack/clay/transport"),
 	)
@@ -135,9 +136,15 @@ func (g *Generator) getDescTemplate(swagger *spec.Swagger, f *descriptor.File) (
 	}
 
 	for _, pkg := range []string{
+		"fmt",
+		"io/ioutil",
+		"strings",
+		"bytes",
 		"net/http",
+
 		"github.com/utrack/clay/transport/httpruntime",
 		"github.com/utrack/clay/transport/swagger",
+		"github.com/utrack/clay/transport",
 		"github.com/grpc-ecosystem/grpc-gateway/runtime",
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",
