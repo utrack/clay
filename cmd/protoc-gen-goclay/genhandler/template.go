@@ -173,7 +173,7 @@ var (
 {{end}}
 {{define "unmbody"}}
           inbound,_ := httpruntime.MarshalerForRequest(r)
-	  err = errors.Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON")
+	  err = errors.Wrap(inbound.Unmarshal(r.Body,{{.Body.AssignableExpr "req"}}),"couldn't read request JSON")
           if err != nil {
             return err
           }
