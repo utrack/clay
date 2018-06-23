@@ -10,21 +10,21 @@ It conforms to the github.com/utrack/clay Service interface.
 package sumpb
 
 import (
-	"bytes"
-	"context"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
+	bytes "bytes"
+	context "context"
+	fmt "fmt"
+	ioutil "io/ioutil"
+	http "net/http"
+	strings "strings"
 
-	"github.com/go-chi/chi"
-	"github.com/go-openapi/spec"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/pkg/errors"
-	"github.com/utrack/clay/transport"
-	"github.com/utrack/clay/transport/httpruntime"
-	"github.com/utrack/clay/transport/swagger"
-	"google.golang.org/grpc"
+	chi "github.com/go-chi/chi"
+	spec "github.com/go-openapi/spec"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	errors "github.com/pkg/errors"
+	transport "github.com/utrack/clay/transport"
+	httpruntime "github.com/utrack/clay/transport/httpruntime"
+	swagger "github.com/utrack/clay/transport/swagger"
+	grpc "google.golang.org/grpc"
 )
 
 // Update your shared lib or downgrade generator to v1 if there's an error
@@ -107,85 +107,88 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 }
 
 var _swaggerDef_doc_example_pb_sum_proto = []byte(`{
-    "consumes": [
-        "application/json"
-    ],
-    "produces": [
-        "application/json"
-    ],
-    "schemes": [
-        "http",
-        "https"
-    ],
-    "swagger": "2.0",
-    "info": {
-        "title": "doc/example/pb/sum.proto",
-        "version": "version not set"
-    },
-    "paths": {
-        "/v1/example/sum/{a}": {
-            "get": {
-                "tags": [
-                    "Summator"
-                ],
-                "operationId": "Sum",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "int64",
-                        "name": "a",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "int64",
-                        "description": "B is the number we're adding.",
-                        "name": "b",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "schema": {
-                            "$ref": "#/definitions/sumpbSumResponse"
-                        }
-                    }
-                }
+  "swagger": "2.0",
+  "info": {
+    "title": "doc/example/pb/sum.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/example/sum/{a}": {
+      "get": {
+        "operationId": "Sum",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/sumpbSumResponse"
             }
-        }
-    },
-    "definitions": {
-        "sumpbSumRequest": {
-            "description": "SumRequest is a request for Summator service.",
-            "type": "object",
-            "properties": {
-                "a": {
-                    "description": "A is the number we're adding to. Can't be zero for the sake of example.",
-                    "type": "string",
-                    "format": "int64"
-                },
-                "b": {
-                    "description": "B is the number we're adding.",
-                    "type": "string",
-                    "format": "int64"
-                }
-            }
+          }
         },
-        "sumpbSumResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                },
-                "sum": {
-                    "type": "string",
-                    "format": "int64"
-                }
-            }
-        }
+        "parameters": [
+          {
+            "name": "a",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "b",
+            "description": "B is the number we're adding.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Summator"
+        ]
+      }
     }
+  },
+  "definitions": {
+    "sumpbSumRequest": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "string",
+          "format": "int64",
+          "description": "A is the number we're adding to. Can't be zero for the sake of example."
+        },
+        "b": {
+          "type": "string",
+          "format": "int64",
+          "description": "B is the number we're adding."
+        }
+      },
+      "description": "SumRequest is a request for Summator service."
+    },
+    "sumpbSumResponse": {
+      "type": "object",
+      "properties": {
+        "sum": {
+          "type": "string",
+          "format": "int64"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }
+
 `)
 
 type Summator_httpClient struct {
@@ -203,7 +206,6 @@ func NewSummatorHTTPClient(c *http.Client, addr string) SummatorClient {
 }
 
 func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc.CallOption) (*SumResponse, error) {
-
 	path := pattern_goclay_Summator_Sum_0_builder(in.A)
 
 	buf := bytes.NewBuffer(nil)
@@ -249,24 +251,28 @@ var (
 	unmarshaler_goclay_Summator_Sum_0_boundParams = map[string]struct{}{
 		"a": struct{}{},
 	}
+
 	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request, req *SumRequest) error {
 
 		for k, v := range r.URL.Query() {
 			if _, ok := unmarshaler_goclay_Summator_Sum_0_boundParams[strings.ToLower(k)]; ok {
 				continue
 			}
-			runtime.PopulateFieldFromPath(req, k, v[0])
+			if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
+				return err
+			}
 		}
 
-		var err error
 		rctx := chi.RouteContext(r.Context())
 		if rctx == nil {
 			panic("Only chi router is supported for GETs atm")
 		}
 		for pos, k := range rctx.URLParams.Keys {
-			runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos])
+			if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
+				return err
+			}
 		}
 
-		return err
+		return nil
 	}
 )

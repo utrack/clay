@@ -1,8 +1,6 @@
 package genhandler
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"go/build"
 	"go/format"
@@ -11,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-openapi/spec"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -44,9 +41,17 @@ func New(reg *descriptor.Registry, opts ...Option) *Generator {
 }
 
 func (g *Generator) newGoPackage(pkgPath string) descriptor.GoPackage {
+	alias := ""
+	if pkgPaths := strings.Split(pkgPath, ";"); len(pkgPaths) == 2 {
+		pkgPath = pkgPaths[0]
+		alias = pkgPaths[1]
+	}
 	gopkg := descriptor.GoPackage{
 		Path: pkgPath,
 		Name: path.Base(pkgPath),
+	}
+	if alias == "" {
+		alias = gopkg.Name
 	}
 	if err := g.reg.ReserveGoPackageAlias(gopkg.Name, gopkg.Path); err != nil {
 		for i := 0; ; i++ {
@@ -58,6 +63,13 @@ func (g *Generator) newGoPackage(pkgPath string) descriptor.GoPackage {
 			break
 		}
 	}
+	if gopkg.Alias == "" {
+		gopkg.Alias = gopkg.Name
+	}
+	if pkg == nil {
+		pkg = make(map[string]string)
+	}
+	pkg[alias] = gopkg.Alias
 	return gopkg
 }
 
@@ -80,10 +92,16 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 			glog.Errorf("%v: %s", err, annotateString(descCode))
 			return nil, err
 		}
-		name := file.GetName()
+		name := filepath.Base(file.GetName())
 		ext := filepath.Ext(name)
 		base := strings.TrimSuffix(name, ext)
-		output := fmt.Sprintf("%s.pb.goclay.go", base)
+
+		goPkg := ""
+		if file.GoPkg.Path != "." {
+			goPkg = file.GoPkg.Path
+		}
+		output := fmt.Sprintf(filepath.Join(goPkg, g.options.DescPath, "%s.pb.goclay.go"), base)
+		output = filepath.Clean(output)
 
 		files = append(files, &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(output),
@@ -92,7 +110,7 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 		glog.V(1).Infof("Will emit %s", output)
 
 		if g.options.Impl {
-			output := fmt.Sprintf("%s.pb.impl.go", base)
+			output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), base)
 			output = filepath.Clean(output)
 
 			if !g.options.Force && fileExists(output) {
@@ -121,7 +139,7 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 	return files, nil
 }
 
-func (g *Generator) getDescTemplate(swagger *spec.Swagger, f *descriptor.File) (string, error) {
+func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string, error) {
 	pkgSeen := make(map[string]bool)
 	var imports []descriptor.GoPackage
 	for _, pkg := range g.imports {
@@ -129,7 +147,7 @@ func (g *Generator) getDescTemplate(swagger *spec.Swagger, f *descriptor.File) (
 		imports = append(imports, pkg)
 	}
 
-	for _, pkg := range []string{
+	pkgs := []string{
 		"fmt",
 		"io/ioutil",
 		"strings",
@@ -142,8 +160,13 @@ func (g *Generator) getDescTemplate(swagger *spec.Swagger, f *descriptor.File) (
 		"github.com/grpc-ecosystem/grpc-gateway/runtime",
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",
-		"github.com/go-openapi/spec",
-	} {
+	}
+
+	if swagger != nil {
+		pkgs = append(pkgs, "github.com/go-openapi/spec")
+	}
+
+	for _, pkg := range pkgs {
 		pkgSeen[pkg] = true
 		imports = append(imports, g.newGoPackage(pkg))
 	}
@@ -162,13 +185,7 @@ func (g *Generator) getDescTemplate(swagger *spec.Swagger, f *descriptor.File) (
 	}
 	p := param{File: f, Imports: imports}
 	if swagger != nil {
-		b, err := swagger.MarshalJSON()
-		var buf bytes.Buffer
-		err = json.Indent(&buf, b, "", "    ")
-		if err != nil {
-			return "", err
-		}
-		p.SwaggerBuffer = buf.Bytes()
+		p.SwaggerBuffer = swagger
 	}
 	return applyDescTemplate(p)
 }
@@ -192,13 +209,8 @@ func (g *Generator) getImplTemplate(f *descriptor.File) (string, error) {
 	if g.options.ImplPath != g.options.DescPath {
 		pkg := filepath.Join(getRootImportPath(f), g.options.DescPath)
 		pkgSeen[pkg] = true
-		gopkg := g.newGoPackage(pkg)
+		gopkg := g.newGoPackage(pkg + ";desc")
 		imports = append(imports, gopkg)
-		if gopkg.Alias != "" {
-			p.DescPrefix = gopkg.Alias + "."
-		} else {
-			p.DescPrefix = gopkg.Name + "."
-		}
 	}
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {

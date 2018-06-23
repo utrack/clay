@@ -23,6 +23,6 @@ type ServiceDesc interface {
 
 // Router routes HTTP requests around.
 type Router interface {
+	http.Handler
 	Handle(pattern string, h http.Handler)
-	ServeHTTP(http.ResponseWriter, *http.Request)
 }
