@@ -1,14 +1,13 @@
 package main
 
 import (
-	"github.com/go-openapi/spec"
 	"github.com/golang/glog"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/utrack/grpc-gateway/protoc-gen-swagger/genswagger"
 )
 
-func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) (map[string]*spec.Swagger, error) {
+func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) (map[string][]byte, error) {
 	reg := descriptor.NewRegistry()
 	reg.SetPrefix(*importPrefix)
 	reg.SetAllowDeleteBody(*allowDeleteBody)
@@ -42,13 +41,9 @@ func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) (
 	if err != nil {
 		return nil, err
 	}
-	ret := make(map[string]*spec.Swagger, len(outSwag))
+	ret := make(map[string][]byte, len(outSwag))
 	for pos := range outSwag {
-		s := &spec.Swagger{}
-		if err := s.UnmarshalJSON([]byte(outSwag[pos].GetContent())); err != nil {
-			return nil, err
-		}
-		ret[req.FileToGenerate[pos]] = s
+		ret[req.FileToGenerate[pos]] = []byte(outSwag[pos].GetContent())
 	}
 	return ret, nil
 }
