@@ -1,19 +1,17 @@
 package genhandler
 
-import "github.com/go-openapi/spec"
-
 type options struct {
 	ImplPath   string
 	DescPath   string
-	SwaggerDef map[string]*spec.Swagger
+	SwaggerDef map[string][]byte
 	Impl       bool
 	Force      bool
 }
 
 type Option func(*options)
 
-// SwaggerDef sets map of spec.Swagger per proto file
-func SwaggerDef(swaggerDef map[string]*spec.Swagger) Option {
+// SwaggerDef sets map of swagger.json per proto file
+func SwaggerDef(swaggerDef map[string][]byte) Option {
 	return func(o *options) {
 		o.SwaggerDef = swaggerDef
 	}
