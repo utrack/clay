@@ -40,36 +40,35 @@ func New(reg *descriptor.Registry, opts ...Option) *Generator {
 	return g
 }
 
-func (g *Generator) newGoPackage(pkgPath string) descriptor.GoPackage {
-	alias := ""
-	if pkgPaths := strings.Split(pkgPath, ";"); len(pkgPaths) == 2 {
-		pkgPath = pkgPaths[0]
-		alias = pkgPaths[1]
-	}
+func (g *Generator) newGoPackage(pkgPath string, aalias ...string) descriptor.GoPackage {
 	gopkg := descriptor.GoPackage{
 		Path: pkgPath,
 		Name: path.Base(pkgPath),
 	}
-	if alias == "" {
-		alias = gopkg.Name
+	alias := gopkg.Name
+	if len(aalias) > 0 {
+		alias = aalias[0]
+		gopkg.Alias = alias
 	}
-	if err := g.reg.ReserveGoPackageAlias(gopkg.Name, gopkg.Path); err != nil {
-		for i := 0; ; i++ {
-			alias := fmt.Sprintf("%s_%d", gopkg.Name, i)
-			if err := g.reg.ReserveGoPackageAlias(alias, gopkg.Path); err != nil {
-				continue
-			}
-			gopkg.Alias = alias
+
+	reference := alias
+	if reference == "" {
+		reference = gopkg.Name
+	}
+
+	for i := 0; ; i++ {
+		if err := g.reg.ReserveGoPackageAlias(alias, gopkg.Path); err == nil {
 			break
 		}
+		alias = fmt.Sprintf("%s_%d", gopkg.Name, i)
+		gopkg.Alias = alias
 	}
-	if gopkg.Alias == "" {
-		gopkg.Alias = gopkg.Name
-	}
+
 	if pkg == nil {
 		pkg = make(map[string]string)
 	}
-	pkg[alias] = gopkg.Alias
+	pkg[reference] = alias
+
 	return gopkg
 }
 
@@ -209,7 +208,7 @@ func (g *Generator) getImplTemplate(f *descriptor.File) (string, error) {
 	if g.options.ImplPath != g.options.DescPath {
 		pkg := filepath.Join(getRootImportPath(f), g.options.DescPath)
 		pkgSeen[pkg] = true
-		gopkg := g.newGoPackage(pkg + ";desc")
+		gopkg := g.newGoPackage(pkg, "desc")
 		imports = append(imports, gopkg)
 	}
 	for _, svc := range f.Services {
