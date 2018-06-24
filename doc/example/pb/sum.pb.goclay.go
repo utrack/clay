@@ -158,22 +158,6 @@ var _swaggerDef_sum_proto = []byte(`{
     }
   },
   "definitions": {
-    "sumpbSumRequest": {
-      "type": "object",
-      "properties": {
-        "a": {
-          "type": "string",
-          "format": "int64",
-          "description": "A is the number we're adding to. Can't be zero for the sake of example."
-        },
-        "b": {
-          "type": "string",
-          "format": "int64",
-          "description": "B is the number we're adding."
-        }
-      },
-      "description": "SumRequest is a request for Summator service."
-    },
     "sumpbSumResponse": {
       "type": "object",
       "properties": {
