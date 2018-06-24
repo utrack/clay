@@ -21,10 +21,14 @@ message SumRequest {
   // A is the number we're adding to. Can't be zero for the sake of example.
   int64 a = 1;
   // B is the number we're adding.
-  int64 b = 2;
+  BStruct b = 2;
 }
 
 message SumResponse {
   int64 sum = 1;
   string error = 2;
+}
+
+message BStruct {
+  int64 b = 1;
 }
