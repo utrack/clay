@@ -21,7 +21,7 @@ require (
 	github.com/pkg/errors v0.8.0
 	github.com/rakyll/statik v0.1.1
 	github.com/soheilhy/cmux v0.1.4
-	github.com/utrack/grpc-gateway v1.2.0
+	github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392
 	golang.org/x/crypto v0.0.0-20180425071531-b0697eccbea9
 	golang.org/x/net v0.0.0-20180420171651-5f9ae10d9af5
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
