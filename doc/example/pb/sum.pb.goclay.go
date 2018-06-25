@@ -10,21 +10,21 @@ It conforms to the github.com/utrack/clay Service interface.
 package sumpb
 
 import (
-	bytes "bytes"
-	context "context"
-	fmt "fmt"
-	ioutil "io/ioutil"
-	http "net/http"
-	strings "strings"
+	"bytes"
+	"context"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
 
-	chi "github.com/go-chi/chi"
-	spec "github.com/go-openapi/spec"
-	runtime "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	errors "github.com/pkg/errors"
-	transport "github.com/utrack/clay/transport"
-	httpruntime "github.com/utrack/clay/transport/httpruntime"
-	swagger "github.com/utrack/clay/transport/swagger"
-	grpc "google.golang.org/grpc"
+	"github.com/go-chi/chi"
+	"github.com/go-openapi/spec"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/pkg/errors"
+	"github.com/utrack/clay/transport"
+	"github.com/utrack/clay/transport/httpruntime"
+	"github.com/utrack/clay/transport/swagger"
+	"google.golang.org/grpc"
 )
 
 // Update your shared lib or downgrade generator to v1 if there's an error
