@@ -29,10 +29,12 @@ func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}
     buf := {{ pkg "bytes" }}NewBuffer(nil)
 
     m := {{ pkg "httpruntime" }}DefaultMarshaler(nil)
-    err := m.Marshal(buf, in)
-    if err != nil {
-        return nil, {{ pkg "errors" }}Wrap(err, "can't marshal request")
+    {{ if $b.Body }}
+    if err := m.Marshal(buf, {{.Body.AssignableExpr "in"}}); err != nil {
+	return nil, {{ pkg "errors" }}Wrap(err, "can't marshal request")
     }
+    {{ end }}
+
 
     req, err := {{ pkg "http" }}NewRequest("{{ $b.HTTPMethod }}", c.host+path, buf)
     if err != nil {

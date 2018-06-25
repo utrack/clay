@@ -198,14 +198,15 @@ var (
 {{ range $m := $svc.Methods }}
 {{ range $b := $m.Bindings }}
 
-    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request,req *{{ $m.RequestType.GetName }}) error {
+    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) (*{{ $m.RequestType.GetName }},error) {
+	var req {{$m.RequestType.GetName}}
         {{ if not (hasAsterisk $b.ExplicitParams) }}
             for k,v := range r.URL.Query() {
                 if _,ok := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams[{{ pkg "strings" }}ToLower(k)];ok {
                     continue
                 }
-                if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
-                    return err
+                if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
+                    return nil, err
                 }        
             }
         {{ end }}
@@ -215,7 +216,7 @@ var (
         {{- if $b.PathParams -}}
             {{- template "unmpath" . -}}
         {{ end }}
-        return nil
+        return &req, nil
     }
 {{ end }}
 {{ end }}
@@ -224,8 +225,8 @@ var (
 {{ end }}
 {{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
-    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON"); err != nil {
-        return err
+    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
+        return nil, err
     }
 {{ end }}
 {{ define "unmpath" }}
@@ -234,8 +235,8 @@ var (
         panic("Only chi router is supported for GETs atm")
     }
     for pos,k := range rctx.URLParams.Keys {
-        if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-            return err
+        if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
+            return nil, err
         }
     }
 {{ end }}
