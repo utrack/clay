@@ -279,12 +279,10 @@ var (
 )
 {{ end }}
 {{define "unmbody"}}
-	{{if .Body}}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
     if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
         return nil, err
     }
-	{{end}}
 {{end}}
 {{define "unmpath"}}
     rctx := {{ pkg "chi" }}RouteContext(r.Context())
