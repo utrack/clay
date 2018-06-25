@@ -279,10 +279,12 @@ var (
 )
 {{ end }}
 {{define "unmbody"}}
+	{{if .Body}}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
     if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
         return nil, err
     }
+	{{end}}
 {{end}}
 {{define "unmpath"}}
     rctx := {{ pkg "chi" }}RouteContext(r.Context())
@@ -354,9 +356,11 @@ func (c *{{$svc.GetName}}_httpClient) {{$m.GetName}}(ctx {{ pkg "context" }}Cont
     buf := {{ pkg "bytes" }}NewBuffer(nil)
 
     m := {{ pkg "httpruntime" }}DefaultMarshaler(nil)
+	{{if .Body}}
 	if err := m.Marshal(buf, {{.Body.AssignableExpr "in"}}); err != nil {
 		return nil, {{ pkg "errors" }}Wrap(err, "can't marshal request")
 	}
+	{{end}}
 
     req, err := {{ pkg "http" }}NewRequest("{{$b.HTTPMethod}}", c.host+path, buf)
     if err != nil {
