@@ -30,8 +30,16 @@ import (
 // Update your shared lib or downgrade generator to v1 if there's an error
 var _ = transport.IsVersion2
 
+var _ = ioutil.Discard
 var _ chi.Router
 var _ runtime.Marshaler
+var _ bytes.Buffer
+var _ context.Context
+var _ fmt.Formatter
+var _ strings.Reader
+var _ errors.Frame
+var _ httpruntime.Marshaler
+var _ http.Handler
 
 // SummatorDesc is a descriptor/registrator for the SummatorServer.
 type SummatorDesc struct {
@@ -52,14 +60,14 @@ func (d *SummatorDesc) RegisterGRPC(s *grpc.Server) {
 func (d *SummatorDesc) SwaggerDef(options ...swagger.Option) (result []byte) {
 	if len(options) > 0 {
 		var err error
-		var swagger = &spec.Swagger{}
-		if err = swagger.UnmarshalJSON(_swaggerDef_sum_proto); err != nil {
+		var s = &spec.Swagger{}
+		if err = s.UnmarshalJSON(_swaggerDef_sum_proto); err != nil {
 			panic("Bad swagger definition: " + err.Error())
 		}
 		for _, o := range options {
-			o(swagger)
+			o(s)
 		}
-		if result, err = swagger.MarshalJSON(); err != nil {
+		if result, err = s.MarshalJSON(); err != nil {
 			panic("Failed marshal spec.Swagger definition: " + err.Error())
 		}
 	} else {
@@ -105,6 +113,96 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 	}
 
 }
+
+type Summator_httpClient struct {
+	c    *http.Client
+	host string
+}
+
+// NewSummatorHTTPClient creates new HTTP client for SummatorServer.
+// Pass addr in format "http://host[:port]".
+func NewSummatorHTTPClient(c *http.Client, addr string) SummatorClient {
+	if strings.HasSuffix(addr, "/") {
+		addr = addr[:len(addr)-1]
+	}
+	return &Summator_httpClient{c: c, host: addr}
+}
+
+func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc.CallOption) (*SumResponse, error) {
+	path := pattern_goclay_Summator_Sum_0_builder(in.A)
+
+	buf := bytes.NewBuffer(nil)
+
+	m := httpruntime.DefaultMarshaler(nil)
+	err := m.Marshal(buf, in)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't marshal request")
+	}
+
+	req, err := http.NewRequest("GET", c.host+path, buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't initiate HTTP request")
+	}
+
+	req.Header.Add("Accept", m.ContentType())
+
+	rsp, err := c.c.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "error from client")
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode >= 400 {
+		b, _ := ioutil.ReadAll(rsp.Body)
+		return nil, errors.Errorf("%v %v: server returned HTTP %v: '%v'", req.Method, req.URL.String(), rsp.StatusCode, string(b))
+	}
+
+	ret := &SumResponse{}
+	err = m.Unmarshal(rsp.Body, ret)
+	return ret, errors.Wrap(err, "can't unmarshal response")
+}
+
+// patterns for Summator
+var (
+	pattern_goclay_Summator_Sum_0 = "/v1/example/sum/{a}"
+
+	pattern_goclay_Summator_Sum_0_builder = func(
+		a int64,
+	) string {
+		return fmt.Sprintf("/v1/example/sum/%v", a)
+	}
+
+	unmarshaler_goclay_Summator_Sum_0_boundParams = map[string]struct{}{
+		"a": struct{}{},
+	}
+)
+
+// marshalers for Summator
+var (
+	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request, req *SumRequest) error {
+
+		for k, v := range r.URL.Query() {
+			if _, ok := unmarshaler_goclay_Summator_Sum_0_boundParams[strings.ToLower(k)]; ok {
+				continue
+			}
+			if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
+				return err
+			}
+		}
+
+		rctx := chi.RouteContext(r.Context())
+		if rctx == nil {
+			panic("Only chi router is supported for GETs atm")
+		}
+		for pos, k := range rctx.URLParams.Keys {
+			if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+)
 
 var _swaggerDef_sum_proto = []byte(`{
   "swagger": "2.0",
@@ -158,6 +256,22 @@ var _swaggerDef_sum_proto = []byte(`{
     }
   },
   "definitions": {
+    "sumpbSumRequest": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "string",
+          "format": "int64",
+          "description": "A is the number we're adding to. Can't be zero for the sake of example."
+        },
+        "b": {
+          "type": "string",
+          "format": "int64",
+          "description": "B is the number we're adding."
+        }
+      },
+      "description": "SumRequest is a request for Summator service."
+    },
     "sumpbSumResponse": {
       "type": "object",
       "properties": {
@@ -174,89 +288,3 @@ var _swaggerDef_sum_proto = []byte(`{
 }
 
 `)
-
-type Summator_httpClient struct {
-	c    *http.Client
-	host string
-}
-
-// NewSummatorHTTPClient creates new HTTP client for SummatorServer.
-// Pass addr in format "http://host[:port]".
-func NewSummatorHTTPClient(c *http.Client, addr string) SummatorClient {
-	if strings.HasSuffix(addr, "/") {
-		addr = addr[:len(addr)-1]
-	}
-	return &Summator_httpClient{c: c, host: addr}
-}
-
-func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc.CallOption) (*SumResponse, error) {
-	path := pattern_goclay_Summator_Sum_0_builder(in.A)
-
-	buf := bytes.NewBuffer(nil)
-
-	m := httpruntime.DefaultMarshaler(nil)
-	err := m.Marshal(buf, in)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't marshal request")
-	}
-
-	req, err := http.NewRequest("GET", c.host+path, buf)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't initiate HTTP request")
-	}
-
-	req.Header.Add("Accept", m.ContentType())
-
-	rsp, err := c.c.Do(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "error from client")
-	}
-	defer rsp.Body.Close()
-
-	if rsp.StatusCode >= 400 {
-		b, _ := ioutil.ReadAll(rsp.Body)
-		return nil, errors.Errorf("%v %v: server returned HTTP %v: '%v'", req.Method, req.URL.String(), rsp.StatusCode, string(b))
-	}
-
-	ret := &SumResponse{}
-	err = m.Unmarshal(rsp.Body, ret)
-	return ret, errors.Wrap(err, "can't unmarshal response")
-}
-
-var (
-	pattern_goclay_Summator_Sum_0 = "/v1/example/sum/{a}"
-
-	pattern_goclay_Summator_Sum_0_builder = func(
-		a int64,
-	) string {
-		return fmt.Sprintf("/v1/example/sum/%v", a)
-	}
-
-	unmarshaler_goclay_Summator_Sum_0_boundParams = map[string]struct{}{
-		"a": struct{}{},
-	}
-
-	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request, req *SumRequest) error {
-
-		for k, v := range r.URL.Query() {
-			if _, ok := unmarshaler_goclay_Summator_Sum_0_boundParams[strings.ToLower(k)]; ok {
-				continue
-			}
-			if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
-				return err
-			}
-		}
-
-		rctx := chi.RouteContext(r.Context())
-		if rctx == nil {
-			panic("Only chi router is supported for GETs atm")
-		}
-		for pos, k := range rctx.URLParams.Keys {
-			if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-)
