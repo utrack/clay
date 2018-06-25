@@ -11,8 +11,8 @@ service Summator {
     option (google.api.http) = {
                                 // uncomment get or post+body or use YAML annotation
                                 //get: "/v1/example/sum/{a}/{b}"
-                                //post: "/v1/example/sum/{a}"
-                                //body: "b"
+                                post: "/v1/example/sum/{a}"
+                                body: "b"
     };
   }
 }
