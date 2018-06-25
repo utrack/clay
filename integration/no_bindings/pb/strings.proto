@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+service Strings {
+    rpc ToUpper (String) returns (String) {}
+    rpc ToLower (String) returns (String) {}
+}
+
+message String {
+    string str = 1;
+}
