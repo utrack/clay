@@ -107,6 +107,15 @@ var (
 			}
 			return ""
 		},
+		"hasBindings": func(service *descriptor.Service) bool {
+			for _, m := range service.Methods {
+				if len(m.Bindings) > 0 {
+					return true
+				}
+			}
+			return false
+
+		},
 	}
 
 	headerTemplate = template.Must(template.New("header").Funcs(funcMap).Parse(`
@@ -181,12 +190,10 @@ func (d *{{ $svc.GetName }}Desc) SwaggerDef(options ...{{ pkg "swagger" }}Option
 
 // RegisterHTTP registers this service's HTTP handlers/bindings.
 func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
-    {{ if $svc.Methods }}
-	{{ if (index $svc.Methods 0).Bindings }}
-		chiMux, isChi := mux.({{ pkg "chi" }}Router)
-    	var h {{ pkg "http" }}HandlerFunc
-	{{ end }}
-	{{ end }}
+    {{ if $svc | hasBindings -}}
+        chiMux, isChi := mux.({{ pkg "chi" }}Router)
+        var h {{ pkg "http" }}HandlerFunc
+    {{ end }}
     {{ range $m := $svc.Methods }}
     {{ range $b := $m.Bindings -}}
     // Handler for {{ $m.GetName }}, binding: {{ $b.HTTPMethod }} {{ $b.PathTmpl.Template }}
@@ -345,8 +352,7 @@ func (i *{{ $service.GetName }}Implementation) GetDescription() {{ pkg "transpor
 `))
 	clientTemplate = template.Must(template.New("http-client").Funcs(funcMap).Option().Parse(`
 {{ range $svc := .Services }}
-{{ if $svc.Methods }}
-{{ if (index $svc.Methods 0).Bindings }}
+{{ if $svc | hasBindings -}}
 type {{ $svc.GetName }}_httpClient struct {
     c *{{ pkg "http" }}Client
     host string
@@ -360,7 +366,6 @@ func New{{ $svc.GetName }}HTTPClient(c *{{ pkg "http" }}Client,addr string) {{ $
     }
     return &{{ $svc.GetName }}_httpClient{c:c,host:addr}
 }
-{{ end }}
 {{ end }}
 
 {{ range $m := $svc.Methods }}
