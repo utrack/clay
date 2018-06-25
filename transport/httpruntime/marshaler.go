@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 )
 
 // Marshaler is a processor that can marshal and unmarshal data to some content-type.
 type Marshaler interface {
 	ContentType() string
-	Unmarshal(io.Reader, proto.Message) error
-	Marshal(io.Writer, proto.Message) error
+	Unmarshal(io.Reader, interface{}) error
+	Marshal(io.Writer, interface{}) error
 }
 
 // func to init marshaler with Content-Type/Accept params
