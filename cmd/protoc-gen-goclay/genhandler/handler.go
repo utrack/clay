@@ -78,7 +78,8 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 		glog.V(1).Infof("Processing %s", file.GetName())
 
 		if len(file.Services) == 0 {
-			glog.V(0).Infof("%s: %v", file.GetName(), errNoTargetService)
+			// This log is unnecessary and breaks protoc
+			//glog.V(0).Infof("%s: %v", file.GetName(), errNoTargetService)
 			continue
 		}
 		descCode, err := g.getDescTemplate(g.options.SwaggerDef[file.GetName()], file)
