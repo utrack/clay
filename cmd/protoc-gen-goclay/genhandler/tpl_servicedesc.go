@@ -73,6 +73,11 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
             return
         }
     })
+
+{{ if $.ApplyMiddlewares }}
+    h = httpmw.DefaultChain(h)
+{{ end }}
+
     if isChi {
         chiMux.Method("{{ $b.HTTPMethod }}",pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}, h)
     } else {
