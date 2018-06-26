@@ -18,7 +18,7 @@ import (
 
 	// We're using statik-compiled files of Swagger UI
 	// for the sake of example.
-	_ "github.com/utrack/clay/static/statik"
+	_ "github.com/utrack/clay/doc/example/static/statik"
 )
 
 // SumImpl is an implementation of SummatorService.

@@ -27,7 +27,7 @@ require (
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
 	golang.org/x/sys v0.0.0-20180425194835-bb9c189858d9
 	google.golang.org/genproto v0.0.0-20180413175816-7fd901a49ba6
-	google.golang.org/grpc v1.11.3
+	google.golang.org/grpc v1.12.0
 	gopkg.in/airbrake/gobrake.v2 v2.0.9
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2
 	gopkg.in/yaml.v2 v2.2.1
