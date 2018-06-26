@@ -81,18 +81,17 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 	chiMux, isChi := mux.(chi.Router)
 	var h http.HandlerFunc
 
-	// Handler for Sum, binding: GET /v1/example/sum/{a}
+	// Handler for Sum, binding: POST /v1/example/sum/{a}
 	h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
-		var req SumRequest
-		err := unmarshaler_goclay_Summator_Sum_0(r, &req)
+		req, err := unmarshaler_goclay_Summator_Sum_0(r)
 		if err != nil {
 			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
 			return
 		}
 
-		ret, err := d.svc.Sum(r.Context(), &req)
+		ret, err := d.svc.Sum(r.Context(), req)
 		if err != nil {
 			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
 			return
@@ -107,7 +106,36 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 		}
 	})
 	if isChi {
-		chiMux.Method("GET", pattern_goclay_Summator_Sum_0, h)
+		chiMux.Method("POST", pattern_goclay_Summator_Sum_0, h)
+	} else {
+		panic("query URI params supported only for chi.Router")
+	}
+	// Handler for Sum, binding: POST /v1/example/sum/{a}
+	h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		req, err := unmarshaler_goclay_Summator_Sum_1(r)
+		if err != nil {
+			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
+			return
+		}
+
+		ret, err := d.svc.Sum(r.Context(), req)
+		if err != nil {
+			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
+			return
+		}
+
+		_, outbound := httpruntime.MarshalerForRequest(r)
+		w.Header().Set("Content-Type", outbound.ContentType())
+		err = outbound.Marshal(w, ret)
+		if err != nil {
+			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"))
+			return
+		}
+	})
+	if isChi {
+		chiMux.Method("POST", pattern_goclay_Summator_Sum_1, h)
 	} else {
 		panic("query URI params supported only for chi.Router")
 	}
@@ -134,12 +162,12 @@ func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc
 	buf := bytes.NewBuffer(nil)
 
 	m := httpruntime.DefaultMarshaler(nil)
-	err := m.Marshal(buf, in)
-	if err != nil {
+
+	if err := m.Marshal(buf, in.B); err != nil {
 		return nil, errors.Wrap(err, "can't marshal request")
 	}
 
-	req, err := http.NewRequest("GET", c.host+path, buf)
+	req, err := http.NewRequest("POST", c.host+path, buf)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't initiate HTTP request")
 	}
@@ -173,21 +201,41 @@ var (
 	}
 
 	unmarshaler_goclay_Summator_Sum_0_boundParams = map[string]struct{}{
+		"b": struct{}{},
+		"a": struct{}{},
+	}
+
+	pattern_goclay_Summator_Sum_1 = "/v1/example/sum/{a}"
+
+	pattern_goclay_Summator_Sum_1_builder = func(
+		a int64,
+	) string {
+		return fmt.Sprintf("/v1/example/sum/%v", a)
+	}
+
+	unmarshaler_goclay_Summator_Sum_1_boundParams = map[string]struct{}{
+		"b": struct{}{},
 		"a": struct{}{},
 	}
 )
 
 // marshalers for Summator
 var (
-	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request, req *SumRequest) error {
+	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request) (*SumRequest, error) {
+		var req SumRequest
 
 		for k, v := range r.URL.Query() {
 			if _, ok := unmarshaler_goclay_Summator_Sum_0_boundParams[strings.ToLower(k)]; ok {
 				continue
 			}
-			if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
-				return err
+			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
+				return nil, err
 			}
+		}
+
+		inbound, _ := httpruntime.MarshalerForRequest(r)
+		if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
+			return nil, err
 		}
 
 		rctx := chi.RouteContext(r.Context())
@@ -195,12 +243,42 @@ var (
 			panic("Only chi router is supported for GETs atm")
 		}
 		for pos, k := range rctx.URLParams.Keys {
-			if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-				return err
+			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
+				return nil, err
 			}
 		}
 
-		return nil
+		return &req, nil
+	}
+
+	unmarshaler_goclay_Summator_Sum_1 = func(r *http.Request) (*SumRequest, error) {
+		var req SumRequest
+
+		for k, v := range r.URL.Query() {
+			if _, ok := unmarshaler_goclay_Summator_Sum_1_boundParams[strings.ToLower(k)]; ok {
+				continue
+			}
+			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
+				return nil, err
+			}
+		}
+
+		inbound, _ := httpruntime.MarshalerForRequest(r)
+		if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
+			return nil, err
+		}
+
+		rctx := chi.RouteContext(r.Context())
+		if rctx == nil {
+			panic("Only chi router is supported for GETs atm")
+		}
+		for pos, k := range rctx.URLParams.Keys {
+			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
+				return nil, err
+			}
+		}
+
+		return &req, nil
 	}
 )
 
@@ -222,13 +300,29 @@ var _swaggerDef_sum_proto = []byte(`{
   ],
   "paths": {
     "/v1/example/sum/{a}": {
-      "get": {
+      "post": {
         "operationId": "Sum",
         "responses": {
           "200": {
             "description": "",
             "schema": {
               "$ref": "#/definitions/sumpbSumResponse"
+            }
+          },
+          "default": {
+            "description": "Error object is returned on error.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "description": "Error string."
+                },
+                "data": {
+                  "type": "object",
+                  "description": "Freeform auxilliary data set of string-string."
+                }
+              }
             }
           }
         },
@@ -241,12 +335,12 @@ var _swaggerDef_sum_proto = []byte(`{
             "format": "int64"
           },
           {
-            "name": "b",
-            "description": "B is the number we're adding.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/sumpbNestedB"
+            }
           }
         ],
         "tags": [
@@ -256,6 +350,15 @@ var _swaggerDef_sum_proto = []byte(`{
     }
   },
   "definitions": {
+    "sumpbNestedB": {
+      "type": "object",
+      "properties": {
+        "b": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "sumpbSumRequest": {
       "type": "object",
       "properties": {
@@ -265,8 +368,7 @@ var _swaggerDef_sum_proto = []byte(`{
           "description": "A is the number we're adding to. Can't be zero for the sake of example."
         },
         "b": {
-          "type": "string",
-          "format": "int64",
+          "$ref": "#/definitions/sumpbNestedB",
           "description": "B is the number we're adding."
         }
       },

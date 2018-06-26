@@ -53,14 +53,13 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
     h = {{ pkg "http" }}HandlerFunc(func(w {{ pkg "http" }}ResponseWriter, r *{{ pkg "http" }}Request) {
         defer r.Body.Close()
 
-        var req {{ $m.RequestType.GetName }}
-        err := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r,&req)
+        req, err := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r)
         if err != nil {
             {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't parse request"))
             return
         }
 
-        ret,err := d.svc.{{ $m.GetName }}(r.Context(),&req)
+        ret,err := d.svc.{{ $m.GetName }}(r.Context(),req)
         if err != nil {
             {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"returned from handler"))
             return

@@ -30,11 +30,11 @@ func (s *SumImpl) Sum(ctx context.Context, r *pb.SumRequest) (*pb.SumResponse, e
 		return nil, errors.New("a is zero")
 	}
 
-	if r.GetB() == 65536 {
+	if r.GetB().B == 65536 {
 		panic(errors.New("we've got a problem"))
 	}
 
-	sum := r.GetA() + r.GetB()
+	sum := r.GetA() + r.GetB().B
 	return &pb.SumResponse{
 		Sum: sum,
 	}, nil
