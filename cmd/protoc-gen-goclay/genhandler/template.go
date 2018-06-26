@@ -19,8 +19,9 @@ var pkg map[string]string
 
 type param struct {
 	*descriptor.File
-	Imports       []descriptor.GoPackage
-	SwaggerBuffer []byte
+	Imports          []descriptor.GoPackage
+	SwaggerBuffer    []byte
+	ApplyMiddlewares bool
 }
 
 func applyImplTemplate(p param) (string, error) {

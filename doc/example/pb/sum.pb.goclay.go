@@ -23,6 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/utrack/clay/transport"
 	"github.com/utrack/clay/transport/httpruntime"
+	"github.com/utrack/clay/transport/httpruntime/httpmw"
 	"github.com/utrack/clay/transport/swagger"
 	"google.golang.org/grpc"
 )
@@ -105,37 +106,11 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 			return
 		}
 	})
+
+	h = httpmw.DefaultChain(h)
+
 	if isChi {
 		chiMux.Method("POST", pattern_goclay_Summator_Sum_0, h)
-	} else {
-		panic("query URI params supported only for chi.Router")
-	}
-	// Handler for Sum, binding: POST /v1/example/sum/{a}
-	h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
-
-		req, err := unmarshaler_goclay_Summator_Sum_1(r)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
-			return
-		}
-
-		ret, err := d.svc.Sum(r.Context(), req)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
-			return
-		}
-
-		_, outbound := httpruntime.MarshalerForRequest(r)
-		w.Header().Set("Content-Type", outbound.ContentType())
-		err = outbound.Marshal(w, ret)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"))
-			return
-		}
-	})
-	if isChi {
-		chiMux.Method("POST", pattern_goclay_Summator_Sum_1, h)
 	} else {
 		panic("query URI params supported only for chi.Router")
 	}
@@ -204,19 +179,6 @@ var (
 		"b": struct{}{},
 		"a": struct{}{},
 	}
-
-	pattern_goclay_Summator_Sum_1 = "/v1/example/sum/{a}"
-
-	pattern_goclay_Summator_Sum_1_builder = func(
-		a int64,
-	) string {
-		return fmt.Sprintf("/v1/example/sum/%v", a)
-	}
-
-	unmarshaler_goclay_Summator_Sum_1_boundParams = map[string]struct{}{
-		"b": struct{}{},
-		"a": struct{}{},
-	}
 )
 
 // marshalers for Summator
@@ -226,36 +188,6 @@ var (
 
 		for k, v := range r.URL.Query() {
 			if _, ok := unmarshaler_goclay_Summator_Sum_0_boundParams[strings.ToLower(k)]; ok {
-				continue
-			}
-			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
-				return nil, err
-			}
-		}
-
-		inbound, _ := httpruntime.MarshalerForRequest(r)
-		if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
-			return nil, err
-		}
-
-		rctx := chi.RouteContext(r.Context())
-		if rctx == nil {
-			panic("Only chi router is supported for GETs atm")
-		}
-		for pos, k := range rctx.URLParams.Keys {
-			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-				return nil, err
-			}
-		}
-
-		return &req, nil
-	}
-
-	unmarshaler_goclay_Summator_Sum_1 = func(r *http.Request) (*SumRequest, error) {
-		var req SumRequest
-
-		for k, v := range r.URL.Query() {
-			if _, ok := unmarshaler_goclay_Summator_Sum_1_boundParams[strings.ToLower(k)]; ok {
 				continue
 			}
 			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
