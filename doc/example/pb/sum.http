@@ -1,0 +1,12 @@
+
+POST /v1/example/sum/2
+Host: localhost:12345
+Accept: application/json
+Content-Type: application/json
+Cache-Control: no-cache
+
+{
+    "b": 5
+}
+
+###

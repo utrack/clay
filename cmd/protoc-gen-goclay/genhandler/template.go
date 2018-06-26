@@ -45,17 +45,22 @@ func applyDescTemplate(p param) (string, error) {
 		return "", err
 	}
 
-	if p.SwaggerBuffer != nil {
-		if err := footerTemplate.Execute(w, p); err != nil {
-			return "", err
-		}
-	}
 	if err := clientTemplate.Execute(w, p); err != nil {
+		return "", err
+	}
+
+	if err := marshalersTemplate.Execute(w, p); err != nil {
 		return "", err
 	}
 
 	if err := patternsTemplate.ExecuteTemplate(w, "base", p); err != nil {
 		return "", err
+	}
+
+	if p.SwaggerBuffer != nil {
+		if err := footerTemplate.Execute(w, p); err != nil {
+			return "", err
+		}
 	}
 
 	return w.String(), nil
@@ -107,6 +112,15 @@ var (
 			}
 			return ""
 		},
+		"hasBindings": func(service *descriptor.Service) bool {
+			for _, m := range service.Methods {
+				if len(m.Bindings) > 0 {
+					return true
+				}
+			}
+			return false
+
+		},
 	}
 
 	headerTemplate = template.Must(template.New("header").Funcs(funcMap).Parse(`
@@ -129,99 +143,16 @@ import (
 // Update your shared lib or downgrade generator to v1 if there's an error
 var _ = {{ pkg "transport" }}IsVersion2
 
+var _ = {{ pkg "ioutil" }}Discard
 var _ {{ pkg "chi" }}Router
 var _ {{ pkg "runtime" }}Marshaler
-`))
-	regTemplate = template.Must(template.New("svc-reg").Funcs(funcMap).Parse(`
-{{ define "base" }}
-{{ range $svc := .Services }}
-// {{ $svc.GetName }}Desc is a descriptor/registrator for the {{ $svc.GetName }}Server.
-type {{ $svc.GetName }}Desc struct {
-      svc {{ $svc.GetName }}Server
-}
-
-// New{{ $svc.GetName }}ServiceDesc creates new registrator for the {{ $svc.GetName }}Server.
-func New{{ $svc.GetName }}ServiceDesc(svc {{ $svc.GetName }}Server) *{{ $svc.GetName }}Desc {
-      return &{{ $svc.GetName }}Desc{svc:svc}
-}
-
-// RegisterGRPC implements service registrator interface.
-func (d *{{ $svc.GetName }}Desc) RegisterGRPC(s *{{ pkg "grpc" }}Server) {
-      Register{{ $svc.GetName }}Server(s,d.svc)
-}
-
-// SwaggerDef returns this file's Swagger definition.
-func (d *{{ $svc.GetName }}Desc) SwaggerDef(options ...{{ pkg "swagger" }}Option) (result []byte) {
-    {{ if $.SwaggerBuffer }}if len(options) > 0 {
-        var err error
-        var swagger = &{{ pkg "spec" }}Swagger{}
-        if err = {{ pkg "swagger" }}UnmarshalJSON(_swaggerDef_{{ varName $.GetName }}); err != nil {
-            panic("Bad swagger definition: " + err.Error())
-        }
-        for _, o := range options {
-            o(swagger)
-        }
-        if result, err = {{ pkg "swagger" }}MarshalJSON(); err != nil {
-            panic("Failed marshal {{ pkg "spec" }}Swagger definition: " + err.Error())
-        }
-    } else {
-        result = _swaggerDef_{{ varName $.GetName }}
-    }
-    {{ end -}}
-    return result
-}
-
-// RegisterHTTP registers this service's HTTP handlers/bindings.
-func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
-    chiMux, isChi := mux.({{ pkg "chi" }}Router)
-    var h {{ pkg "http" }}HandlerFunc
-    {{ range $m := $svc.Methods }}
-    {{ range $b := $m.Bindings -}}
-    // Handler for {{ $m.GetName }}, binding: {{ $b.HTTPMethod }} {{ $b.PathTmpl.Template }}
-    h = {{ pkg "http" }}HandlerFunc(func(w {{ pkg "http" }}ResponseWriter, r *{{ pkg "http" }}Request) {
-        defer r.Body.Close()
-
-        var req {{ $m.RequestType.GetName }}
-        err := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r,&req)
-        if err != nil {
-            {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't parse request"))
-            return
-        }
-
-        ret,err := d.svc.{{ $m.GetName }}(r.Context(),&req)
-        if err != nil {
-            {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"returned from handler"))
-            return
-        }
-
-        _,outbound := {{ pkg "httpruntime" }}MarshalerForRequest(r)
-        w.Header().Set("Content-Type", outbound.ContentType())
-        err = outbound.Marshal(w, ret)
-        if err != nil {
-            {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't write response"))
-            return
-        }
-    })
-    if isChi {
-        chiMux.Method("{{ $b.HTTPMethod }}",pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}, h)
-    } else {
-        {{if $b.PathParams -}}
-            panic("query URI params supported only for {{ pkg "chi" }}Router")
-        {{- else -}}
-            mux.Handle(pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}, {{ pkg "http" }}HandlerFunc(func(w {{ pkg "http" }}ResponseWriter, r *{{ pkg "http" }}Request) {
-                if r.Method != "{{ $b.HTTPMethod }}" {
-                    w.WriteHeader({{ pkg "http" }}StatusMethodNotAllowed)
-                    return
-                }
-                h(w, r)
-            }))
-        {{- end }}
-    }
-    {{ end }}
-    {{ end }}
-}
-{{ end }}
-{{ end }} // base service handler ended
+var _ {{ pkg "bytes" }}Buffer                                                                    
+var _ {{ pkg "context" }}Context
+var _ {{ pkg "fmt" }}Formatter
+var _ {{ pkg "strings" }}Reader
+var _ {{ pkg "errors" }}Frame
+var _ {{ pkg "httpruntime" }}Marshaler
+var _ {{ pkg "http" }}Handler
 `))
 
 	footerTemplate = template.Must(template.New("footer").Funcs(funcMap).Parse(`
@@ -229,72 +160,86 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
 ` + "`)" + `
 `))
 
-	patternsTemplate = template.Must(template.New("patterns").Funcs(funcMap).Parse(`
-{{define "base"}}
+	marshalersTemplate = template.Must(template.New("patterns").Funcs(funcMap).Parse(`
+{{ range $svc := .Services }}
+// patterns for {{ $svc.GetName }}
 var (
-{{range $svc := .Services}}
-{{range $m := $svc.Methods}}
-{{range $b := $m.Bindings}}
+{{ range $m := $svc.Methods }}
+{{ range $b := $m.Bindings }}
 
-    pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = "{{$b.PathTmpl.Template}}"
+    pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = "{{ $b.PathTmpl.Template }}"
 
-    pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder = func(
-        {{range $p := $b.PathParams -}}
-            {{$p.Target.GetName}} {{toGoType $p.Target.GetType}},
-        {{end -}}
+    pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder = func(
+        {{ range $p := $b.PathParams -}}
+            {{ $p.Target.GetName }} {{ toGoType $p.Target.GetType }},
+        {{ end -}}
     ) string {
-        return {{ pkg "fmt" }}Sprintf("{{arrayToPathInterp $b.PathTmpl.Template}}",{{range $p := $b.PathParams}}{{$p.Target.GetName}},{{end}})
+        return {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}",{{ range $p := $b.PathParams }}{{ $p.Target.GetName }},{{ end }})
     }
 
-    {{if not (hasAsterisk $b.ExplicitParams)}}
-        unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_boundParams = map[string]struct{}{
+    {{ if not (hasAsterisk $b.ExplicitParams) }}
+        unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams = map[string]struct{}{
             {{ range $n := $b.ExplicitParams -}}
-                "{{$n}}": struct{}{},
+                "{{ $n }}": struct{}{},
             {{ end }}
         }
-    {{end}}
+    {{ end }}
+{{ end }}
+{{ end }}
+)
+{{ end }}
+`))
 
-    unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}} = func(r *{{ pkg "http" }}Request,req *{{$m.RequestType.GetName}}) error {
-        {{if not (hasAsterisk $b.ExplicitParams)}}
+	patternsTemplate = template.Must(template.New("patterns").Funcs(funcMap).Parse(`
+{{ define "base" }}
+{{ range $svc := .Services }}
+// marshalers for {{ $svc.GetName }}
+var (
+{{ range $m := $svc.Methods }}
+{{ range $b := $m.Bindings }}
+
+    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) (*{{ $m.RequestType.GetName }},error) {
+	var req {{$m.RequestType.GetName}}
+        {{ if not (hasAsterisk $b.ExplicitParams) }}
             for k,v := range r.URL.Query() {
-                if _,ok := unmarshaler_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_boundParams[{{ pkg "strings" }}ToLower(k)];ok {
+                if _,ok := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams[{{ pkg "strings" }}ToLower(k)];ok {
                     continue
                 }
-                if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
-                    return err
+                if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
+                    return nil, err
                 }        
             }
-        {{end}}
+        {{ end }}
         {{- if $b.Body -}}
             {{- template "unmbody" . -}}
         {{- end -}}
         {{- if $b.PathParams -}}
             {{- template "unmpath" . -}}
         {{ end }}
-        return nil
+        return &req, nil
     }
 {{ end }}
 {{ end }}
 {{ end }}
 )
 {{ end }}
-{{define "unmbody"}}
+{{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
-    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,req),"couldn't read request JSON"); err != nil {
-        return err
+    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
+        return nil, err
     }
-{{end}}
-{{define "unmpath"}}
+{{ end }}
+{{ define "unmpath" }}
     rctx := {{ pkg "chi" }}RouteContext(r.Context())
     if rctx == nil {
         panic("Only chi router is supported for GETs atm")
     }
     for pos,k := range rctx.URLParams.Keys {
-        if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-            return err
+        if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
+            return nil, err
         }
     }
-{{end}}
+{{ end }}
 `))
 
 	implTemplate = template.Must(template.New("impl").Funcs(funcMap).Parse(`
@@ -330,59 +275,5 @@ func (i *{{ $service.GetName }}Implementation) GetDescription() {{ pkg "transpor
 }
 
 {{ end }}
-`))
-	clientTemplate = template.Must(template.New("http-client").Funcs(funcMap).Parse(`
-{{range $svc := .Services}}
-type {{$svc.GetName}}_httpClient struct {
-    c *{{ pkg "http" }}Client
-    host string
-}
-
-// New{{$svc.GetName}}HTTPClient creates new HTTP client for {{$svc.GetName}}Server.
-// Pass addr in format "http://host[:port]".
-func New{{$svc.GetName}}HTTPClient(c *{{ pkg "http" }}Client,addr string) {{$svc.GetName}}Client {
-    if {{ pkg "strings" }}HasSuffix(addr, "/") {
-        addr = addr[:len(addr)-1]
-    }
-    return &{{$svc.GetName}}_httpClient{c:c,host:addr}
-}
-{{range $m := $svc.Methods}}
-{{range $b := $m.Bindings}}
-func (c *{{$svc.GetName}}_httpClient) {{$m.GetName}}(ctx {{ pkg "context" }}Context,in *{{$m.RequestType.GetName}},_ ...{{ pkg "grpc" }}CallOption) (*{{$m.ResponseType.GetName}},error) {
-    path := pattern_goclay_{{$svc.GetName}}_{{$m.GetName}}_{{$b.Index}}_builder({{range $p := $b.PathParams}}in.{{goTypeName $p.String}},{{end}})
-
-    buf := {{ pkg "bytes" }}NewBuffer(nil)
-
-    m := {{ pkg "httpruntime" }}DefaultMarshaler(nil)
-    err := m.Marshal(buf, in)
-    if err != nil {
-        return nil, {{ pkg "errors" }}Wrap(err, "can't marshal request")
-    }
-
-    req, err := {{ pkg "http" }}NewRequest("{{$b.HTTPMethod}}", c.host+path, buf)
-    if err != nil {
-        return nil, {{ pkg "errors" }}Wrap(err, "can't initiate HTTP request")
-    }
-
-    req.Header.Add("Accept", m.ContentType())
-
-    rsp, err := c.c.Do(req)
-    if err != nil {
-        return nil, {{ pkg "errors" }}Wrap(err, "error from client")
-    }
-    defer rsp.Body.Close()
-
-    if rsp.StatusCode>= 400 {
-        b,_ := {{ pkg "ioutil" }}ReadAll(rsp.Body)
-        return nil,{{ pkg "errors" }}Errorf("%v %v: server returned HTTP %v: '%v'",req.Method,req.URL.String(),rsp.StatusCode,string(b))
-    }
-
-    ret := &{{$m.ResponseType.GetName}}{}
-    err = m.Unmarshal(rsp.Body, ret)
-    return ret, {{ pkg "errors" }}Wrap(err, "can't unmarshal response")
-}
-{{end}}
-{{end}}
-{{end}}
 `))
 )

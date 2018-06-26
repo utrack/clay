@@ -2,9 +2,9 @@ FIRST_GOPATH:=$(firstword $(subst :, ,$(GOPATH)))
 GRPC_GATEWAY_PATH?=${FIRST_GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway
 
 clean:
-	rm ./pb/strings/strings.pb.go
-	rm ./pb/strings/strings.pb.goclay.go
-	rm ./strings/strings.pb.impl.go
+	rm -f ./pb/strings/strings.pb.go
+	rm -f ./pb/strings/strings.pb.goclay.go
+	rm -f ./strings/strings.pb.impl.go
 	rm -f main
 
 protoc:
