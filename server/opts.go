@@ -3,10 +3,10 @@ package server
 import (
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/utrack/clay/transport"
-	"github.com/utrack/clay/transport/middlewares/mwhttp"
+	"github.com/utrack/clay/server/middlewares/mwhttp"
+	"github.com/utrack/clay/transport/v2"
 
+	"github.com/go-chi/chi"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 )
@@ -31,18 +31,6 @@ func defaultServerOpts(mainPort int) *serverOpts {
 		HTTPPort: mainPort,
 		HTTPMux:  chi.NewMux(),
 	}
-}
-
-// NewServer creates a Server listening on the rpcPort.
-// Pass additional Options to mutate its behaviour.
-// By default, HTTP JSON handler and gRPC are listening on the same
-// port, admin port is p+2 and profile port is p+4.
-func NewServer(rpcPort int, opts ...Option) *Server {
-	serverOpts := defaultServerOpts(rpcPort)
-	for _, opt := range opts {
-		opt(serverOpts)
-	}
-	return &Server{opts: serverOpts}
 }
 
 // WithGRPCOpts sets gRPC server options.
