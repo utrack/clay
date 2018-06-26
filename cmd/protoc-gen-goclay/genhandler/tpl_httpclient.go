@@ -23,7 +23,7 @@ func New{{ $svc.GetName }}HTTPClient(c *{{ pkg "http" }}Client,addr string) {{ $
 {{ range $m := $svc.Methods }}
 {{ if $m.Bindings }}
 {{ with $b := index $m.Bindings 0 }}
-func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}Context,in *{{ $m.RequestType.GetName }},_ ...{{ pkg "grpc" }}CallOption) (*{{ $m.ResponseType.GetName }},error) {
+func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}Context,in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }},_ ...{{ pkg "grpc" }}CallOption) (*{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path }},error) {
     path := pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder({{ range $p := $b.PathParams }}in.{{ goTypeName $p.String }},{{ end }})
 
     buf := {{ pkg "bytes" }}NewBuffer(nil)
@@ -54,7 +54,7 @@ func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}
         return nil,{{ pkg "errors" }}Errorf("%v %v: server returned HTTP %v: '%v'",req.Method,req.URL.String(),rsp.StatusCode,string(b))
     }
 
-    ret := &{{ $m.ResponseType.GetName }}{}
+    ret := &{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path }}{}
     err = m.Unmarshal(rsp.Body, ret)
     return ret, {{ pkg "errors" }}Wrap(err, "can't unmarshal response")
 }
