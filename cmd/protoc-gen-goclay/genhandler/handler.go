@@ -182,7 +182,14 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 			imports = append(imports, pkg)
 		}
 	}
-	p := param{File: f, Imports: imports}
+	if g.options.ApplyDefaultMiddlewares {
+		imports = append(imports, g.newGoPackage("github.com/utrack/clay/transport/httpruntime/httpmw"))
+	}
+
+	p := param{File: f, Imports: imports,
+		ApplyMiddlewares: g.options.ApplyDefaultMiddlewares,
+	}
+
 	if swagger != nil {
 		p.SwaggerBuffer = swagger
 	}

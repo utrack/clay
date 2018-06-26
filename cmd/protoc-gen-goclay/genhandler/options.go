@@ -1,11 +1,12 @@
 package genhandler
 
 type options struct {
-	ImplPath   string
-	DescPath   string
-	SwaggerDef map[string][]byte
-	Impl       bool
-	Force      bool
+	ImplPath                string
+	DescPath                string
+	SwaggerDef              map[string][]byte
+	Impl                    bool
+	Force                   bool
+	ApplyDefaultMiddlewares bool
 }
 
 type Option func(*options)
@@ -14,6 +15,14 @@ type Option func(*options)
 func SwaggerDef(swaggerDef map[string][]byte) Option {
 	return func(o *options) {
 		o.SwaggerDef = swaggerDef
+	}
+}
+
+// ApplyDefaultMiddlewares toggles application of httpruntime/httpmw.DefaultChain to
+// every generated handler.
+func ApplyDefaultMiddlewares(apply bool) Option {
+	return func(o *options) {
+		o.ApplyDefaultMiddlewares = apply
 	}
 }
 

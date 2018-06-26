@@ -22,6 +22,7 @@ var (
 	grpcAPIConfiguration = flag.String("grpc_api_configuration", "", "path to gRPC API Configuration in YAML format")
 	withImpl             = flag.Bool("impl", false, "generate simple implementations for proto Services. Implementation will not be generated if it already exists. See also `force` option")
 	withSwagger          = flag.Bool("swagger", true, "generate swagger.json")
+	applyHTTPMiddlewares = flag.Bool("http_middlewares", true, "apply default HTTP millewares")
 	descPath             = flag.String("desc_path", "", "path where the http description is generated")
 	implPath             = flag.String("impl_path", "", "path where the implementation is generated (for impl = true)")
 	forceImpl            = flag.Bool("force", false, "force regenerate implementation if it already exists (for impl = true)")
@@ -80,6 +81,7 @@ func main() {
 		genhandler.ImplPath(*implPath),
 		genhandler.DescPath(*descPath),
 		genhandler.Force(*forceImpl),
+		genhandler.ApplyDefaultMiddlewares(*applyHTTPMiddlewares),
 	}
 
 	if *withSwagger {
