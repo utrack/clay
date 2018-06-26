@@ -172,14 +172,18 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {
-			pkg := m.RequestType.File.GoPkg
-			// Add request type package to imports if needed
-			if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
-				pkg == f.GoPkg || pkgSeen[pkg.Path] {
-				continue
+			checkedAppend := func(pkg descriptor.GoPackage) {
+				// Add request type package to imports if needed
+				if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
+					pkg == f.GoPkg || pkgSeen[pkg.Path] {
+					return
+				}
+				pkgSeen[pkg.Path] = true
+				imports = append(imports, pkg)
 			}
-			pkgSeen[pkg.Path] = true
-			imports = append(imports, pkg)
+
+			checkedAppend(m.RequestType.File.GoPkg)
+			checkedAppend(m.ResponseType.File.GoPkg)
 		}
 	}
 	if g.options.ApplyDefaultMiddlewares {
