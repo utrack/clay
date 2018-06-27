@@ -33,3 +33,6 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+# Ignore generated .pb.go files in integration tests
+/integration/**/*.pb.*go

@@ -147,7 +147,7 @@ var _ = {{ pkg "transport" }}IsVersion2
 var _ = {{ pkg "ioutil" }}Discard
 var _ {{ pkg "chi" }}Router
 var _ {{ pkg "runtime" }}Marshaler
-var _ {{ pkg "bytes" }}Buffer                                                                    
+var _ {{ pkg "bytes" }}Buffer
 var _ {{ pkg "context" }}Context
 var _ {{ pkg "fmt" }}Formatter
 var _ {{ pkg "strings" }}Reader
@@ -208,7 +208,7 @@ var (
                 }
                 if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
                     return nil, err
-                }        
+                }
             }
         {{ end }}
         {{- if $b.Body -}}

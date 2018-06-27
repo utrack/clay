@@ -35,7 +35,7 @@ func New(reg *descriptor.Registry, opts ...Option) *Generator {
 	g.imports = append(g.imports,
 		g.newGoPackage("context"),
 		g.newGoPackage("github.com/pkg/errors"),
-		g.newGoPackage("github.com/utrack/clay/transport"),
+		g.newGoPackage("github.com/utrack/clay/transport/v2", "transport"),
 	)
 	return g
 }
@@ -153,9 +153,8 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"bytes",
 		"net/http",
 
-		"github.com/utrack/clay/transport/httpruntime",
-		"github.com/utrack/clay/transport/swagger",
-		"github.com/utrack/clay/transport",
+		"github.com/utrack/clay/transport/v2/httpruntime",
+		"github.com/utrack/clay/transport/v2/swagger",
 		"github.com/grpc-ecosystem/grpc-gateway/runtime",
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",
@@ -183,7 +182,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		}
 	}
 	if g.options.ApplyDefaultMiddlewares {
-		imports = append(imports, g.newGoPackage("github.com/utrack/clay/transport/httpruntime/httpmw"))
+		imports = append(imports, g.newGoPackage("github.com/utrack/clay/transport/v2/httpruntime/httpmw"))
 	}
 
 	p := param{File: f, Imports: imports,
