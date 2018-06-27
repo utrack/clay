@@ -21,10 +21,10 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
-	"github.com/utrack/clay/transport"
-	"github.com/utrack/clay/transport/httpruntime"
-	"github.com/utrack/clay/transport/httpruntime/httpmw"
-	"github.com/utrack/clay/transport/swagger"
+	"github.com/utrack/clay/transport/v2"
+	"github.com/utrack/clay/transport/v2/httpruntime"
+	"github.com/utrack/clay/transport/v2/httpruntime/httpmw"
+	"github.com/utrack/clay/transport/v2/swagger"
 	"google.golang.org/grpc"
 )
 
