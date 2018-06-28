@@ -170,30 +170,41 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		imports = append(imports, g.newGoPackage(pkg))
 	}
 
+	haveBindings := false
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {
-			pkg := m.RequestType.File.GoPkg
-			// Add request type package to imports if needed
-			if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
-				pkg == f.GoPkg || pkgSeen[pkg.Path] {
-				continue
+			imports = g.markSeen(f, m, pkgSeen, imports)
+
+			if len(m.Bindings) > 0 {
+				haveBindings = true
 			}
-			pkgSeen[pkg.Path] = true
-			imports = append(imports, pkg)
 		}
 	}
-	if g.options.ApplyDefaultMiddlewares {
+
+	applyMiddlewares := g.options.ApplyDefaultMiddlewares && haveBindings
+	if applyMiddlewares {
 		imports = append(imports, g.newGoPackage("github.com/utrack/clay/transport/httpruntime/httpmw"))
 	}
 
 	p := param{File: f, Imports: imports,
-		ApplyMiddlewares: g.options.ApplyDefaultMiddlewares,
+		ApplyMiddlewares: applyMiddlewares,
 	}
 
 	if swagger != nil {
 		p.SwaggerBuffer = swagger
 	}
 	return applyDescTemplate(p)
+}
+
+func (g *Generator) markSeen(file *descriptor.File, m *descriptor.Method, pkgSeen map[string]bool, imports []descriptor.GoPackage) []descriptor.GoPackage {
+	pkg := m.RequestType.File.GoPkg
+	// Add request type package to imports if needed
+	if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
+		pkg == file.GoPkg || pkgSeen[pkg.Path] {
+		return imports
+	}
+	pkgSeen[pkg.Path] = true
+	return append(imports, pkg)
 }
 
 func (g *Generator) getImplTemplate(f *descriptor.File) (string, error) {
