@@ -80,39 +80,41 @@ func (d *SummatorDesc) SwaggerDef(options ...swagger.Option) (result []byte) {
 // RegisterHTTP registers this service's HTTP handlers/bindings.
 func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 	chiMux, isChi := mux.(chi.Router)
-	var h http.HandlerFunc
 
-	// Handler for Sum, binding: POST /v1/example/sum/{a}
-	h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
+	{
+		// Handler for Sum, binding: POST /v1/example/sum/{a}
+		var h http.HandlerFunc
+		h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 
-		req, err := unmarshaler_goclay_Summator_Sum_0(r)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
-			return
+			req, err := unmarshaler_goclay_Summator_Sum_0(r)
+			if err != nil {
+				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
+				return
+			}
+
+			ret, err := d.svc.Sum(r.Context(), req)
+			if err != nil {
+				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
+				return
+			}
+
+			_, outbound := httpruntime.MarshalerForRequest(r)
+			w.Header().Set("Content-Type", outbound.ContentType())
+			err = outbound.Marshal(w, ret)
+			if err != nil {
+				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"))
+				return
+			}
+		})
+
+		h = httpmw.DefaultChain(h)
+
+		if isChi {
+			chiMux.Method("POST", pattern_goclay_Summator_Sum_0, h)
+		} else {
+			panic("query URI params supported only for chi.Router")
 		}
-
-		ret, err := d.svc.Sum(r.Context(), req)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
-			return
-		}
-
-		_, outbound := httpruntime.MarshalerForRequest(r)
-		w.Header().Set("Content-Type", outbound.ContentType())
-		err = outbound.Marshal(w, ret)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"))
-			return
-		}
-	})
-
-	h = httpmw.DefaultChain(h)
-
-	if isChi {
-		chiMux.Method("POST", pattern_goclay_Summator_Sum_0, h)
-	} else {
-		panic("query URI params supported only for chi.Router")
 	}
 
 }
