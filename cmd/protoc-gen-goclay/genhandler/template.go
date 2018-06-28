@@ -132,7 +132,7 @@ var (
 /*
 Package {{ .GoPkg.Name }} is a self-registering gRPC and JSON+Swagger service definition.
 
-It conforms to the github.com/utrack/clay Service interface.
+It conforms to the github.com/utrack/clay/v2/transport Service interface.
 */
 package {{ .GoPkg.Name }}
 import (

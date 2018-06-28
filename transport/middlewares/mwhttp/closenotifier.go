@@ -1,7 +1,7 @@
 package mwhttp
 
 import (
-	"github.com/utrack/clay/server/middlewares/mwhttp"
+	"github.com/utrack/clay/v2/server/middlewares/mwhttp"
 )
 
 // CloseNotifier cancels the context if client goes away.

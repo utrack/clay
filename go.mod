@@ -1,4 +1,4 @@
-module github.com/utrack/clay/transport/v2
+module github.com/utrack/clay/v2
 
 require (
 	github.com/PuerkitoBio/purell v1.1.0
