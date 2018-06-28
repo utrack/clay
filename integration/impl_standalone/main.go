@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/utrack/clay/integration/impl_standalone/strings"
+	"github.com/utrack/clay/v2/integration/impl_standalone/strings"
 )
 
 func main() {
