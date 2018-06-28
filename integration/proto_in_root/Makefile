@@ -9,7 +9,7 @@ clean:
 	rm -f main
 
 protoc:
-	protoc -I/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:. --gofast_out=plugins=grpc:pb/strings --goclay_out=impl=true,desc_path=pb/strings,impl_path=strings:. strings.proto
+	cd pb/strings && protoc -I../..:/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:. --gofast_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../../strings:. ../../strings.proto
 
 build:
 	go build -o main main.go
