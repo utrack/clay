@@ -16,7 +16,7 @@ require (
 	github.com/mailru/easyjson v0.0.0-20180606163543-3fdea8d05856
 	github.com/pkg/errors v0.8.0
 	github.com/stretchr/testify v1.2.2
-	github.com/utrack/grpc-gateway v1.3.0
+	github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392
 	golang.org/x/net v0.0.0-20180621144259-afe8f62b1d6b
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
 	golang.org/x/text v0.3.0
