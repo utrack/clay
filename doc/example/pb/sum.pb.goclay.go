@@ -21,10 +21,10 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
-	"github.com/utrack/clay/transport"
-	"github.com/utrack/clay/transport/httpruntime"
-	"github.com/utrack/clay/transport/httpruntime/httpmw"
-	"github.com/utrack/clay/transport/swagger"
+	transport "github.com/utrack/clay/v2/transport"
+	"github.com/utrack/clay/v2/transport/httpruntime"
+	"github.com/utrack/clay/v2/transport/httpruntime/httpmw"
+	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
 )
 
@@ -80,39 +80,41 @@ func (d *SummatorDesc) SwaggerDef(options ...swagger.Option) (result []byte) {
 // RegisterHTTP registers this service's HTTP handlers/bindings.
 func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 	chiMux, isChi := mux.(chi.Router)
-	var h http.HandlerFunc
 
-	// Handler for Sum, binding: POST /v1/example/sum/{a}
-	h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
+	{
+		// Handler for Sum, binding: POST /v1/example/sum/{a}
+		var h http.HandlerFunc
+		h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 
-		req, err := unmarshaler_goclay_Summator_Sum_0(r)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
-			return
+			req, err := unmarshaler_goclay_Summator_Sum_0(r)
+			if err != nil {
+				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
+				return
+			}
+
+			ret, err := d.svc.Sum(r.Context(), req)
+			if err != nil {
+				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
+				return
+			}
+
+			_, outbound := httpruntime.MarshalerForRequest(r)
+			w.Header().Set("Content-Type", outbound.ContentType())
+			err = outbound.Marshal(w, ret)
+			if err != nil {
+				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"))
+				return
+			}
+		})
+
+		h = httpmw.DefaultChain(h)
+
+		if isChi {
+			chiMux.Method("POST", pattern_goclay_Summator_Sum_0, h)
+		} else {
+			panic("query URI params supported only for chi.Router")
 		}
-
-		ret, err := d.svc.Sum(r.Context(), req)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
-			return
-		}
-
-		_, outbound := httpruntime.MarshalerForRequest(r)
-		w.Header().Set("Content-Type", outbound.ContentType())
-		err = outbound.Marshal(w, ret)
-		if err != nil {
-			httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"))
-			return
-		}
-	})
-
-	h = httpmw.DefaultChain(h)
-
-	if isChi {
-		chiMux.Method("POST", pattern_goclay_Summator_Sum_0, h)
-	} else {
-		panic("query URI params supported only for chi.Router")
 	}
 
 }
@@ -191,13 +193,13 @@ var (
 				continue
 			}
 			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
-				return nil, err
+				return nil, httpruntime.TransformUnmarshalerError(err)
 			}
 		}
 
 		inbound, _ := httpruntime.MarshalerForRequest(r)
 		if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
-			return nil, err
+			return nil, httpruntime.TransformUnmarshalerError(err)
 		}
 
 		rctx := chi.RouteContext(r.Context())
@@ -206,7 +208,7 @@ var (
 		}
 		for pos, k := range rctx.URLParams.Keys {
 			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-				return nil, err
+				return nil, httpruntime.TransformUnmarshalerError(err)
 			}
 		}
 
@@ -239,22 +241,6 @@ var _swaggerDef_sum_proto = []byte(`{
             "description": "",
             "schema": {
               "$ref": "#/definitions/sumpbSumResponse"
-            }
-          },
-          "default": {
-            "description": "Error object is returned on error.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "error": {
-                  "type": "string",
-                  "description": "Error string."
-                },
-                "data": {
-                  "type": "object",
-                  "description": "Freeform auxilliary data set of string-string."
-                }
-              }
             }
           }
         },
@@ -290,21 +276,6 @@ var _swaggerDef_sum_proto = []byte(`{
           "format": "int64"
         }
       }
-    },
-    "sumpbSumRequest": {
-      "type": "object",
-      "properties": {
-        "a": {
-          "type": "string",
-          "format": "int64",
-          "description": "A is the number we're adding to. Can't be zero for the sake of example."
-        },
-        "b": {
-          "$ref": "#/definitions/sumpbNestedB",
-          "description": "B is the number we're adding."
-        }
-      },
-      "description": "SumRequest is a request for Summator service."
     },
     "sumpbSumResponse": {
       "type": "object",

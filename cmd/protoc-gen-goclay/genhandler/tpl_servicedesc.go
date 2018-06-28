@@ -45,11 +45,12 @@ func (d *{{ $svc.GetName }}Desc) SwaggerDef(options ...{{ pkg "swagger" }}Option
 func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
     {{ if $svc | hasBindings -}}
         chiMux, isChi := mux.({{ pkg "chi" }}Router)
-        var h {{ pkg "http" }}HandlerFunc
     {{ end }}
     {{ range $m := $svc.Methods }}
     {{ range $b := $m.Bindings -}}
+{
     // Handler for {{ $m.GetName }}, binding: {{ $b.HTTPMethod }} {{ $b.PathTmpl.Template }}
+    var h http.HandlerFunc
     h = {{ pkg "http" }}HandlerFunc(func(w {{ pkg "http" }}ResponseWriter, r *{{ pkg "http" }}Request) {
         defer r.Body.Close()
 
@@ -93,6 +94,7 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
             }))
         {{- end }}
     }
+}
     {{ end }}
     {{ end }}
 }
