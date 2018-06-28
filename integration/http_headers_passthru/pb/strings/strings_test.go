@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/utrack/clay/transport"
+	"github.com/utrack/clay/transport/v2"
 	"google.golang.org/grpc/metadata"
 )
 

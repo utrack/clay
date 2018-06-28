@@ -147,7 +147,7 @@ var _ = {{ pkg "transport" }}IsVersion2
 var _ = {{ pkg "ioutil" }}Discard
 var _ {{ pkg "chi" }}Router
 var _ {{ pkg "runtime" }}Marshaler
-var _ {{ pkg "bytes" }}Buffer                                                                    
+var _ {{ pkg "bytes" }}Buffer
 var _ {{ pkg "context" }}Context
 var _ {{ pkg "fmt" }}Formatter
 var _ {{ pkg "strings" }}Reader
@@ -208,8 +208,8 @@ var (
                     continue
                 }
                 if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
-                    return nil, err
-                }        
+                    return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
+                }
             }
         {{ end }}
         {{- if $b.Body -}}
@@ -228,7 +228,7 @@ var (
 {{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
     if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
-        return nil, err
+        return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
     }
 {{ end }}
 {{ define "unmpath" }}
@@ -238,7 +238,7 @@ var (
     }
     for pos,k := range rctx.URLParams.Keys {
         if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-            return nil, err
+            return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
         }
     }
 {{ end }}

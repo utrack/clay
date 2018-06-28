@@ -10,15 +10,15 @@ import (
 
 	pb "github.com/utrack/clay/doc/example/pb"
 	"github.com/utrack/clay/log"
-	"github.com/utrack/clay/transport"
 	"github.com/utrack/clay/transport/middlewares/mwgrpc"
 	"github.com/utrack/clay/transport/middlewares/mwhttp"
 	"github.com/utrack/clay/transport/server"
+	"github.com/utrack/clay/transport/v2"
 	"golang.org/x/net/context"
 
 	// We're using statik-compiled files of Swagger UI
 	// for the sake of example.
-	_ "github.com/utrack/clay/static/statik"
+	_ "github.com/utrack/clay/doc/example/static/statik"
 )
 
 // SumImpl is an implementation of SummatorService.

@@ -21,10 +21,10 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
-	"github.com/utrack/clay/transport"
-	"github.com/utrack/clay/transport/httpruntime"
-	"github.com/utrack/clay/transport/httpruntime/httpmw"
-	"github.com/utrack/clay/transport/swagger"
+	transport "github.com/utrack/clay/transport/v2"
+	"github.com/utrack/clay/transport/v2/httpruntime"
+	"github.com/utrack/clay/transport/v2/httpruntime/httpmw"
+	"github.com/utrack/clay/transport/v2/swagger"
 	"google.golang.org/grpc"
 )
 
@@ -193,13 +193,13 @@ var (
 				continue
 			}
 			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
-				return nil, err
+				return nil, httpruntime.TransformUnmarshalerError(err)
 			}
 		}
 
 		inbound, _ := httpruntime.MarshalerForRequest(r)
 		if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
-			return nil, err
+			return nil, httpruntime.TransformUnmarshalerError(err)
 		}
 
 		rctx := chi.RouteContext(r.Context())
@@ -208,7 +208,7 @@ var (
 		}
 		for pos, k := range rctx.URLParams.Keys {
 			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-				return nil, err
+				return nil, httpruntime.TransformUnmarshalerError(err)
 			}
 		}
 
