@@ -99,7 +99,7 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 		if file.GoPkg.Path != "." {
 			goPkg = file.GoPkg.Path
 		}
-		output := fmt.Sprintf(filepath.Join(goPkg, g.options.DescPath, "%s.pb.goclay.go"), base)
+		output := fmt.Sprintf(filepath.Join(goPkg, "%s.pb.goclay.go"), base)
 		output = filepath.Clean(output)
 
 		files = append(files, &plugin.CodeGeneratorResponse_File{
@@ -170,6 +170,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		imports = append(imports, g.newGoPackage(pkg))
 	}
 
+	httpmw := g.newGoPackage("github.com/utrack/clay/transport/httpruntime/httpmw")
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {
 			checkedAppend := func(pkg descriptor.GoPackage) {
@@ -185,9 +186,10 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 			checkedAppend(m.RequestType.File.GoPkg)
 			checkedAppend(m.ResponseType.File.GoPkg)
 		}
-	}
-	if g.options.ApplyDefaultMiddlewares {
-		imports = append(imports, g.newGoPackage("github.com/utrack/clay/transport/httpruntime/httpmw"))
+		if g.options.ApplyDefaultMiddlewares && hasBindings(svc) && !pkgSeen[httpmw.Path] {
+			imports = append(imports, httpmw)
+			pkgSeen[httpmw.Path] = true
+		}
 	}
 
 	p := param{File: f, Imports: imports,
@@ -214,24 +216,31 @@ func (g *Generator) getImplTemplate(f *descriptor.File) (string, error) {
 		imports = append(imports, g.newGoPackage(pkg))
 	}
 	p := param{
-		File: f,
+		File:        f,
+		CurrentPath: f.GoPkg.Path,
 	}
-	if g.options.ImplPath != g.options.DescPath {
-		pkg := filepath.Join(getRootImportPath(f), g.options.DescPath)
-		pkgSeen[pkg] = true
-		gopkg := g.newGoPackage(pkg, "desc")
-		imports = append(imports, gopkg)
+	fileGoPkg := f.GoPkg
+	if g.options.ImplPath != "" {
+		rootImport := getRootImportPath(f)
+		p.CurrentPath = filepath.Join(rootImport, g.options.ImplPath)
+		f.GoPkg = g.newGoPackage(rootImport, "desc")
+		f.GoPkg.Name = fileGoPkg.Name
+		pkgSeen[f.GoPkg.Path] = true
+		imports = append(imports, f.GoPkg)
 	}
+
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {
-			pkg := m.RequestType.File.GoPkg
-			// Add request type package to imports if needed
-			if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
-				pkg == f.GoPkg || pkgSeen[pkg.Path] {
-				continue
+			checkedAppend := func(pkg descriptor.GoPackage) {
+				if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
+					pkg.Path == fileGoPkg.Path || pkgSeen[pkg.Path] {
+					return
+				}
+				pkgSeen[pkg.Path] = true
+				imports = append(imports, pkg)
 			}
-			pkgSeen[pkg.Path] = true
-			imports = append(imports, pkg)
+			checkedAppend(m.RequestType.File.GoPkg)
+			checkedAppend(m.ResponseType.File.GoPkg)
 		}
 	}
 	p.Imports = imports
@@ -290,4 +299,14 @@ func getRootImportPath(file *descriptor.File) string {
 		}
 	}
 	return ""
+}
+
+func hasBindings(service *descriptor.Service) bool {
+	for _, m := range service.Methods {
+		if len(m.Bindings) > 0 {
+			return true
+		}
+	}
+	return false
+
 }

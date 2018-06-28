@@ -23,7 +23,6 @@ var (
 	withImpl             = flag.Bool("impl", false, "generate simple implementations for proto Services. Implementation will not be generated if it already exists. See also `force` option")
 	withSwagger          = flag.Bool("swagger", true, "generate swagger.json")
 	applyHTTPMiddlewares = flag.Bool("http_middlewares", true, "apply default HTTP millewares")
-	descPath             = flag.String("desc_path", "", "path where the http description is generated")
 	implPath             = flag.String("impl_path", "", "path where the implementation is generated (for impl = true)")
 	forceImpl            = flag.Bool("force", false, "force regenerate implementation if it already exists (for impl = true)")
 )
@@ -79,7 +78,6 @@ func main() {
 	opts := []genhandler.Option{
 		genhandler.Impl(*withImpl),
 		genhandler.ImplPath(*implPath),
-		genhandler.DescPath(*descPath),
 		genhandler.Force(*forceImpl),
 		genhandler.ApplyDefaultMiddlewares(*applyHTTPMiddlewares),
 	}
@@ -145,10 +143,6 @@ func parseReqParam(param string, f *flag.FlagSet, pkgMap map[string]string) erro
 		if err := f.Set(name, value); err != nil {
 			return fmt.Errorf("Cannot set flag %s: %v", p, err)
 		}
-	}
-	*descPath = strings.Trim(*descPath, "/")
-	if *descPath == "." {
-		*descPath = ""
 	}
 	*implPath = strings.Trim(*implPath, "/")
 	if *implPath == "." {

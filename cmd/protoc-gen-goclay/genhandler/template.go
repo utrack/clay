@@ -22,6 +22,7 @@ type param struct {
 	Imports          []descriptor.GoPackage
 	SwaggerBuffer    []byte
 	ApplyMiddlewares bool
+	CurrentPath      string
 }
 
 func applyImplTemplate(p param) (string, error) {
@@ -113,15 +114,7 @@ var (
 			}
 			return ""
 		},
-		"hasBindings": func(service *descriptor.Service) bool {
-			for _, m := range service.Methods {
-				if len(m.Bindings) > 0 {
-					return true
-				}
-			}
-			return false
-
-		},
+		"hasBindings": hasBindings,
 	}
 
 	headerTemplate = template.Must(template.New("header").Funcs(funcMap).Parse(`
@@ -265,7 +258,7 @@ func New{{ $service.GetName }}() *{{ $service.GetName }}Implementation {
 }
 
 {{ range $method := $service.Methods }}
-func (i *{{ $service.GetName }}Implementation) {{ $method.Name }}(ctx {{ pkg "context" }}Context, req *{{ pkg "desc" }}{{ $method.RequestType.GetName }}) (*{{ pkg "desc" }}{{ $method.ResponseType.GetName }}, error) {
+func (i *{{ $service.GetName }}Implementation) {{ $method.Name }}(ctx {{ pkg "context" }}Context, req *{{ $method.RequestType.GoType $.CurrentPath }}) (*{{ $method.ResponseType.GoType $.CurrentPath }}, error) {
     return nil, {{ pkg "errors" }}New("not implemented")
 }
 {{ end }}
