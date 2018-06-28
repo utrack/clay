@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/utrack/clay/doc/example/pb"
+	"github.com/utrack/clay/v2/doc/example/pb"
 	"google.golang.org/grpc"
 )
 
