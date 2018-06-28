@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"github.com/utrack/clay/transport/swagger"
+	"github.com/utrack/clay/transport/v2/swagger"
 	"google.golang.org/grpc"
 )
 

@@ -14,7 +14,13 @@ const (
 	listenRetryDuration = 10 * time.Second
 )
 
-func getListeners(opts *serverOpts) (*listenerSet, error) {
+type listenerSet struct {
+	mainListener cmux.CMux // nil or CMux. If nil - don't listen
+	HTTP         net.Listener
+	GRPC         net.Listener
+}
+
+func newListenerSet(opts *serverOpts) (*listenerSet, error) {
 	liSet := &listenerSet{}
 	var err error
 
