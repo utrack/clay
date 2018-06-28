@@ -173,7 +173,18 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 	haveBindings := false
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {
-			imports = g.markSeen(f, m, pkgSeen, imports)
+			checkedAppend := func(pkg descriptor.GoPackage) {
+				// Add request type package to imports if needed
+				if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
+					pkg == f.GoPkg || pkgSeen[pkg.Path] {
+					return
+				}
+				pkgSeen[pkg.Path] = true
+				imports = append(imports, pkg)
+			}
+
+			checkedAppend(m.RequestType.File.GoPkg)
+			checkedAppend(m.ResponseType.File.GoPkg)
 
 			if len(m.Bindings) > 0 {
 				haveBindings = true
@@ -194,17 +205,6 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		p.SwaggerBuffer = swagger
 	}
 	return applyDescTemplate(p)
-}
-
-func (g *Generator) markSeen(file *descriptor.File, m *descriptor.Method, pkgSeen map[string]bool, imports []descriptor.GoPackage) []descriptor.GoPackage {
-	pkg := m.RequestType.File.GoPkg
-	// Add request type package to imports if needed
-	if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
-		pkg == file.GoPkg || pkgSeen[pkg.Path] {
-		return imports
-	}
-	pkgSeen[pkg.Path] = true
-	return append(imports, pkg)
 }
 
 func (g *Generator) getImplTemplate(f *descriptor.File) (string, error) {

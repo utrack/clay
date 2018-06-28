@@ -199,8 +199,9 @@ var (
 {{ range $m := $svc.Methods }}
 {{ range $b := $m.Bindings }}
 
-    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) (*{{ $m.RequestType.GetName }},error) {
-	var req {{$m.RequestType.GetName}}
+    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) (*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }},error) {
+	var req {{$m.RequestType.GoType $m.Service.File.GoPkg.Path }}
+
         {{ if not (hasAsterisk $b.ExplicitParams) }}
             for k,v := range r.URL.Query() {
                 if _,ok := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams[{{ pkg "strings" }}ToLower(k)];ok {
