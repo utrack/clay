@@ -1,3 +1,13 @@
+# Ignore all
+*
+# Unignore all with extensions
+!*.*
+# Unignore all dirs
+!*/
+# Unignore corner-case files
+!LICENSE
+!README
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
@@ -23,3 +33,6 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+# Ignore generated .pb.go files in integration tests
+/integration/**/*.pb.*go

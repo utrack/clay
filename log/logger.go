@@ -1,35 +1,33 @@
 package log
 
-import "context"
+import (
+	"github.com/utrack/clay/server/log"
+)
+
+// Logrus is the default logger, using Sirupsen/logrus as a backend.
+type Logrus = log.Logrus
 
 // Level is the message urgency level.
-type Level uint
+type Level log.Level
 
 const (
-	_ = iota
 	// LevelDebug used for debug messages.
-	LevelDebug
+	LevelDebug = log.LevelDebug
 	// LevelInfo used for info messages.
-	LevelInfo
+	LevelInfo = log.LevelInfo
 	// LevelWarning used for warning messages.
-	LevelWarning
+	LevelWarning = log.LevelWarning
 	// LevelError used for error messages.
-	LevelError
+	LevelError = log.LevelError
 	// LevelFatal used for fatal messages. os.Exit(1) is called after printing.
-	LevelFatal
+	LevelFatal = log.LevelFatal
 )
 
 // Writer accepts messages along with the Level.
-type Writer interface {
-	Log(Level, ...interface{})
-	Logf(Level, string, ...interface{})
-}
+type Writer = log.Writer
 
 // WriterC is the context-aware Writer.
-type WriterC interface {
-	Logc(context.Context, Level, ...interface{})
-	Logcf(context.Context, Level, string, ...interface{})
-}
+type WriterC = log.WriterC
 
 // Default is the default logger.
-var Default Writer
+var Default Writer = log.Default

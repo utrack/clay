@@ -35,7 +35,7 @@ func New(reg *descriptor.Registry, opts ...Option) *Generator {
 	g.imports = append(g.imports,
 		g.newGoPackage("context"),
 		g.newGoPackage("github.com/pkg/errors"),
-		g.newGoPackage("github.com/utrack/clay/transport"),
+		g.newGoPackage("github.com/utrack/clay/transport/v2", "transport"),
 	)
 	return g
 }
@@ -153,9 +153,8 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"bytes",
 		"net/http",
 
-		"github.com/utrack/clay/transport/httpruntime",
-		"github.com/utrack/clay/transport/swagger",
-		"github.com/utrack/clay/transport",
+		"github.com/utrack/clay/transport/v2/httpruntime",
+		"github.com/utrack/clay/transport/v2/swagger",
 		"github.com/grpc-ecosystem/grpc-gateway/runtime",
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",
@@ -170,19 +169,37 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		imports = append(imports, g.newGoPackage(pkg))
 	}
 
+	haveBindings := false
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {
-			pkg := m.RequestType.File.GoPkg
-			// Add request type package to imports if needed
-			if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
-				pkg == f.GoPkg || pkgSeen[pkg.Path] {
-				continue
+			checkedAppend := func(pkg descriptor.GoPackage) {
+				// Add request type package to imports if needed
+				if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
+					pkg == f.GoPkg || pkgSeen[pkg.Path] {
+					return
+				}
+				pkgSeen[pkg.Path] = true
+				imports = append(imports, pkg)
 			}
-			pkgSeen[pkg.Path] = true
-			imports = append(imports, pkg)
+
+			checkedAppend(m.RequestType.File.GoPkg)
+			checkedAppend(m.ResponseType.File.GoPkg)
+
+			if len(m.Bindings) > 0 {
+				haveBindings = true
+			}
 		}
 	}
-	p := param{File: f, Imports: imports}
+
+	applyMiddlewares := g.options.ApplyDefaultMiddlewares && haveBindings
+	if applyMiddlewares {
+		imports = append(imports, g.newGoPackage("github.com/utrack/clay/transport/v2/httpruntime/httpmw"))
+	}
+
+	p := param{File: f, Imports: imports,
+		ApplyMiddlewares: applyMiddlewares,
+	}
+
 	if swagger != nil {
 		p.SwaggerBuffer = swagger
 	}

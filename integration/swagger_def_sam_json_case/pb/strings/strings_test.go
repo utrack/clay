@@ -8,7 +8,7 @@ import (
 
 	"github.com/jmoiron/jsonq"
 	"github.com/stretchr/testify/assert"
-	"github.com/utrack/clay/transport/httpruntime"
+	"github.com/utrack/clay/transport/v2/httpruntime"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
