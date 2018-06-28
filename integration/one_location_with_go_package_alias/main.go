@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/utrack/clay/v2/integration/one_location_with_go_package_alias/pb"
+	"github.com/utrack/clay/integration/one_location_with_go_package_alias/pb"
 )
 
 func main() {
