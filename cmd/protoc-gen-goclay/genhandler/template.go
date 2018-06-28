@@ -132,7 +132,7 @@ var (
 /*
 Package {{ .GoPkg.Name }} is a self-registering gRPC and JSON+Swagger service definition.
 
-It conforms to the github.com/utrack/clay Service interface.
+It conforms to the github.com/utrack/clay/v2/transport Service interface.
 */
 package {{ .GoPkg.Name }}
 import (
@@ -208,7 +208,7 @@ var (
                     continue
                 }
                 if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
-                    return nil, err
+                    return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
                 }
             }
         {{ end }}
@@ -228,7 +228,7 @@ var (
 {{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
     if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
-        return nil, err
+        return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
     }
 {{ end }}
 {{ define "unmpath" }}
@@ -238,7 +238,7 @@ var (
     }
     for pos,k := range rctx.URLParams.Keys {
         if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-            return nil, err
+            return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
         }
     }
 {{ end }}

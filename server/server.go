@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/utrack/clay/transport/v2"
+	"github.com/utrack/clay/v2/transport"
 
 	"github.com/pkg/errors"
 )
