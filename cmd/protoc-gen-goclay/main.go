@@ -12,7 +12,7 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/codegenerator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
-	"github.com/utrack/clay/cmd/protoc-gen-goclay/genhandler"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/genhandler"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 	grpcAPIConfiguration = flag.String("grpc_api_configuration", "", "path to gRPC API Configuration in YAML format")
 	withImpl             = flag.Bool("impl", false, "generate simple implementations for proto Services. Implementation will not be generated if it already exists. See also `force` option")
 	withSwagger          = flag.Bool("swagger", true, "generate swagger.json")
-	descPath             = flag.String("desc_path", "", "path where the http description is generated")
+	applyHTTPMiddlewares = flag.Bool("http_middlewares", true, "apply default HTTP millewares")
 	implPath             = flag.String("impl_path", "", "path where the implementation is generated (for impl = true)")
 	forceImpl            = flag.Bool("force", false, "force regenerate implementation if it already exists (for impl = true)")
 )
@@ -78,8 +78,8 @@ func main() {
 	opts := []genhandler.Option{
 		genhandler.Impl(*withImpl),
 		genhandler.ImplPath(*implPath),
-		genhandler.DescPath(*descPath),
 		genhandler.Force(*forceImpl),
+		genhandler.ApplyDefaultMiddlewares(*applyHTTPMiddlewares),
 	}
 
 	if *withSwagger {
@@ -143,10 +143,6 @@ func parseReqParam(param string, f *flag.FlagSet, pkgMap map[string]string) erro
 		if err := f.Set(name, value); err != nil {
 			return fmt.Errorf("Cannot set flag %s: %v", p, err)
 		}
-	}
-	*descPath = strings.Trim(*descPath, "/")
-	if *descPath == "." {
-		*descPath = ""
 	}
 	*implPath = strings.Trim(*implPath, "/")
 	if *implPath == "." {

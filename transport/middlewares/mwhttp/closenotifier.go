@@ -1,8 +1,10 @@
 package mwhttp
 
-import "github.com/go-chi/chi/middleware"
+import (
+	"github.com/utrack/clay/v2/server/middlewares/mwhttp"
+)
 
 // CloseNotifier cancels the context if client goes away.
 func CloseNotifier() Middleware {
-	return middleware.CloseNotify
+	return mwhttp.CloseNotifier()
 }

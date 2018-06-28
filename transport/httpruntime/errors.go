@@ -22,3 +22,8 @@ func DefaultSetError(ctx context.Context, req *http.Request, w http.ResponseWrit
 	enc := json.NewEncoder(w)
 	enc.Encode(errResponse{Error: err.Error()})
 }
+
+// TransformUnmarshalerError is called for every error reported by unmarshaler.
+// It can be used to transform the error returned to the client (embed HTTP code in it,
+// mask text, etc.).
+var TransformUnmarshalerError = func(err error) error { return err }

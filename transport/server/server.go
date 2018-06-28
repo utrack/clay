@@ -1,42 +1,16 @@
 package server
 
 import (
-	"net"
-
-	"google.golang.org/grpc"
-
-	"github.com/go-chi/chi"
-	"github.com/soheilhy/cmux"
+	"github.com/utrack/clay/v2/server"
 )
 
 // Server is a transport server.
-type Server struct {
-	opts      *serverOpts
-	listeners *listenerSet
-	srv       *serverSet
-}
+type Server = server.Server
 
-type listenerSet struct {
-	mainListener cmux.CMux // nil or CMux. If nil - don't listen
-	HTTP         net.Listener
-	GRPC         net.Listener
-}
-
-type serverSet struct {
-	http chi.Router
-	grpc *grpc.Server
-}
-
-func getServers(listeners *listenerSet, opts *serverOpts) *serverSet {
-	http := chi.NewMux()
-	if len(opts.HTTPMiddlewares) > 0 {
-		http.Use(opts.HTTPMiddlewares...)
-	}
-	http.Mount("/", opts.HTTPMux)
-
-	srv := &serverSet{
-		grpc: grpc.NewServer(opts.GRPCOpts...),
-		http: http,
-	}
-	return srv
+// NewServer creates a Server listening on the rpcPort.
+// Pass additional Options to mutate its behaviour.
+// By default, HTTP JSON handler and gRPC are listening on the same
+// port, admin port is p+2 and profile port is p+4.
+func NewServer(rpcPort int, opts ...Option) *Server {
+	return server.NewServer(rpcPort, opts...)
 }

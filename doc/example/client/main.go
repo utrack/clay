@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/utrack/clay/doc/example/pb"
+	"github.com/utrack/clay/v2/doc/example/pb"
 	"google.golang.org/grpc"
 )
 
@@ -14,21 +14,21 @@ func main() {
 		logrus.Fatal(err)
 	}
 	client := sumpb.NewSummatorClient(conn)
-	rsp, err := client.Sum(context.Background(), &sumpb.SumRequest{A: 1, B: 2})
+	rsp, err := client.Sum(context.Background(), &sumpb.SumRequest{A: 1, B: &sumpb.NestedB{B: 2}})
 	if err != nil {
 		logrus.Error(err)
 	} else {
 		logrus.Info(rsp)
 	}
 
-	rsp, err = client.Sum(context.Background(), &sumpb.SumRequest{A: 0, B: 2})
+	rsp, err = client.Sum(context.Background(), &sumpb.SumRequest{A: 0, B: &sumpb.NestedB{B: 2}})
 	if err != nil {
 		logrus.Error(err)
 	} else {
 		logrus.Info(rsp)
 	}
 
-	rsp, err = client.Sum(context.Background(), &sumpb.SumRequest{A: 1, B: 65536})
+	rsp, err = client.Sum(context.Background(), &sumpb.SumRequest{A: 1, B: &sumpb.NestedB{B: 65536}})
 	if err != nil {
 		logrus.Error(err)
 	} else {
