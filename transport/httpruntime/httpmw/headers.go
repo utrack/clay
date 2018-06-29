@@ -5,7 +5,7 @@ package httpmw
 import (
 	"net/http"
 
-	"github.com/utrack/clay/transport/httptransport"
+	"github.com/utrack/clay/v2/transport/httptransport"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
