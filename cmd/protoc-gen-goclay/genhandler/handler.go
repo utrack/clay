@@ -170,6 +170,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 	}
 
 	httpmw := g.newGoPackage("github.com/utrack/clay/v2/transport/httpruntime/httpmw")
+	httpcli := g.newGoPackage("github.com/utrack/clay/v2/transport/httpclient")
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {
 			checkedAppend := func(pkg descriptor.GoPackage) {
@@ -185,6 +186,12 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 			checkedAppend(m.RequestType.File.GoPkg)
 			checkedAppend(m.ResponseType.File.GoPkg)
 		}
+
+		if hasBindings(svc) && !pkgSeen[httpcli.Path] {
+			imports = append(imports, httpcli)
+			pkgSeen[httpcli.Path] = true
+		}
+
 		if g.options.ApplyDefaultMiddlewares && hasBindings(svc) && !pkgSeen[httpmw.Path] {
 			imports = append(imports, httpmw)
 			pkgSeen[httpmw.Path] = true

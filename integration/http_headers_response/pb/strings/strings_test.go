@@ -20,9 +20,9 @@ type a struct {
 	Values []string
 }
 
-// TestHTTPHeadersPass_vanillaHTTP tests that default HTTP middleware passes HTTP headers to
-// gRPC metadata.
-func TestHTTPHeadersPass_vanillaHTTP(t *testing.T) {
+// TestHTTPHeadersResponse tests that server is able to return HTTP headers via
+// grpc.SetHeaders.
+func TestHTTPHeadersResponse(t *testing.T) {
 	so := assert.New(t)
 	impl, ts := getTestSvc()
 	defer ts.Close()
@@ -33,8 +33,8 @@ func TestHTTPHeadersPass_vanillaHTTP(t *testing.T) {
 			Values: []string{"val1", "Val2"},
 		},
 		a{
-			Name:   "User-Agent",
-			Values: []string{"Go-http-client/1.1"},
+			Name:   "X-Something-For-Test-2",
+			Values: []string{"val3", "Val2"},
 		},
 	}
 
@@ -67,21 +67,21 @@ func TestHTTPHeadersPass_vanillaHTTP(t *testing.T) {
 	}
 }
 
-// TestHTTPHeadersPass_genClient tests that default HTTP middleware passes HTTP headers to
-// gRPC metadata using generated client.
-func TestHTTPHeadersPass_genClient(t *testing.T) {
+// TestHTTPHeadersResponse_genClient tests that genrated client is able to receive
+// headers via grpc.Headers.
+func TestHTTPHeadersResponse_genClient(t *testing.T) {
 	so := assert.New(t)
 	impl, ts := getTestSvc()
 	defer ts.Close()
 
 	tc := []a{
 		a{
-			Name:   "User-Agent",
-			Values: []string{"Go-http-client/1.1"},
+			Name:   "X-Something-For-Test",
+			Values: []string{"val1", "Val2"},
 		},
 		a{
-			Name:   "Accept",
-			Values: []string{"application/json"},
+			Name:   "X-Something-For-Test-2",
+			Values: []string{"val3", "Val2"},
 		},
 	}
 
@@ -89,21 +89,34 @@ func TestHTTPHeadersPass_genClient(t *testing.T) {
 
 	impl.f = func(ctx context.Context, req *String) (*String, error) {
 		calledFunc = true
-		md, ok := metadata.FromIncomingContext(ctx)
-		so.True(ok)
 
+		md := metadata.New(map[string]string{})
 		for _, c := range tc {
-			got := md.Get(strings.ToLower(c.Name))
-			so.EqualValues(c.Values, got)
+
+			for i := range c.Values {
+				md.Append(c.Name, c.Values[i])
+			}
 		}
+		grpc.SetHeader(ctx, md)
 
 		return &String{}, nil
 	}
 
 	cli := NewStringsHTTPClient(http.DefaultClient, ts.URL)
-	_, err := cli.ToLower(context.Background(), &String{})
+
+	gotHeaders := metadata.MD{}
+
+	_, err := cli.ToLower(
+		context.Background(),
+		&String{},
+		grpc.Header(&gotHeaders),
+	)
 	so.Nil(err)
 	so.True(calledFunc)
+
+	for _, c := range tc {
+		so.EqualValues(c.Values, gotHeaders.Get(strings.ToLower(c.Name)))
+	}
 }
 
 func getTestSvc() (*StringsImplementation, *httptest.Server) {
