@@ -8,6 +8,8 @@ VGO_BIN:=$(GOBIN)/vgo
 GEN_CLAY_BIN:=$(CURDIR)/bin/protoc-gen-goclay
 export GEN_CLAY_BIN
 
+all: clean build test
+
 # install vgo
 $(VGO_BIN):
 ifeq (${VGO_VERSION},master)
