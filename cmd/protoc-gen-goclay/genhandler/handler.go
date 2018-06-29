@@ -275,7 +275,9 @@ func getRootImportPath(file *descriptor.File) string {
 	if file.GoPkg.Path != "." {
 		goImportPath = file.GoPkg.Path
 	}
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+
+	// dir is current working directory
+	dir, err := filepath.Abs(".")
 	if err != nil {
 		glog.V(0).Info(err)
 	}
@@ -307,5 +309,4 @@ func hasBindings(service *descriptor.Service) bool {
 		}
 	}
 	return false
-
 }

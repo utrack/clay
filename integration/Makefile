@@ -5,6 +5,9 @@ VGO_PATH:=$(FIRST_GOPATH)/src/golang.org/x/vgo
 VGO_VERSION:=master
 VGO_BIN:=$(GOBIN)/vgo
 
+GEN_CLAY_BIN:=$(CURDIR)/bin/protoc-gen-goclay
+export GEN_CLAY_BIN
+
 # install vgo
 $(VGO_BIN):
 ifeq (${VGO_VERSION},master)
@@ -29,7 +32,10 @@ GREEN=\033[0;32m
 RED=\033[0;31m
 NC=\033[0m
 
-test: $(VGO_BIN)
+build: $(VGO_BIN)
+	cd ../cmd/protoc-gen-goclay && vgo build -o=$(GEN_CLAY_BIN) .
+
+test: $(VGO_BIN) build
 		@ \
 		success=0; \
 		failure=0; \
