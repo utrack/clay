@@ -5,7 +5,7 @@
 /*
 Package sumpb is a self-registering gRPC and JSON+Swagger service definition.
 
-It conforms to the github.com/utrack/clay Service interface.
+It conforms to the github.com/utrack/clay/v2/transport Service interface.
 */
 package sumpb
 
@@ -22,6 +22,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	transport "github.com/utrack/clay/v2/transport"
+	"github.com/utrack/clay/v2/transport/httpclient"
 	"github.com/utrack/clay/v2/transport/httpruntime"
 	"github.com/utrack/clay/v2/transport/httpruntime/httpmw"
 	"github.com/utrack/clay/v2/transport/swagger"
@@ -133,14 +134,19 @@ func NewSummatorHTTPClient(c *http.Client, addr string) SummatorClient {
 	return &Summator_httpClient{c: c, host: addr}
 }
 
-func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc.CallOption) (*SumResponse, error) {
+func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error) {
+	mw, err := httpclient.NewMiddlewareGRPC(opts)
+	if err != nil {
+		return nil, err
+	}
+
 	path := pattern_goclay_Summator_Sum_0_builder(in.A)
 
 	buf := bytes.NewBuffer(nil)
 
 	m := httpruntime.DefaultMarshaler(nil)
 
-	if err := m.Marshal(buf, in.B); err != nil {
+	if err = m.Marshal(buf, in.B); err != nil {
 		return nil, errors.Wrap(err, "can't marshal request")
 	}
 
@@ -151,11 +157,20 @@ func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, _ ...grpc
 
 	req.Header.Add("Accept", m.ContentType())
 
+	req, err = mw.ProcessRequest(req)
+	if err != nil {
+		return nil, err
+	}
 	rsp, err := c.c.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "error from client")
 	}
 	defer rsp.Body.Close()
+
+	rsp, err = mw.ProcessResponse(rsp)
+	if err != nil {
+		return nil, err
+	}
 
 	if rsp.StatusCode >= 400 {
 		b, _ := ioutil.ReadAll(rsp.Body)

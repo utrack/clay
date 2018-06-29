@@ -23,14 +23,19 @@ func New{{ $svc.GetName }}HTTPClient(c *{{ pkg "http" }}Client,addr string) {{ $
 {{ range $m := $svc.Methods }}
 {{ if $m.Bindings }}
 {{ with $b := index $m.Bindings 0 }}
-func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}Context,in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }},_ ...{{ pkg "grpc" }}CallOption) (*{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path }},error) {
+func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}Context,in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }},opts ...{{ pkg "grpc" }}CallOption) (*{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path }},error) {
+    mw,err := {{ pkg "httpclient" }}NewMiddlewareGRPC(opts)
+    if err != nil {
+      return nil,err
+    }
+
     path := pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder({{ range $p := $b.PathParams }}in.{{ goTypeName $p.String }},{{ end }})
 
     buf := {{ pkg "bytes" }}NewBuffer(nil)
 
     m := {{ pkg "httpruntime" }}DefaultMarshaler(nil)
     {{ if $b.Body }}
-    if err := m.Marshal(buf, {{.Body.AssignableExpr "in"}}); err != nil {
+    if err = m.Marshal(buf, {{.Body.AssignableExpr "in"}}); err != nil {
 	return nil, {{ pkg "errors" }}Wrap(err, "can't marshal request")
     }
     {{ end }}
@@ -43,11 +48,20 @@ func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}
 
     req.Header.Add("Accept", m.ContentType())
 
+    req,err = mw.ProcessRequest(req)
+    if err != nil {
+      return nil,err
+    }
     rsp, err := c.c.Do(req)
     if err != nil {
         return nil, {{ pkg "errors" }}Wrap(err, "error from client")
     }
     defer rsp.Body.Close()
+
+    rsp,err = mw.ProcessResponse(rsp)
+    if err != nil {
+      return nil,err
+    }
 
     if rsp.StatusCode >= 400 {
         b,_ := {{ pkg "ioutil" }}ReadAll(rsp.Body)

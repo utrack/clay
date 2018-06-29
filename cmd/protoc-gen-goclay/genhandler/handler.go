@@ -170,6 +170,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 	}
 
 	httpmw := g.newGoPackage("github.com/utrack/clay/v2/transport/httpruntime/httpmw")
+	httpcli := g.newGoPackage("github.com/utrack/clay/v2/transport/httpclient")
 	for _, svc := range f.Services {
 		for _, m := range svc.Methods {
 			checkedAppend := func(pkg descriptor.GoPackage) {
@@ -185,6 +186,12 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 			checkedAppend(m.RequestType.File.GoPkg)
 			checkedAppend(m.ResponseType.File.GoPkg)
 		}
+
+		if hasBindings(svc) && !pkgSeen[httpcli.Path] {
+			imports = append(imports, httpcli)
+			pkgSeen[httpcli.Path] = true
+		}
+
 		if g.options.ApplyDefaultMiddlewares && hasBindings(svc) && !pkgSeen[httpmw.Path] {
 			imports = append(imports, httpmw)
 			pkgSeen[httpmw.Path] = true
@@ -258,11 +265,11 @@ func annotateString(str string) string {
 func fileExists(path string) bool {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		glog.V(0).Info(err)
+		glog.V(-1).Info(err)
 	}
 	dir, err = filepath.EvalSymlinks(dir)
 	if err != nil {
-		glog.V(0).Info(err)
+		glog.V(-1).Info(err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, path)); err == nil {
 		return true
@@ -275,13 +282,15 @@ func getRootImportPath(file *descriptor.File) string {
 	if file.GoPkg.Path != "." {
 		goImportPath = file.GoPkg.Path
 	}
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+
+	// dir is current working directory
+	dir, err := filepath.Abs(".")
 	if err != nil {
-		glog.V(0).Info(err)
+		glog.V(-1).Info(err)
 	}
 	dir, err = filepath.EvalSymlinks(dir)
 	if err != nil {
-		glog.V(0).Info(err)
+		glog.V(-1).Info(err)
 	}
 	for _, gp := range strings.Split(build.Default.GOPATH, ":") {
 		agp, _ := filepath.Abs(gp)
@@ -307,5 +316,4 @@ func hasBindings(service *descriptor.Service) bool {
 		}
 	}
 	return false
-
 }
