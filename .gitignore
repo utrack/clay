@@ -7,6 +7,7 @@
 # Unignore corner-case files
 !LICENSE
 !README
+!Makefile
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -36,3 +37,6 @@ _testmain.go
 
 # Ignore generated .pb.go files in integration tests
 /integration/**/*.pb.*go
+
+# Ignore vendor, needed for better local development
+vendor/
