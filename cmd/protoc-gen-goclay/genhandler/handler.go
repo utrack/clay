@@ -258,11 +258,11 @@ func annotateString(str string) string {
 func fileExists(path string) bool {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		glog.V(0).Info(err)
+		glog.V(-1).Info(err)
 	}
 	dir, err = filepath.EvalSymlinks(dir)
 	if err != nil {
-		glog.V(0).Info(err)
+		glog.V(-1).Info(err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, path)); err == nil {
 		return true
@@ -277,11 +277,11 @@ func getRootImportPath(file *descriptor.File) string {
 	}
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		glog.V(0).Info(err)
+		glog.V(-1).Info(err)
 	}
 	dir, err = filepath.EvalSymlinks(dir)
 	if err != nil {
-		glog.V(0).Info(err)
+		glog.V(-1).Info(err)
 	}
 	for _, gp := range strings.Split(build.Default.GOPATH, ":") {
 		agp, _ := filepath.Abs(gp)
