@@ -81,7 +81,7 @@ type RequestMutator func(*http.Request) (*http.Request, error)
 type ResponseMutator func(*http.Response) (*http.Response, error)
 
 // DefaultRequestMutators are used for every outgoing request.
-var DefaultRequestMutators = []RequestMutator{}
+var DefaultRequestMutators = []RequestMutator{clientReqHeadersFromMD()}
 
 // DefaultResponseMutators are used for every received response.
 var DefaultResponseMutators = []ResponseMutator{}
@@ -94,4 +94,26 @@ func clientRspHeaderCopier(md *metadata.MD) ResponseMutator {
 		}
 		return rsp, nil
 	}
+}
+
+// clientReqHeadersFromMD pushes metadata from OutgoingContext to the
+// request headers.
+func clientReqHeadersFromMD() RequestMutator {
+	return func(req *http.Request) (*http.Request, error) {
+		fmt.Println("called")
+		ctxmd, ok := metadata.FromOutgoingContext(req.Context())
+		if !ok {
+			return req, nil
+		}
+
+		for k := range ctxmd {
+			vv := ctxmd.Get(k)
+			for i := range vv {
+				req.Header.Add(k, vv[i])
+			}
+		}
+
+		return req, nil
+	}
+
 }

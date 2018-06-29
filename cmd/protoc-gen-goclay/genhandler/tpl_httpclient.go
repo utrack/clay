@@ -45,6 +45,7 @@ func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}
     if err != nil {
         return nil, {{ pkg "errors" }}Wrap(err, "can't initiate HTTP request")
     }
+    req = req.WithContext(ctx)
 
     req.Header.Add("Accept", m.ContentType())
 

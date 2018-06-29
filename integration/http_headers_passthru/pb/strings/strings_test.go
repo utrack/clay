@@ -105,6 +105,64 @@ func TestHTTPHeadersPass_genClient(t *testing.T) {
 	so.True(calledFunc)
 }
 
+// TestHTTPHeadersPass_genClient_outgoingContext tests that generated HTTP client
+// passes headers from grpc.ToOutgoingContext to the request by default.
+func TestHTTPHeadersPass_genClient_outgoingContext(t *testing.T) {
+	so := assert.New(t)
+	impl, ts := getTestSvc()
+	defer ts.Close()
+
+	tc := []a{
+		a{
+			Name:   "User-Agent",
+			Values: []string{"Go-http-client/1.1"},
+		},
+		a{
+			Name:   "Accept",
+			Values: []string{"application/json"},
+		},
+	}
+	pt := []a{
+		a{
+			Name:   "X-Test-Passthrough",
+			Values: []string{"v1", "Value2", "3"},
+		},
+	}
+
+	calledFunc := false
+
+	impl.f = func(ctx context.Context, req *String) (*String, error) {
+		calledFunc = true
+		md, ok := metadata.FromIncomingContext(ctx)
+		so.True(ok)
+
+		for _, c := range tc {
+			got := md.Get(strings.ToLower(c.Name))
+			so.EqualValues(c.Values, got)
+		}
+
+		for _, c := range pt {
+			got := md.Get(strings.ToLower(c.Name))
+			so.EqualValues(c.Values, got)
+		}
+
+		return &String{}, nil
+	}
+
+	ctx := context.Background()
+
+	for _, c := range pt {
+		for i := range c.Values {
+			ctx = metadata.AppendToOutgoingContext(ctx, c.Name, c.Values[i])
+		}
+	}
+
+	cli := NewStringsHTTPClient(http.DefaultClient, ts.URL)
+	_, err := cli.ToLower(ctx, &String{})
+	so.Nil(err)
+	so.True(calledFunc)
+}
+
 func getTestSvc() (*StringsImplementation, *httptest.Server) {
 	mux := http.NewServeMux()
 	impl := NewStrings()
