@@ -5,12 +5,19 @@ package httpmw
 import (
 	"net/http"
 
+	"github.com/utrack/clay/transport/httptransport"
+
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
 // DefaultChain is a chain that gets applied to the generated handlers.
 func DefaultChain(next http.HandlerFunc) http.HandlerFunc {
-	return HeadersToGRPCMD(next)
+	return InjectTransportStream(
+		HeadersToGRPCMD(
+			next,
+		),
+	)
 }
 
 // HeadersToGRPCMD inserts HTTP headers to gRPC metadata, as if they were
@@ -36,5 +43,17 @@ func HeadersToGRPCMD(next http.HandlerFunc) http.HandlerFunc {
 		ctx = metadata.NewIncomingContext(ctx, md)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// InjectTransportStream injects httptransport.TransportStream to the context.
+func InjectTransportStream(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w = httptransport.NewCodedWriter(w)
+
+		ctx := grpc.NewContextWithServerTransportStream(r.Context(), httptransport.NewTStream(w))
+
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	})
 }
