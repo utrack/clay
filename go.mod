@@ -22,10 +22,10 @@ require (
 	github.com/soheilhy/cmux v0.1.4
 	github.com/stretchr/testify v1.2.2
 	github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392
-	golang.org/x/net v0.0.0-20180621144259-afe8f62b1d6b
+	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
 	golang.org/x/text v0.3.0
-	google.golang.org/genproto v0.0.0-20180621235812-80063a038e33
+	google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d
 	google.golang.org/grpc v1.13.0
 	gopkg.in/airbrake/gobrake.v2 v2.0.9
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2

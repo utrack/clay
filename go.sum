@@ -26,10 +26,13 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392 h1:pDx+PFU58jIBnrYtRbRj+sq/V9T5lEb6fLpPwFB4GOc=
 github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392/go.mod h1:rGEy5AL6nrZOtcF8LDYwX6SM4vbI0i6M5vu99VMEO2s=
 golang.org/x/net v0.0.0-20180621144259-afe8f62b1d6b/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
+golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 google.golang.org/genproto v0.0.0-20180621235812-80063a038e33 h1:ECqAoHgIeu1vSTee2QoM8moQG9eBjUg+L8lKrgKC4Ig=
 google.golang.org/genproto v0.0.0-20180621235812-80063a038e33/go.mod h1:JiN7NxoALGmiZfu7CAH4rXhgtRTLTxftemlI0sWmxmc=
+google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d h1:6X4PYh39/Pjz7al8CnTTsk+jp3fG2KPpusrnwqzAW+M=
+google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d/go.mod h1:JiN7NxoALGmiZfu7CAH4rXhgtRTLTxftemlI0sWmxmc=
 google.golang.org/grpc v1.13.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 gopkg.in/airbrake/gobrake.v2 v2.0.9/go.mod h1:/h5ZAUhDkGaJfjzjKLSjv6zCL6O0LLBxU4K+aSYdM/U=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
