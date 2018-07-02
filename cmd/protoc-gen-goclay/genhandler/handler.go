@@ -263,7 +263,7 @@ func annotateString(str string) string {
 }
 
 func fileExists(path string) bool {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, err := filepath.Abs(".")
 	if err != nil {
 		glog.V(-1).Info(err)
 	}

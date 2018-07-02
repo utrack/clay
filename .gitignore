@@ -37,6 +37,8 @@ _testmain.go
 
 # Ignore generated .pb.go files in integration tests
 /integration/**/*.pb.*go
+# Unignore some files, used in tests
+!/integration/impl_exists/strings/strings.pb.impl.go
 
 # Ignore vendor, needed for better local development
 vendor/
