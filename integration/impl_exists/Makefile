@@ -17,4 +17,4 @@ build:
 	vgo build -o main main.go
 
 test: pwd clean protoc build
-	go test -v ./strings
+	vgo test -v ./strings
