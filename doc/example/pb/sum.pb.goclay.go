@@ -154,6 +154,7 @@ func (c *Summator_httpClient) Sum(ctx context.Context, in *SumRequest, opts ...g
 	if err != nil {
 		return nil, errors.Wrap(err, "can't initiate HTTP request")
 	}
+	req = req.WithContext(ctx)
 
 	req.Header.Add("Accept", m.ContentType())
 
