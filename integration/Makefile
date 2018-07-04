@@ -35,7 +35,8 @@ RED=\033[0;31m
 NC=\033[0m
 
 build: $(VGO_BIN)
-	cd ../cmd/protoc-gen-goclay && vgo build -o=$(GEN_CLAY_BIN) .
+	-rm $(GEN_CLAY_BIN)
+	cd ../cmd/protoc-gen-goclay && vgo build -o=$(GEN_CLAY_BIN)  .
 
 test: $(VGO_BIN) build
 		@ \
