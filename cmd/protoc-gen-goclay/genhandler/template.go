@@ -215,8 +215,8 @@ var (
     }
 {{ end }}
 {{ end }}
-{{ end }}
 )
+{{ end }}
 {{ end }}
 {{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
