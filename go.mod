@@ -3,7 +3,6 @@ module github.com/utrack/clay/v2
 require (
 	github.com/PuerkitoBio/purell v1.1.0
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
-	github.com/Sirupsen/logrus v1.0.5
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
 	github.com/go-openapi/jsonpointer v0.0.0-20180322222829-3a0015ad55fa
@@ -19,6 +18,7 @@ require (
 	github.com/onsi/ginkgo v1.5.0
 	github.com/onsi/gomega v1.4.0
 	github.com/pkg/errors v0.8.0
+	github.com/sirupsen/logrus v1.0.5
 	github.com/soheilhy/cmux v0.1.4
 	github.com/stretchr/testify v1.2.2
 	github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392

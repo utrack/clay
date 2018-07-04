@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/utrack/clay/v2/doc/example/pb"
 	"google.golang.org/grpc"
 )

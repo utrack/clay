@@ -4,7 +4,7 @@ import (
 	"github.com/utrack/clay/v2/server/log"
 )
 
-// Logrus is the default logger, using Sirupsen/logrus as a backend.
+// Logrus is the default logger, using sirupsen/logrus as a backend.
 type Logrus = log.Logrus
 
 // Level is the message urgency level.

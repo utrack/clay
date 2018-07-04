@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/go-chi/chi"
 	"github.com/rakyll/statik/fs"
+	"github.com/sirupsen/logrus"
 
 	pb "github.com/utrack/clay/v2/doc/example/pb"
 	"github.com/utrack/clay/v2/log"

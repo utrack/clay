@@ -3,14 +3,14 @@ package log
 import (
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func init() {
 	Default = Logrus{}
 }
 
-// Logrus is the default logger, using Sirupsen/logrus as a backend.
+// Logrus is the default logger, using sirupsen/logrus as a backend.
 type Logrus struct{}
 
 // Log implements Dumper.
