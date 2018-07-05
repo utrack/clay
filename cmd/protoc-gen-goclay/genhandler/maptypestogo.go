@@ -10,7 +10,7 @@ func primitiveTypeToGo(t pbdescriptor.FieldDescriptorProto_Type) (format string)
 	ret := ""
 	switch t {
 	case pbdescriptor.FieldDescriptorProto_TYPE_DOUBLE:
-		ret = "double"
+		ret = "float64"
 	case pbdescriptor.FieldDescriptorProto_TYPE_FLOAT:
 		ret = "float"
 	case pbdescriptor.FieldDescriptorProto_TYPE_INT64:
