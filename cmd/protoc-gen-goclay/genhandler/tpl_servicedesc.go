@@ -8,9 +8,11 @@ var regTemplate = template.Must(template.New("svc-reg").Funcs(funcMap).Parse(`
 // {{ $svc.GetName }}Desc is a descriptor/registrator for the {{ $svc.GetName }}Server.
 type {{ $svc.GetName }}Desc struct {
       svc {{ $svc.GetName }}Server
+      opts {{ pkg "httptransport" }}DescOptions
 }
 
 // New{{ $svc.GetName }}ServiceDesc creates new registrator for the {{ $svc.GetName }}Server.
+// It implements httptransport.ConfigurableServiceDesc as well.
 func New{{ $svc.GetName }}ServiceDesc(svc {{ $svc.GetName }}Server) *{{ $svc.GetName }}Desc {
       return &{{ $svc.GetName }}Desc{svc:svc}
 }
@@ -18,6 +20,13 @@ func New{{ $svc.GetName }}ServiceDesc(svc {{ $svc.GetName }}Server) *{{ $svc.Get
 // RegisterGRPC implements service registrator interface.
 func (d *{{ $svc.GetName }}Desc) RegisterGRPC(s *{{ pkg "grpc" }}Server) {
       Register{{ $svc.GetName }}Server(s,d.svc)
+}
+
+// Apply applies passed options. 
+func (d *{{ $svc.GetName }}Desc) Apply(oo ... {{ pkg "transport" }}DescOption) {
+      for _,o := range oo {
+            o.Apply(d.opts)
+      }
 }
 
 // SwaggerDef returns this file's Swagger definition.
@@ -54,21 +63,21 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
     h = {{ pkg "http" }}HandlerFunc(func(w {{ pkg "http" }}ResponseWriter, r *{{ pkg "http" }}Request) {
         defer r.Body.Close()
 
-        req, err := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r)
-        if err != nil {
-            {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't parse request"))
-            return
-        }
+        unmFunc := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r)
+        rsp,err := _{{ $svc.GetName }}_{{ $m.GetName }}_Handler(d.svc,r.Context(),unmFunc,d.opts.UnaryInterceptor)
 
-        ret,err := d.svc.{{ $m.GetName }}(r.Context(),req)
         if err != nil {
+            if err,ok := err.({{ pkg "httptransport" }}MarshalerError); ok {
+              {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err.Err,"couldn't parse request"))
+              return
+            }
             {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"returned from handler"))
             return
         }
 
         _,outbound := {{ pkg "httpruntime" }}MarshalerForRequest(r)
         w.Header().Set("Content-Type", outbound.ContentType())
-        err = outbound.Marshal(w, ret)
+        err = outbound.Marshal(w, rsp)
         if err != nil {
             {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't write response"))
             return

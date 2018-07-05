@@ -147,6 +147,7 @@ var _ {{ pkg "strings" }}Reader
 var _ {{ pkg "errors" }}Frame
 var _ {{ pkg "httpruntime" }}Marshaler
 var _ {{ pkg "http" }}Handler
+var _ {{ pkg "httptransport" }}MarshalerError
 `))
 
 	footerTemplate = template.Must(template.New("footer").Funcs(funcMap).Parse(`
@@ -192,16 +193,17 @@ var (
 {{ range $m := $svc.Methods }}
 {{ range $b := $m.Bindings }}
 
-    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) (*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }},error) {
-	var req {{$m.RequestType.GoType $m.Service.File.GoPkg.Path }}
+    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) func(interface{})(error) {
+    return func(rif interface{}) error {
+        req := rif.(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }})
 
         {{ if not (hasAsterisk $b.ExplicitParams) }}
             for k,v := range r.URL.Query() {
                 if _,ok := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams[{{ pkg "strings" }}ToLower(k)];ok {
                     continue
                 }
-                if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
-                    return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
+                if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
+                    return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
                 }
             }
         {{ end }}
@@ -211,7 +213,8 @@ var (
         {{- if $b.PathParams -}}
             {{- template "unmpath" . -}}
         {{ end }}
-        return &req, nil
+        return nil
+    }
     }
 {{ end }}
 {{ end }}
@@ -221,7 +224,7 @@ var (
 {{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
     if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
-        return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
+        return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
     }
 {{ end }}
 {{ define "unmpath" }}
@@ -230,8 +233,8 @@ var (
         panic("Only chi router is supported for GETs atm")
     }
     for pos,k := range rctx.URLParams.Keys {
-        if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-            return nil, {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
+        if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
+            return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
         }
     }
 {{ end }}
