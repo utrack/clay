@@ -77,6 +77,10 @@ func (d *SummatorDesc) SwaggerDef(options ...swagger.Option) (result []byte) {
 		if err = s.UnmarshalJSON(_swaggerDef_sum_proto); err != nil {
 			panic("Bad swagger definition: " + err.Error())
 		}
+
+		for _, o := range d.opts.SwaggerDefaultOpts {
+			o(s)
+		}
 		for _, o := range options {
 			o(s)
 		}

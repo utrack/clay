@@ -1,10 +1,14 @@
 package httptransport
 
-import "google.golang.org/grpc"
+import (
+	"github.com/utrack/clay/v2/transport/swagger"
+	"google.golang.org/grpc"
+)
 
 // DescOptions provides options for a ServiceDesc compiled code.
 type DescOptions struct {
-	UnaryInterceptor grpc.UnaryServerInterceptor
+	UnaryInterceptor   grpc.UnaryServerInterceptor
+	SwaggerDefaultOpts []swagger.Option
 }
 
 // OptionUnaryInterceptor sets up the gRPC unary interceptor.
@@ -19,4 +23,14 @@ func (o OptionUnaryInterceptor) Apply(oo DescOptions) {
 		panic("UnaryInterceptor is already applied, can't apply twice")
 	}
 	oo.UnaryInterceptor = o.Interceptor
+}
+
+// OptionSwaggerOpts sets up default options for the SwaggerDef().
+type OptionSwaggerOpts struct {
+	Options []swagger.Option
+}
+
+// Apply implements transport.DescOption.
+func (o OptionSwaggerOpts) Apply(oo DescOptions) {
+	oo.SwaggerDefaultOpts = append(oo.SwaggerDefaultOpts, o.Options...)
 }

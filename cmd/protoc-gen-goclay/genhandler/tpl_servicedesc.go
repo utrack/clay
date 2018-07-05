@@ -37,6 +37,10 @@ func (d *{{ $svc.GetName }}Desc) SwaggerDef(options ...{{ pkg "swagger" }}Option
         if err = s.UnmarshalJSON(_swaggerDef_{{ varName $.GetName }}); err != nil {
             panic("Bad swagger definition: " + err.Error())
         }
+
+        for _, o := range d.opts.SwaggerDefaultOpts {
+            o(s)
+        }
         for _, o := range options {
             o(s)
         }
