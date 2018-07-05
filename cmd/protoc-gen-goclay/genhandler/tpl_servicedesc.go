@@ -59,7 +59,7 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
         rsp,err := _{{ $svc.GetName }}_{{ $m.GetName }}_Handler(d.svc,r.Context(),unmFunc,d.interceptor)
 
         if err != nil {
-            if err,ok := err.({{ pkg "httpruntime" }}MarshalerError); ok {
+            if err,ok := err.({{ pkg "httptransport" }}MarshalerError); ok {
               {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err.Err,"couldn't parse request"))
               return
             }

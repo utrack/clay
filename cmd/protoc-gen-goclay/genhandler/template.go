@@ -223,7 +223,7 @@ var (
 {{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
     if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
-        return {{ pkg "httpruntime" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
+        return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
     }
 {{ end }}
 {{ define "unmpath" }}
@@ -233,7 +233,7 @@ var (
     }
     for pos,k := range rctx.URLParams.Keys {
         if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
-            return {{ pkg "httpruntime" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
+            return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
         }
     }
 {{ end }}

@@ -27,20 +27,3 @@ func DefaultSetError(ctx context.Context, req *http.Request, w http.ResponseWrit
 // It can be used to transform the error returned to the client (embed HTTP code in it,
 // mask text, etc.).
 var TransformUnmarshalerError = func(err error) error { return err }
-
-// MarshalerError is returned by a marshaler.
-type MarshalerError struct {
-	Err error
-}
-
-func (m MarshalerError) Cause() error {
-	return m.Err
-}
-
-func (m MarshalerError) Error() string {
-	return m.Err.Error()
-}
-
-func NewMarshalerError(err error) MarshalerError {
-	return MarshalerError{Err: err}
-}

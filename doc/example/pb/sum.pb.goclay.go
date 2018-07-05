@@ -25,6 +25,7 @@ import (
 	"github.com/utrack/clay/v2/transport/httpclient"
 	"github.com/utrack/clay/v2/transport/httpruntime"
 	"github.com/utrack/clay/v2/transport/httpruntime/httpmw"
+	"github.com/utrack/clay/v2/transport/httptransport"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
 )
@@ -93,7 +94,7 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 			rsp, err := _Summator_Sum_Handler(d.svc, r.Context(), unmFunc, d.interceptor)
 
 			if err != nil {
-				if err, ok := err.(httpruntime.MarshalerError); ok {
+				if err, ok := err.(httptransport.MarshalerError); ok {
 					httpruntime.SetError(r.Context(), r, w, errors.Wrap(err.Err, "couldn't parse request"))
 					return
 				}
@@ -217,7 +218,7 @@ var (
 
 			inbound, _ := httpruntime.MarshalerForRequest(r)
 			if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
-				return httpruntime.NewMarshalerError(httpruntime.TransformUnmarshalerError(err))
+				return httptransport.NewMarshalerError(httpruntime.TransformUnmarshalerError(err))
 			}
 
 			rctx := chi.RouteContext(r.Context())
@@ -226,7 +227,7 @@ var (
 			}
 			for pos, k := range rctx.URLParams.Keys {
 				if err := errors.Wrapf(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path", k); err != nil {
-					return httpruntime.NewMarshalerError(httpruntime.TransformUnmarshalerError(err))
+					return httptransport.NewMarshalerError(httpruntime.TransformUnmarshalerError(err))
 				}
 			}
 

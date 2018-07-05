@@ -154,6 +154,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"net/http",
 
 		"github.com/utrack/clay/v2/transport/httpruntime",
+		"github.com/utrack/clay/v2/transport/httptransport",
 		"github.com/utrack/clay/v2/transport/swagger",
 		"github.com/grpc-ecosystem/grpc-gateway/runtime",
 		"google.golang.org/grpc",
