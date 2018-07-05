@@ -147,6 +147,7 @@ var _ {{ pkg "strings" }}Reader
 var _ {{ pkg "errors" }}Frame
 var _ {{ pkg "httpruntime" }}Marshaler
 var _ {{ pkg "http" }}Handler
+var _ {{ pkg "httptransport" }}MarshalerError
 `))
 
 	footerTemplate = template.Must(template.New("footer").Funcs(funcMap).Parse(`
