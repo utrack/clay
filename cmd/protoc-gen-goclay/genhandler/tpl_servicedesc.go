@@ -8,6 +8,7 @@ var regTemplate = template.Must(template.New("svc-reg").Funcs(funcMap).Parse(`
 // {{ $svc.GetName }}Desc is a descriptor/registrator for the {{ $svc.GetName }}Server.
 type {{ $svc.GetName }}Desc struct {
       svc {{ $svc.GetName }}Server
+      interceptor {{ pkg "grpc" }}UnaryServerInterceptor
 }
 
 // New{{ $svc.GetName }}ServiceDesc creates new registrator for the {{ $svc.GetName }}Server.
@@ -54,21 +55,21 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
     h = {{ pkg "http" }}HandlerFunc(func(w {{ pkg "http" }}ResponseWriter, r *{{ pkg "http" }}Request) {
         defer r.Body.Close()
 
-        req, err := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r)
-        if err != nil {
-            {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't parse request"))
-            return
-        }
+        unmFunc := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r)
+        rsp,err := _{{ $svc.GetName }}_{{ $m.GetName }}_Handler(r,r.Context(),unmFunc,d.interceptor)
 
-        ret,err := d.svc.{{ $m.GetName }}(r.Context(),req)
         if err != nil {
+            if err,ok := err.({{ pkg "httpruntime" }}MarshalerError); ok {
+              {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't parse request"))
+              return
+            }
             {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"returned from handler"))
             return
         }
 
         _,outbound := {{ pkg "httpruntime" }}MarshalerForRequest(r)
         w.Header().Set("Content-Type", outbound.ContentType())
-        err = outbound.Marshal(w, ret)
+        err = outbound.Marshal(w, rsp)
         if err != nil {
             {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't write response"))
             return
