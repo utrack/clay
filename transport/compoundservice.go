@@ -32,3 +32,11 @@ func (d *CompoundServiceDesc) SwaggerDef(options ...swagger.Option) []byte {
 	}
 	return j.SumDefinitions()
 }
+
+func (d *CompoundServiceDesc) Apply(oo ...DescOption) {
+	for _, ss := range d.svc {
+		if s, ok := ss.(ConfigurableServiceDesc); ok {
+			s.Apply(oo...)
+		}
+	}
+}

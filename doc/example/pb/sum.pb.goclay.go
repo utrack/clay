@@ -25,6 +25,7 @@ import (
 	"github.com/utrack/clay/v2/transport/httpclient"
 	"github.com/utrack/clay/v2/transport/httpruntime"
 	"github.com/utrack/clay/v2/transport/httpruntime/httpmw"
+	"github.com/utrack/clay/v2/transport/httptransport"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
 )
@@ -42,13 +43,16 @@ var _ strings.Reader
 var _ errors.Frame
 var _ httpruntime.Marshaler
 var _ http.Handler
+var _ httptransport.MarshalerError
 
 // SummatorDesc is a descriptor/registrator for the SummatorServer.
 type SummatorDesc struct {
-	svc SummatorServer
+	svc  SummatorServer
+	opts httptransport.DescOptions
 }
 
 // NewSummatorServiceDesc creates new registrator for the SummatorServer.
+// It implements httptransport.ConfigurableServiceDesc as well.
 func NewSummatorServiceDesc(svc SummatorServer) *SummatorDesc {
 	return &SummatorDesc{svc: svc}
 }
@@ -58,6 +62,13 @@ func (d *SummatorDesc) RegisterGRPC(s *grpc.Server) {
 	RegisterSummatorServer(s, d.svc)
 }
 
+// Apply applies passed options.
+func (d *SummatorDesc) Apply(oo ...transport.DescOption) {
+	for _, o := range oo {
+		o.Apply(d.opts)
+	}
+}
+
 // SwaggerDef returns this file's Swagger definition.
 func (d *SummatorDesc) SwaggerDef(options ...swagger.Option) (result []byte) {
 	if len(options) > 0 {
@@ -65,6 +76,10 @@ func (d *SummatorDesc) SwaggerDef(options ...swagger.Option) (result []byte) {
 		var s = &spec.Swagger{}
 		if err = s.UnmarshalJSON(_swaggerDef_sum_proto); err != nil {
 			panic("Bad swagger definition: " + err.Error())
+		}
+
+		for _, o := range d.opts.SwaggerDefaultOpts {
+			o(s)
 		}
 		for _, o := range options {
 			o(s)
@@ -88,21 +103,21 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 		h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 
-			req, err := unmarshaler_goclay_Summator_Sum_0(r)
-			if err != nil {
-				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
-				return
-			}
+			unmFunc := unmarshaler_goclay_Summator_Sum_0(r)
+			rsp, err := _Summator_Sum_Handler(d.svc, r.Context(), unmFunc, d.opts.UnaryInterceptor)
 
-			ret, err := d.svc.Sum(r.Context(), req)
 			if err != nil {
+				if err, ok := err.(httptransport.MarshalerError); ok {
+					httpruntime.SetError(r.Context(), r, w, errors.Wrap(err.Err, "couldn't parse request"))
+					return
+				}
 				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
 				return
 			}
 
 			_, outbound := httpruntime.MarshalerForRequest(r)
 			w.Header().Set("Content-Type", outbound.ContentType())
-			err = outbound.Marshal(w, ret)
+			err = outbound.Marshal(w, rsp)
 			if err != nil {
 				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't write response"))
 				return
@@ -201,34 +216,36 @@ var (
 
 // marshalers for Summator
 var (
-	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request) (*SumRequest, error) {
-		var req SumRequest
+	unmarshaler_goclay_Summator_Sum_0 = func(r *http.Request) func(interface{}) error {
+		return func(rif interface{}) error {
+			req := rif.(*SumRequest)
 
-		for k, v := range r.URL.Query() {
-			if _, ok := unmarshaler_goclay_Summator_Sum_0_boundParams[strings.ToLower(k)]; ok {
-				continue
+			for k, v := range r.URL.Query() {
+				if _, ok := unmarshaler_goclay_Summator_Sum_0_boundParams[strings.ToLower(k)]; ok {
+					continue
+				}
+				if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
+					return httpruntime.TransformUnmarshalerError(err)
+				}
 			}
-			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, v[0]), "couldn't populate field from Path"); err != nil {
-				return nil, httpruntime.TransformUnmarshalerError(err)
+
+			inbound, _ := httpruntime.MarshalerForRequest(r)
+			if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
+				return httptransport.NewMarshalerError(httpruntime.TransformUnmarshalerError(err))
 			}
-		}
 
-		inbound, _ := httpruntime.MarshalerForRequest(r)
-		if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
-			return nil, httpruntime.TransformUnmarshalerError(err)
-		}
-
-		rctx := chi.RouteContext(r.Context())
-		if rctx == nil {
-			panic("Only chi router is supported for GETs atm")
-		}
-		for pos, k := range rctx.URLParams.Keys {
-			if err := errors.Wrap(runtime.PopulateFieldFromPath(&req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-				return nil, httpruntime.TransformUnmarshalerError(err)
+			rctx := chi.RouteContext(r.Context())
+			if rctx == nil {
+				panic("Only chi router is supported for GETs atm")
 			}
-		}
+			for pos, k := range rctx.URLParams.Keys {
+				if err := errors.Wrapf(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path", k); err != nil {
+					return httptransport.NewMarshalerError(httpruntime.TransformUnmarshalerError(err))
+				}
+			}
 
-		return &req, nil
+			return nil
+		}
 	}
 )
 
