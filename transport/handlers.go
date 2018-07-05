@@ -26,3 +26,8 @@ type Router interface {
 	http.Handler
 	Handle(pattern string, h http.Handler)
 }
+
+// ConfigurableServiceDesc is implemented by configurable ServiceDescs.
+type ConfigurableServiceDesc interface {
+	Apply(...DescOption)
+}

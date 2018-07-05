@@ -43,14 +43,16 @@ var _ strings.Reader
 var _ errors.Frame
 var _ httpruntime.Marshaler
 var _ http.Handler
+var _ httptransport.MarshalerError
 
 // SummatorDesc is a descriptor/registrator for the SummatorServer.
 type SummatorDesc struct {
-	svc         SummatorServer
-	interceptor grpc.UnaryServerInterceptor
+	svc  SummatorServer
+	opts httptransport.DescOptions
 }
 
 // NewSummatorServiceDesc creates new registrator for the SummatorServer.
+// It implements httptransport.ConfigurableServiceDesc as well.
 func NewSummatorServiceDesc(svc SummatorServer) *SummatorDesc {
 	return &SummatorDesc{svc: svc}
 }
@@ -58,6 +60,13 @@ func NewSummatorServiceDesc(svc SummatorServer) *SummatorDesc {
 // RegisterGRPC implements service registrator interface.
 func (d *SummatorDesc) RegisterGRPC(s *grpc.Server) {
 	RegisterSummatorServer(s, d.svc)
+}
+
+// Apply applies passed options.
+func (d *SummatorDesc) Apply(oo ...transport.DescOption) {
+	for _, o := range oo {
+		o.Apply(d.opts)
+	}
 }
 
 // SwaggerDef returns this file's Swagger definition.
@@ -91,7 +100,7 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 			defer r.Body.Close()
 
 			unmFunc := unmarshaler_goclay_Summator_Sum_0(r)
-			rsp, err := _Summator_Sum_Handler(d.svc, r.Context(), unmFunc, d.interceptor)
+			rsp, err := _Summator_Sum_Handler(d.svc, r.Context(), unmFunc, d.opts.UnaryInterceptor)
 
 			if err != nil {
 				if err, ok := err.(httptransport.MarshalerError); ok {
