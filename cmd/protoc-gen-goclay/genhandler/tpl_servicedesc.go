@@ -56,11 +56,11 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
         defer r.Body.Close()
 
         unmFunc := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r)
-        rsp,err := _{{ $svc.GetName }}_{{ $m.GetName }}_Handler(r,r.Context(),unmFunc,d.interceptor)
+        rsp,err := _{{ $svc.GetName }}_{{ $m.GetName }}_Handler(d.svc,r.Context(),unmFunc,d.interceptor)
 
         if err != nil {
             if err,ok := err.({{ pkg "httpruntime" }}MarshalerError); ok {
-              {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't parse request"))
+              {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err.Err,"couldn't parse request"))
               return
             }
             {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"returned from handler"))

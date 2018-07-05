@@ -222,8 +222,8 @@ var (
 {{ end }}
 {{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
-    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
-        return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
+    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
+        return {{ pkg "httpruntime" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
     }
 {{ end }}
 {{ define "unmpath" }}
@@ -232,8 +232,8 @@ var (
         panic("Only chi router is supported for GETs atm")
     }
     for pos,k := range rctx.URLParams.Keys {
-        if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-            return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
+        if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
+            return {{ pkg "httpruntime" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
         }
     }
 {{ end }}

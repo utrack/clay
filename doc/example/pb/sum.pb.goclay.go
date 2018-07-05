@@ -90,11 +90,11 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 			defer r.Body.Close()
 
 			unmFunc := unmarshaler_goclay_Summator_Sum_0(r)
-			rsp, err := _Summator_Sum_Handler(r, r.Context(), unmFunc, d.interceptor)
+			rsp, err := _Summator_Sum_Handler(d.svc, r.Context(), unmFunc, d.interceptor)
 
 			if err != nil {
 				if err, ok := err.(httpruntime.MarshalerError); ok {
-					httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "couldn't parse request"))
+					httpruntime.SetError(r.Context(), r, w, errors.Wrap(err.Err, "couldn't parse request"))
 					return
 				}
 				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
@@ -216,8 +216,8 @@ var (
 			}
 
 			inbound, _ := httpruntime.MarshalerForRequest(r)
-			if err := errors.Wrap(inbound.Unmarshal(r.Body, req.B), "couldn't read request JSON"); err != nil {
-				return httpruntime.TransformUnmarshalerError(err)
+			if err := errors.Wrap(inbound.Unmarshal(r.Body, &req.B), "couldn't read request JSON"); err != nil {
+				return httpruntime.NewMarshalerError(httpruntime.TransformUnmarshalerError(err))
 			}
 
 			rctx := chi.RouteContext(r.Context())
@@ -225,8 +225,8 @@ var (
 				panic("Only chi router is supported for GETs atm")
 			}
 			for pos, k := range rctx.URLParams.Keys {
-				if err := errors.Wrap(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "couldn't populate field from Path"); err != nil {
-					return httpruntime.TransformUnmarshalerError(err)
+				if err := errors.Wrapf(runtime.PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path", k); err != nil {
+					return httpruntime.NewMarshalerError(httpruntime.TransformUnmarshalerError(err))
 				}
 			}
 

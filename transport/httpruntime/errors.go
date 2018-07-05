@@ -30,9 +30,17 @@ var TransformUnmarshalerError = func(err error) error { return err }
 
 // MarshalerError is returned by a marshaler.
 type MarshalerError struct {
-	error
+	Err error
+}
+
+func (m MarshalerError) Cause() error {
+	return m.Err
+}
+
+func (m MarshalerError) Error() string {
+	return m.Err.Error()
 }
 
 func NewMarshalerError(err error) MarshalerError {
-	return MarshalerError{error: err}
+	return MarshalerError{Err: err}
 }
