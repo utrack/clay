@@ -18,7 +18,7 @@ func UnaryPanicHandler(logger interface{}) grpc.UnaryServerInterceptor {
 		defer func() {
 			if r := recover(); r != nil {
 				err = grpc.Errorf(codes.Internal, "panic: %v", r)
-				logFunc(ctx, fmt.Sprintf("recovered from panic: %v, %v ", r, string(debug.Stack())))
+				logFunc(ctx, fmt.Sprintf("recovered from panic: %v,\n%v ", r, string(debug.Stack())))
 			}
 		}()
 		return handler(ctx, req)

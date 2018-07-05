@@ -8,7 +8,7 @@ import (
 
 // DescOption modifies the ServiceDesc's behaviour.
 type DescOption interface {
-	Apply(httptransport.DescOptions)
+	Apply(*httptransport.DescOptions)
 }
 
 // WithUnaryInterceptor sets up the interceptor for incoming calls.

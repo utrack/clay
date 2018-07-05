@@ -17,7 +17,7 @@ type OptionUnaryInterceptor struct {
 }
 
 // Apply implements transport.DescOption.
-func (o OptionUnaryInterceptor) Apply(oo DescOptions) {
+func (o OptionUnaryInterceptor) Apply(oo *DescOptions) {
 	if oo.UnaryInterceptor != nil {
 		// Chaining can be done via mwitkow/grpc-middleware for example.
 		panic("UnaryInterceptor is already applied, can't apply twice")
@@ -31,6 +31,6 @@ type OptionSwaggerOpts struct {
 }
 
 // Apply implements transport.DescOption.
-func (o OptionSwaggerOpts) Apply(oo DescOptions) {
+func (o OptionSwaggerOpts) Apply(oo *DescOptions) {
 	oo.SwaggerDefaultOpts = append(oo.SwaggerDefaultOpts, o.Options...)
 }

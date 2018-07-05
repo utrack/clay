@@ -12,7 +12,6 @@ import (
 	"github.com/utrack/clay/v2/log"
 	"github.com/utrack/clay/v2/transport"
 	"github.com/utrack/clay/v2/transport/middlewares/mwgrpc"
-	"github.com/utrack/clay/v2/transport/middlewares/mwhttp"
 	"github.com/utrack/clay/v2/transport/server"
 	"golang.org/x/net/context"
 
@@ -60,10 +59,8 @@ func main() {
 		12345,
 		// Pass our mux with Swagger UI
 		server.WithHTTPMux(hmux),
-		// Recover from HTTP panics
-		server.WithHTTPMiddlewares(mwhttp.Recover(log.Default), mwhttp.CloseNotifier()),
-		// Recover from gRPC panics
-		server.WithGRPCUnaryMiddlewares(mwgrpc.UnaryPanicHandler(log.Default)),
+		// Recover from both HTTP and gRPC panics and use our own middleware
+		server.WithGRPCUnaryMiddlewares(mwgrpc.UnaryPanicHandler(log.Default), logmw),
 	)
 	err = srv.Run(impl)
 	if err != nil {

@@ -46,6 +46,11 @@ func (s *Server) Run(svc transport.Service) error {
 		io.Copy(w, bytes.NewReader(desc.SwaggerDef()))
 	})
 
+	// apply gRPC interceptor
+	if d, ok := desc.(transport.ConfigurableServiceDesc); ok {
+		d.Apply(transport.WithUnaryInterceptor(s.opts.GRPCUnaryInterceptor))
+	}
+
 	// Register everything
 	desc.RegisterHTTP(s.srv.http)
 	desc.RegisterGRPC(s.srv.grpc)

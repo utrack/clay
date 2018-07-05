@@ -54,7 +54,9 @@ type SummatorDesc struct {
 // NewSummatorServiceDesc creates new registrator for the SummatorServer.
 // It implements httptransport.ConfigurableServiceDesc as well.
 func NewSummatorServiceDesc(svc SummatorServer) *SummatorDesc {
-	return &SummatorDesc{svc: svc}
+	return &SummatorDesc{
+		svc: svc,
+	}
 }
 
 // RegisterGRPC implements service registrator interface.
@@ -65,7 +67,7 @@ func (d *SummatorDesc) RegisterGRPC(s *grpc.Server) {
 // Apply applies passed options.
 func (d *SummatorDesc) Apply(oo ...transport.DescOption) {
 	for _, o := range oo {
-		o.Apply(d.opts)
+		o.Apply(&d.opts)
 	}
 }
 

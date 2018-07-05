@@ -22,7 +22,8 @@ type serverOpts struct {
 
 	HTTPMiddlewares []func(http.Handler) http.Handler
 
-	GRPCOpts []grpc.ServerOption
+	GRPCOpts             []grpc.ServerOption
+	GRPCUnaryInterceptor grpc.UnaryServerInterceptor
 }
 
 func defaultServerOpts(mainPort int) *serverOpts {
@@ -61,8 +62,10 @@ func WithHTTPMiddlewares(mws ...mwhttp.Middleware) Option {
 
 // WithGRPCUnaryMiddlewares sets up unary middlewares for gRPC server.
 func WithGRPCUnaryMiddlewares(mws ...grpc.UnaryServerInterceptor) Option {
+	mw := grpc_middleware.ChainUnaryServer(mws...)
 	return func(o *serverOpts) {
-		o.GRPCOpts = append(o.GRPCOpts, grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(mws...)))
+		o.GRPCOpts = append(o.GRPCOpts, grpc.UnaryInterceptor(mw))
+		o.GRPCUnaryInterceptor = mw
 	}
 }
 

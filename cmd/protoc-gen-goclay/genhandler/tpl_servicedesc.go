@@ -14,7 +14,9 @@ type {{ $svc.GetName }}Desc struct {
 // New{{ $svc.GetName }}ServiceDesc creates new registrator for the {{ $svc.GetName }}Server.
 // It implements httptransport.ConfigurableServiceDesc as well.
 func New{{ $svc.GetName }}ServiceDesc(svc {{ $svc.GetName }}Server) *{{ $svc.GetName }}Desc {
-      return &{{ $svc.GetName }}Desc{svc:svc}
+      return &{{ $svc.GetName }}Desc{
+svc:svc,
+}
 }
 
 // RegisterGRPC implements service registrator interface.
@@ -25,7 +27,7 @@ func (d *{{ $svc.GetName }}Desc) RegisterGRPC(s *{{ pkg "grpc" }}Server) {
 // Apply applies passed options. 
 func (d *{{ $svc.GetName }}Desc) Apply(oo ... {{ pkg "transport" }}DescOption) {
       for _,o := range oo {
-            o.Apply(d.opts)
+            o.Apply(&d.opts)
       }
 }
 
