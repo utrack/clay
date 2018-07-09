@@ -8,6 +8,8 @@ VGO_BIN:=$(GOBIN)/vgo
 LOCAL_BIN:=$(CURDIR)/bin
 GEN_CLAY_BIN:=$(CURDIR)/bin/protoc-gen-goclay
 export GEN_CLAY_BIN
+GEN_GOFAST_BIN:=$(CURDIR)/bin/protoc-gen-gofast
+export GEN_GOFAST_BIN
 
 GRPC_GATEWAY_PKG:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$4 != "" ? $$4 : $$1)}')
 GRPC_GATEWAY_VERSION:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$5 != "" ? $$5 : $$2)}')
