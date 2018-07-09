@@ -30,6 +30,6 @@ install: $(VGO_BIN)
 	vgo mod -vendor
 
 .PHONY: integration
-integration:
+integration: install
 	$(MAKE) -C ./integration build
 	$(MAKE) -C ./integration test
