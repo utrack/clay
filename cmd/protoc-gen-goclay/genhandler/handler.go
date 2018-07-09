@@ -283,41 +283,42 @@ func getRootImportPath(file *descriptor.File) string {
 	if file.GoPkg.Path != "." {
 		goImportPath = file.GoPkg.Path
 	}
-
 	// dir is current working directory
 	dir, err := filepath.Abs(".")
 	if err != nil {
 		glog.V(-1).Info(err)
 	}
 	xdir, direrr := filepath.EvalSymlinks(dir)
-	currPath := func(path, gp string) string {
-		currentPath := strings.TrimPrefix(path, filepath.Join(gp, "src")+string(filepath.Separator))
-		if strings.HasPrefix(goImportPath, currentPath) {
-			return goImportPath
-		} else if goImportPath != "" {
-			return filepath.Join(currentPath, goImportPath)
-		} else {
-			return currentPath
-		}
-	}
 	for _, gp := range strings.Split(build.Default.GOPATH, ":") {
 		agp, _ := filepath.Abs(gp)
 		xagp, agperr := filepath.EvalSymlinks(agp)
 		if strings.HasPrefix(dir, agp) {
-			return currPath(dir, agp)
+			return getPackage(dir, agp, goImportPath)
 		}
 		if direrr == nil && strings.HasPrefix(xdir, agp) {
-			return currPath(xdir, agp)
+			return getPackage(xdir, agp, goImportPath)
 		}
 		if agperr == nil && strings.HasPrefix(dir, xagp) {
-			return currPath(dir, xagp)
+			return getPackage(dir, xagp, goImportPath)
 		}
 		if agperr == nil && direrr == nil && strings.HasPrefix(xdir, xagp) {
-			return currPath(xdir, xagp)
+			return getPackage(xdir, xagp, goImportPath)
 		}
 	}
 	return ""
 }
+
+func getPackage(path, gopath, gopkg string) string {
+	currentPath := strings.TrimPrefix(path, filepath.Join(gopath, "src")+string(filepath.Separator))
+	if strings.HasPrefix(gopkg, currentPath) {
+		return gopkg
+	} else if gopkg != "" {
+		return filepath.Join(currentPath, gopkg)
+	} else {
+		return currentPath
+	}
+}
+
 
 func hasBindings(service *descriptor.Service) bool {
 	for _, m := range service.Methods {
