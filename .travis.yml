@@ -1,0 +1,20 @@
+apt:
+  update: true
+
+env:
+  - PROTOBUF_VERSION=3.3.2
+  - PROTOBUF_VERSION=3.6.0
+
+before_install:
+  - ./install-protobuf.sh
+  - PATH=/home/travis/bin:$PATH protoc --version
+
+script:
+  - pushd integration && PATH=/home/travis/bin:$PATH make test && popd
+  - echo $TRAVIS_GO_VERSION
+
+language: go
+
+go:
+  - 1.9.x
+  - 1.10.x
