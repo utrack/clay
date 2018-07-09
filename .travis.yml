@@ -5,9 +5,11 @@ env:
   - PROTOBUF_VERSION=3.3.0
   - PROTOBUF_VERSION=3.6.0
 
+# accomodate forks
 before_install:
   - ./install-protobuf.sh
   - PATH=/home/travis/bin:$PATH protoc --version
+  - test ! -d $GOPATH/src/github.com/utrack/clay && mv $TRAVIS_BUILD_DIR $GOPATH/src/github.com/utrack/clay || true
 
 script:
   - PATH=/home/travis/bin:$GOPATH/bin:$PATH make integration
