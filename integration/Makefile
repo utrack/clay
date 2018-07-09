@@ -8,6 +8,11 @@ VGO_BIN:=$(GOBIN)/vgo
 GEN_CLAY_BIN:=$(CURDIR)/bin/protoc-gen-goclay
 export GEN_CLAY_BIN
 
+GRPC_GATEWAY_PKG:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$4 != "" ? $$4 : $$1)}')
+GRPC_GATEWAY_VERSION:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$5 != "" ? $$5 : $$2)}')
+GRPC_GATEWAY_PATH:=${FIRST_GOPATH}/src/mod/${GRPC_GATEWAY_PKG}@${GRPC_GATEWAY_VERSION}
+export GRPC_GATEWAY_PATH
+
 all: clean build test
 
 # install vgo
@@ -55,6 +60,7 @@ test: $(VGO_BIN) build
 		echo "${GREEN}$$success TEST PASSED${NC}"; \
 		if [ "$$failure" -gt "0" ]; then \
 			echo "${RED}$$failure TEST FAILED${NC}"; \
+			$(error Tests failed, exiting)
 		fi
 
 clean:
