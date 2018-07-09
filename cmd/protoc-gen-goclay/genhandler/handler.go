@@ -289,22 +289,31 @@ func getRootImportPath(file *descriptor.File) string {
 	if err != nil {
 		glog.V(-1).Info(err)
 	}
-	dir, err = filepath.EvalSymlinks(dir)
-	if err != nil {
-		glog.V(-1).Info(err)
+	xdir, direrr := filepath.EvalSymlinks(dir)
+	currPath := func(path, gp string) string {
+		currentPath := strings.TrimPrefix(path, filepath.Join(gp, "src")+string(filepath.Separator))
+		if strings.HasPrefix(goImportPath, currentPath) {
+			return goImportPath
+		} else if goImportPath != "" {
+			return filepath.Join(currentPath, goImportPath)
+		} else {
+			return currentPath
+		}
 	}
 	for _, gp := range strings.Split(build.Default.GOPATH, ":") {
 		agp, _ := filepath.Abs(gp)
-		agp, _ = filepath.EvalSymlinks(agp)
+		xagp, agperr := filepath.EvalSymlinks(agp)
 		if strings.HasPrefix(dir, agp) {
-			currentPath := strings.TrimPrefix(dir, agp+"/src/")
-			if strings.HasPrefix(goImportPath, currentPath) {
-				return goImportPath
-			} else if goImportPath != "" {
-				return filepath.Join(currentPath, goImportPath)
-			} else {
-				return currentPath
-			}
+			return currPath(dir, agp)
+		}
+		if direrr == nil && strings.HasPrefix(xdir, agp) {
+			return currPath(xdir, agp)
+		}
+		if agperr == nil && strings.HasPrefix(dir, xagp) {
+			return currPath(dir, xagp)
+		}
+		if agperr == nil && direrr == nil && strings.HasPrefix(xdir, xagp) {
+			return currPath(xdir, xagp)
 		}
 	}
 	return ""
