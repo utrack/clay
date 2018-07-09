@@ -6,6 +6,8 @@ GEN_CLAY_BIN:=$(CURDIR)/bin/protoc-gen-goclay
 export GEN_CLAY_BIN
 GEN_GOFAST_BIN:=$(CURDIR)/bin/protoc-gen-gofast
 export GEN_GOFAST_BIN
+GEN_GOGOFAST_BIN:=$(CURDIR)/bin/protoc-gen-gogofast
+export GEN_GOGOFAST_BIN
 
 GRPC_GATEWAY_PKG:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$4 != "" ? $$4 : $$1)}')
 GRPC_GATEWAY_VERSION:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$5 != "" ? $$5 : $$2)}')
@@ -22,6 +24,7 @@ build:
 	$(info #Installing binary dependencies...)
 	GOBIN=$(LOCAL_BIN) vgo install github.com/utrack/clay/v2/cmd/protoc-gen-goclay
 	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gofast
+	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gogofast
 
 test:
 	@ \
