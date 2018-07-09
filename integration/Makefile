@@ -1,4 +1,3 @@
-GOPATH?=$(HOME)/go
 FIRST_GOPATH:=$(firstword $(subst :, ,$(GOPATH)))
 GOBIN:=$(FIRST_GOPATH)/bin
 
