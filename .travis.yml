@@ -9,7 +9,7 @@ env:
 before_install:
   - ./install-protobuf.sh
   - PATH=/home/travis/bin:$PATH protoc --version
-  - test ! -d $GOPATH/src/github.com/utrack/clay && mv $TRAVIS_BUILD_DIR $GOPATH/src/github.com/utrack/clay || true
+  - test ! -d $GOPATH/src/github.com/utrack/clay && mkdir -p $GOPATH/src/github.com/utrack; mv $TRAVIS_BUILD_DIR $_ || true
 
 script:
   - PATH=/home/travis/bin:$GOPATH/bin:$PATH make integration
