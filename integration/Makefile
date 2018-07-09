@@ -52,7 +52,7 @@ test: $(VGO_BIN)
 		@ \
 		success=0; \
 		failure=0; \
-		for i in `find */ -type f -name Makefile`; do \
+		for i in `find */ -type f -name Makefile -not -path "vendor/*"`; do \
 			if make -C $${i%/*} test; then \
 				success=$$((success+1)); \
 			else \
