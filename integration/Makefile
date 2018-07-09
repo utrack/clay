@@ -46,6 +46,7 @@ build: $(VGO_BIN)
 	$(info #Installing binary dependencies...)
 	GOBIN=$(LOCAL_BIN) vgo install github.com/utrack/clay/v2/cmd/protoc-gen-goclay
 	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gofast
+	vgo mod -vendor
 
 test: $(VGO_BIN)
 		@ \
