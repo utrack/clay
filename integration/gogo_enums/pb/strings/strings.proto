@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+
+package strings;
+option go_package="pb/strings";
+option java_multiple_files = true;
+option java_outer_classname = "Strings";
+option java_package = "com.strings.pb";
+
+
+service Strings {
+    rpc ToUpper (String) returns (String) {
+        option (google.api.http) = {
+            get: "/strings/to_upper/{snake_case}"
+        };
+    }
+    rpc ToLower (String) returns (String) {
+        option (google.api.http) = {
+            post: "/strings/to_lower"
+            body: "*"
+        };
+    }
+}
+
+message String {
+    string snake_case = 1;
+  StringType strtype = 2;
+
+}
+
+enum StringType {
+  STRING_TYPE_FOO = 0;
+  STRING_TYPE_BAR = 1;
+}

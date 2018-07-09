@@ -10,8 +10,8 @@ import (
 )
 
 var mpbjson = MarshalerPbJSON{
-	Marshaler : &runtime.JSONPb{},
-	Unmarshaler: &runtime.JSONPb{},
+	Marshaler:       &runtime.JSONPb{},
+	Unmarshaler:     &runtime.JSONPb{},
 	GogoMarshaler:   &gogojsonpb.Marshaler{},
 	GogoUnmarshaler: &gogojsonpb.Unmarshaler{},
 }
@@ -19,8 +19,8 @@ var mpbjson = MarshalerPbJSON{
 // MarshalerPbJSON (un)marshals between JSON and proto.Messages.
 // It supports both golang/pb and gogo/pb.
 type MarshalerPbJSON struct {
-	Marshaler *runtime.JSONPb
-	Unmarshaler *runtime.JSONPb
+	Marshaler       *runtime.JSONPb
+	Unmarshaler     *runtime.JSONPb
 	GogoMarshaler   *gogojsonpb.Marshaler
 	GogoUnmarshaler *gogojsonpb.Unmarshaler
 }
