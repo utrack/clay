@@ -5,6 +5,7 @@ VGO_PATH:=$(FIRST_GOPATH)/src/golang.org/x/vgo
 VGO_VERSION:=master
 VGO_BIN:=$(GOBIN)/vgo
 
+LOCAL_BIN:=$(CURDIR)/bin
 GEN_CLAY_BIN:=$(CURDIR)/bin/protoc-gen-goclay
 export GEN_CLAY_BIN
 
@@ -40,10 +41,11 @@ RED=\033[0;31m
 NC=\033[0m
 
 build: $(VGO_BIN)
-	-rm $(GEN_CLAY_BIN)
-	cd ../cmd/protoc-gen-goclay && vgo build -o=$(GEN_CLAY_BIN)  .
+	$(info #Installing binary dependencies...)
+	GOBIN=$(LOCAL_BIN) vgo install github.com/utrack/clay/v2/cmd/protoc-gen-goclay
+	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gofast
 
-test: $(VGO_BIN) build
+test: $(VGO_BIN)
 		@ \
 		success=0; \
 		failure=0; \
