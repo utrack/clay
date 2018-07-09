@@ -60,7 +60,7 @@ test: $(VGO_BIN) build
 		echo "${GREEN}$$success TEST PASSED${NC}"; \
 		if [ "$$failure" -gt "0" ]; then \
 			echo "${RED}$$failure TEST FAILED${NC}"; \
-			$(error Tests failed, exiting)
+			exit 1; \
 		fi
 
 clean:
