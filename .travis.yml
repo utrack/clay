@@ -11,6 +11,9 @@ before_install:
   - PATH=/home/travis/bin:$PATH protoc --version
   - test ! -d $GOPATH/src/github.com/utrack/clay && mkdir -p $GOPATH/src/github.com/utrack; mv $TRAVIS_BUILD_DIR $_ || true
 
+install:
+  - make install
+
 script:
   - PATH=/home/travis/bin:$GOPATH/bin:$PATH make integration
 
