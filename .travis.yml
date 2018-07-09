@@ -10,8 +10,7 @@ before_install:
   - PATH=/home/travis/bin:$PATH protoc --version
 
 script:
-  - pushd integration && PATH=/home/travis/bin:$PATH make test && popd
-  - echo $TRAVIS_GO_VERSION
+  - PATH=/home/travis/bin:$GOPATH/bin:$PATH make integration
 
 language: go
 
