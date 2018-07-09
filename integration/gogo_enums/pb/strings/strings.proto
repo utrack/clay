@@ -11,11 +11,6 @@ option java_package = "com.strings.pb";
 
 
 service Strings {
-    rpc ToUpper (String) returns (String) {
-        option (google.api.http) = {
-            get: "/strings/to_upper/{snake_case}"
-        };
-    }
     rpc ToLower (String) returns (String) {
         option (google.api.http) = {
             post: "/strings/to_lower"
@@ -33,4 +28,5 @@ message String {
 enum StringType {
   STRING_TYPE_FOO = 0;
   STRING_TYPE_BAR = 1;
+  STRING_TYPE_BAZ = 2;
 }

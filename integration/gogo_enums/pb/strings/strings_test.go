@@ -1,50 +1,58 @@
 package strings
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/sirupsen/logrus"
+	"context"
 	"github.com/stretchr/testify/assert"
-	"github.com/utrack/clay/v2/transport/httpruntime"
+	"github.com/utrack/clay/v2/transport"
+	"net/http"
+	"net/http/httptest"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
 	so := assert.New(t)
+	impl, ts := getTestSvc()
+	defer ts.Close()
+	impl.f = func(ctx context.Context, req *String) (*String, error) {
+		return &String{}, nil
+	}
+
 	obj := &String{
 		SnakeCase: "foo",
-		Strtype:   StringType_STRING_TYPE_BAR,
+		Strtype:   StringType_STRING_TYPE_BAZ,
 	}
-	m := httpruntime.DefaultMarshaler(nil)
 
-	buf := bytes.NewBuffer(nil)
-
-	err := m.Marshal(buf, obj)
+	cli := NewStringsHTTPClient(http.DefaultClient, ts.URL)
+	_, err := cli.ToLower(context.Background(), obj)
 	so.Nil(err)
 
-	got := &String{}
-	logrus.Info(buf.String())
-
-	err = m.Unmarshal(buf, got)
-	so.Nil(err)
-
-	so.Equal(*obj, *got)
 }
 
-// TestFieldDefs tests that our Swagger names correspond to generated json names.
-func TestFieldDefs(t *testing.T) {
-	so := assert.New(t)
-	obj := &String{
-		SnakeCase: "no step",
-		Strtype:   StringType_STRING_TYPE_BAR,
-	}
-	m := httpruntime.DefaultMarshaler(nil)
+func getTestSvc() (*StringsImplementation, *httptest.Server) {
+	mux := http.NewServeMux()
+	impl := NewStrings()
+	d := impl.GetDescription()
+	d.RegisterHTTP(mux)
 
-	buf := bytes.NewBuffer(nil)
+	ts := httptest.NewServer(mux)
+	return impl, ts
+}
 
-	err := m.Marshal(buf, obj)
-	so.Nil(err)
-	logrus.Info(buf.String())
+type StringsImplementation struct {
+	f func(ctx context.Context, req *String) (*String, error)
+}
 
-	so.Contains(buf.String(), "STRING_TYPE_BAR")
+func NewStrings() *StringsImplementation {
+	return &StringsImplementation{}
+}
+
+func (i *StringsImplementation) ToLower(ctx context.Context, req *String) (*String, error) {
+	return i.f(ctx, req)
+}
+
+// GetDescription is a simple alias to the ServiceDesc constructor.
+// It makes it possible to register the service implementation @ the server.
+func (i *StringsImplementation) GetDescription() transport.ServiceDesc {
+	return NewStringsServiceDesc(i)
 }
