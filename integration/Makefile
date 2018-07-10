@@ -30,7 +30,7 @@ build:
 	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gofast
 	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gogofast
 
-test:
+test: build
 	@ \
 	success=0; \
 	failure=0; \
