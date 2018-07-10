@@ -3,10 +3,16 @@ module github.com/utrack/clay/integration
 replace github.com/utrack/clay/v2 v2.1.0 => ../
 
 require (
-	github.com/davecgh/go-spew v1.1.0
+	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
+	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
+	github.com/gogo/protobuf v1.0.0
+	github.com/golang/protobuf v1.1.0
+	github.com/grpc-ecosystem/grpc-gateway v1.4.1
 	github.com/jmoiron/jsonq v0.0.0-20150511023944-e874b168d07e
-	github.com/pmezard/go-difflib v1.0.0
+	github.com/pkg/errors v0.8.0
+	github.com/stretchr/testify v1.2.2
 	github.com/utrack/clay/v2 v2.1.0
-	golang.org/x/crypto v0.0.0-20180621125126-a49355c7e3f8
-	golang.org/x/sys v0.0.0-20180709060233-1b2967e3c290
+	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0
+	google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d
+	google.golang.org/grpc v1.13.0
 )
