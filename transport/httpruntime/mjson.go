@@ -2,12 +2,12 @@ package httpruntime
 
 import (
 	"io"
+	"reflect"
 
 	gogojsonpb "github.com/gogo/protobuf/jsonpb"
 	gogoproto "github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"reflect"
 )
 
 var mpbjson = MarshalerPbJSON{
