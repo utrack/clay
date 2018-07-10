@@ -100,7 +100,6 @@ func clientRspHeaderCopier(md *metadata.MD) ResponseMutator {
 // request headers.
 func clientReqHeadersFromMD() RequestMutator {
 	return func(req *http.Request) (*http.Request, error) {
-		fmt.Println("called")
 		ctxmd, ok := metadata.FromOutgoingContext(req.Context())
 		if !ok {
 			return req, nil

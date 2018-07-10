@@ -26,7 +26,6 @@ func TestMarshalUnmarshal(t *testing.T) {
 	cli := NewStringsHTTPClient(http.DefaultClient, ts.URL)
 	_, err := cli.ToLower(context.Background(), obj)
 	so.Nil(err)
-
 }
 
 func getTestSvc() (*StringsImplementation, *httptest.Server) {

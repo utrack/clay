@@ -223,7 +223,7 @@ var (
 {{ end }}
 {{ define "unmbody" }}
     inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
-    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
+    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
         return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
     }
 {{ end }}
