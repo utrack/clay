@@ -1,3 +1,4 @@
+GOPATH?=$(HOME)/go
 FIRST_GOPATH:=$(firstword $(subst :, ,$(GOPATH)))
 GOBIN:=$(FIRST_GOPATH)/bin
 
@@ -43,12 +44,14 @@ test: $(VGO_BIN) build
 		success=0; \
 		failure=0; \
 		for i in `find */ -type f -name Makefile`; do \
-			if make -C $${i%/*} test; then \
+			cd $${i%/*}; \
+			if make -C . test; then \
 				success=$$((success+1)); \
 			else \
 				failure=$$((failure+1)); \
 				echo "${RED}TEST FAILED${NC}"; \
 			fi; \
+			cd ..; \
 			echo; \
 		done; \
 		echo "== RESULTS =="; \
