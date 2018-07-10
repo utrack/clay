@@ -2,6 +2,7 @@ package httpruntime
 
 import (
 	"io"
+	"reflect"
 
 	gogojsonpb "github.com/gogo/protobuf/jsonpb"
 	gogoproto "github.com/gogo/protobuf/proto"
@@ -30,8 +31,28 @@ func (MarshalerPbJSON) ContentType() string {
 }
 
 func (m MarshalerPbJSON) Unmarshal(r io.Reader, dst interface{}) error {
+	v := reflect.ValueOf(dst)
+
+	// try to extract the message from under the pointers
+	// and determine if protomsg is registered under gogo registry
+	// see #35
+	var isGogo bool
+	for {
+		if kind := v.Kind(); kind != reflect.Ptr && kind != reflect.Interface {
+			break
+		}
+		vv := v.Interface()
+		pm, ok := vv.(proto.Message)
+		if ok {
+			isGogo = gogoproto.MessageName(pm) != ""
+			dst = vv
+			break
+		}
+		v = v.Elem()
+	}
+
 	if pm, ok := dst.(proto.Message); ok {
-		if gogoproto.MessageName(pm) != "" {
+		if isGogo {
 			return m.GogoUnmarshaler.Unmarshal(r, pm)
 		}
 	}

@@ -12,7 +12,7 @@ type {{ $svc.GetName }}_httpClient struct {
 
 // New{{ $svc.GetName }}HTTPClient creates new HTTP client for {{ $svc.GetName }}Server.
 // Pass addr in format "http://host[:port]".
-func New{{ $svc.GetName }}HTTPClient(c *{{ pkg "http" }}Client,addr string) {{ $svc.GetName }}Client {
+func New{{ $svc.GetName }}HTTPClient(c *{{ pkg "http" }}Client,addr string) *{{ $svc.GetName }}_httpClient {
     if {{ pkg "strings" }}HasSuffix(addr, "/") {
         addr = addr[:len(addr)-1]
     }

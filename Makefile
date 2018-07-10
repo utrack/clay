@@ -31,5 +31,4 @@ install: $(VGO_BIN)
 
 .PHONY: integration
 integration: install
-	$(MAKE) -C ./integration build
 	$(MAKE) -C ./integration test

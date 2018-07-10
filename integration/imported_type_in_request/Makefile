@@ -1,3 +1,4 @@
+GOPATH?=$(HOME)/go
 FIRST_GOPATH:=$(firstword $(subst :, ,$(GOPATH)))
 LAST_GOPATH:=$(lastword $(subst :, ,$(GOPATH)))
 GRPC_GATEWAY_PATH?=${FIRST_GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway
