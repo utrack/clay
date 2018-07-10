@@ -1,3 +1,4 @@
+GOPATH?=$(HOME)/go
 FIRST_GOPATH:=$(firstword $(subst :, ,$(GOPATH)))
 GEN_CLAY_BIN?=$(shell which protoc-gen-goclay)
 
