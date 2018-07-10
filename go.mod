@@ -3,6 +3,7 @@ module github.com/utrack/clay/v2
 require (
 	github.com/PuerkitoBio/purell v1.1.0
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
+	github.com/davecgh/go-spew v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
 	github.com/go-openapi/jsonpointer v0.0.0-20180322222829-3a0015ad55fa
@@ -18,12 +19,15 @@ require (
 	github.com/onsi/ginkgo v1.5.0
 	github.com/onsi/gomega v1.4.0
 	github.com/pkg/errors v0.8.0
+	github.com/pmezard/go-difflib v1.0.0
 	github.com/sirupsen/logrus v1.0.5
 	github.com/soheilhy/cmux v0.1.4
 	github.com/stretchr/testify v1.2.2
 	github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392
+	golang.org/x/crypto v0.0.0-20180621125126-a49355c7e3f8
 	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
+	golang.org/x/sys v0.0.0-20180709060233-1b2967e3c290
 	golang.org/x/text v0.3.0
 	google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d
 	google.golang.org/grpc v1.13.0

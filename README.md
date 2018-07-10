@@ -1,4 +1,6 @@
 # clay
+[![Build Status](https://travis-ci.org/utrack/clay.svg?branch=master)](https://travis-ci.org/utrack/clay)
+
 Minimal server platform for gRPC and REST+Swagger APIs
 
 Using clay you can automatically spin up HTTP handlers for your gRPC server with
