@@ -5,6 +5,8 @@ GOBIN:=$(FIRST_GOPATH)/bin
 LOCAL_BIN:=$(CURDIR)/bin
 GEN_CLAY_BIN:=$(CURDIR)/bin/protoc-gen-goclay
 export GEN_CLAY_BIN
+GEN_GO_BIN:=$(CURDIR)/bin/protoc-gen-go
+export GEN_GO_BIN
 GEN_GOFAST_BIN:=$(CURDIR)/bin/protoc-gen-gofast
 export GEN_GOFAST_BIN
 GEN_GOGOFAST_BIN:=$(CURDIR)/bin/protoc-gen-gogofast
@@ -24,6 +26,7 @@ NC=\033[0m
 build:
 	$(info #Installing binary dependencies...)
 	GOBIN=$(LOCAL_BIN) vgo install github.com/utrack/clay/v2/cmd/protoc-gen-goclay
+	GOBIN=$(LOCAL_BIN) vgo install github.com/golang/protobuf/protoc-gen-go
 	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gofast
 	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gogofast
 
