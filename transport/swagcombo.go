@@ -46,6 +46,9 @@ func (c *swagJoiner) AddDefinition(buf []byte) error {
 // SumDefinitions returns a (hopefully) valid Swagger definition combined
 // from everything that came up .AddDefinition().
 func (c *swagJoiner) SumDefinitions() []byte {
+	if c.result == nil {
+		c.result = map[string]interface{}{}
+	}
 	c.result["paths"] = c.paths
 	c.result["definitions"] = c.defs
 	ret, err := json.Marshal(c.result)
