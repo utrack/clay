@@ -290,19 +290,20 @@ func getRootImportPath(file *descriptor.File) string {
 	}
 	xdir, direrr := filepath.EvalSymlinks(dir)
 	for _, gp := range strings.Split(build.Default.GOPATH, ":") {
-		agp, _ := filepath.Abs(gp)
-		xagp, agperr := filepath.EvalSymlinks(agp)
-		if strings.HasPrefix(dir, agp) {
-			return getPackage(dir, agp, goImportPath)
+		gp = filepath.Clean(gp)
+		// xgp = gp but after symlink evaluation
+		xgp, gperr := filepath.EvalSymlinks(gp)
+		if strings.HasPrefix(dir, gp) {
+			return getPackage(dir, gp, goImportPath)
 		}
-		if direrr == nil && strings.HasPrefix(xdir, agp) {
-			return getPackage(xdir, agp, goImportPath)
+		if direrr == nil && strings.HasPrefix(xdir, gp) {
+			return getPackage(xdir, gp, goImportPath)
 		}
-		if agperr == nil && strings.HasPrefix(dir, xagp) {
-			return getPackage(dir, xagp, goImportPath)
+		if gperr == nil && strings.HasPrefix(dir, xgp) {
+			return getPackage(dir, xgp, goImportPath)
 		}
-		if agperr == nil && direrr == nil && strings.HasPrefix(xdir, xagp) {
-			return getPackage(xdir, xagp, goImportPath)
+		if gperr == nil && direrr == nil && strings.HasPrefix(xdir, xgp) {
+			return getPackage(xdir, xgp, goImportPath)
 		}
 	}
 	return ""
