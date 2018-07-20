@@ -8,7 +8,7 @@ import (
 	"github.com/rakyll/statik/fs"
 	"github.com/sirupsen/logrus"
 
-	pb "github.com/utrack/clay/v2/doc/example/pb"
+	pb "github.com/utrack/clay/doc/example/pb"
 	"github.com/utrack/clay/v2/log"
 	"github.com/utrack/clay/v2/transport"
 	"github.com/utrack/clay/v2/transport/middlewares/mwgrpc"
@@ -17,7 +17,7 @@ import (
 
 	// We're using statik-compiled files of Swagger UI
 	// for the sake of example.
-	_ "github.com/utrack/clay/v2/doc/example/static/statik"
+	_ "github.com/utrack/clay/doc/example/static/statik"
 )
 
 // SumImpl is an implementation of SummatorService.
@@ -60,7 +60,7 @@ func main() {
 		// Pass our mux with Swagger UI
 		server.WithHTTPMux(hmux),
 		// Recover from both HTTP and gRPC panics and use our own middleware
-		server.WithGRPCUnaryMiddlewares(mwgrpc.UnaryPanicHandler(log.Default), logmw),
+		server.WithGRPCUnaryMiddlewares(mwgrpc.UnaryPanicHandler(log.Default)),
 	)
 	err = srv.Run(impl)
 	if err != nil {
