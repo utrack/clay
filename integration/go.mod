@@ -1,6 +1,6 @@
 module github.com/utrack/clay/integration
 
-replace github.com/utrack/clay/v2 v2.1.0 => ../
+replace github.com/utrack/clay/v2 => ../
 
 require (
 	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
