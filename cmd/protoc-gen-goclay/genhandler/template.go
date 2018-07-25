@@ -115,6 +115,12 @@ var (
 			return ""
 		},
 		"hasBindings": hasBindings,
+		"responseBodyAware": func(binding interface{}) bool {
+			_, ok := binding.(interface {
+				ResponseBody() *descriptor.Body
+			})
+			return ok
+		},
 	}
 
 	headerTemplate = template.Must(template.New("header").Funcs(funcMap).Parse(`
