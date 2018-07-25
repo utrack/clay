@@ -1,27 +1,6 @@
-GOPATH?=$(HOME)/go
-FIRST_GOPATH:=$(firstword $(subst :, ,$(GOPATH)))
-GOBIN:=$(FIRST_GOPATH)/bin
-
-LOCAL_BIN:=$(CURDIR)/bin
-GEN_CLAY_BIN:=$(CURDIR)/bin/protoc-gen-goclay
-export GEN_CLAY_BIN
-GEN_GO_BIN:=$(CURDIR)/bin/protoc-gen-go
-export GEN_GO_BIN
-GEN_GOFAST_BIN:=$(CURDIR)/bin/protoc-gen-gofast
-export GEN_GOFAST_BIN
-GEN_GOGOFAST_BIN:=$(CURDIR)/bin/protoc-gen-gogofast
-export GEN_GOGOFAST_BIN
-
-GRPC_GATEWAY_PKG:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$4 != "" ? $$4 : $$1)}')
-GRPC_GATEWAY_VERSION:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$5 != "" ? $$5 : $$2)}')
-GRPC_GATEWAY_PATH:=${FIRST_GOPATH}/src/mod/${GRPC_GATEWAY_PKG}@${GRPC_GATEWAY_VERSION}
-export GRPC_GATEWAY_PATH
+include env.mk
 
 all: clean build test
-
-GREEN=\033[0;32m
-RED=\033[0;31m
-NC=\033[0m
 
 build:
 	$(info #Installing binary dependencies...)

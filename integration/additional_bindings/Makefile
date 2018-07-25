@@ -1,8 +1,4 @@
-GOPATH?=$(HOME)/go
-FIRST_GOPATH:=$(firstword $(subst :, ,$(GOPATH)))
-GRPC_GATEWAY_PATH?=${FIRST_GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway
-GEN_CLAY_BIN?=$(shell which protoc-gen-goclay)
-GEN_GOFAST_BIN?=$(shell which protoc-gen-gofast)
+include ../env.mk
 
 pwd:
 	@pwd
