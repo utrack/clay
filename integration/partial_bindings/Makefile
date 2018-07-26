@@ -7,7 +7,7 @@ clean:
 	find . -regex "\.\/.*\/.*\.go" -exec rm {} +
 	rm -f main
 
-protoc:
+protoc: protoc-build
 	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-go=$(GEN_GO_BIN) -I/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:. --go_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../strings:. pb/strings.proto
 
 build:

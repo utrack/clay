@@ -1,15 +1,8 @@
 include env.mk
 
-all: clean build test
+all: clean protoc-build test
 
-build:
-	$(info #Installing binary dependencies...)
-	GOBIN=$(LOCAL_BIN) vgo install github.com/utrack/clay/v2/cmd/protoc-gen-goclay
-	GOBIN=$(LOCAL_BIN) vgo install github.com/golang/protobuf/protoc-gen-go
-	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gofast
-	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gogofast
-
-test: build
+test: protoc-build
 	@ \
 	success=0; \
 	failure=0; \

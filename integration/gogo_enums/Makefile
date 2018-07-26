@@ -9,7 +9,7 @@ clean:
 	rm -f ./strings/strings.pb.impl.go
 	rm -f main
 
-protoc:
+protoc: protoc-build
 	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gogofast=$(GEN_GOGOFAST_BIN) -I/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:. --gogofast_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../../strings:. pb/strings/strings.proto
 
 build:

@@ -22,3 +22,10 @@ export GRPC_GATEWAY_PATH
 GREEN:=\033[0;32m
 RED:=\033[0;31m
 NC=:\033[0m
+
+protoc-build:
+	$(info #Installing binary dependencies...)
+	GOBIN=$(LOCAL_BIN) vgo install github.com/utrack/clay/v2/cmd/protoc-gen-goclay
+	GOBIN=$(LOCAL_BIN) vgo install github.com/golang/protobuf/protoc-gen-go
+	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gofast
+	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gogofast
