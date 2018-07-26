@@ -4,6 +4,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.0 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/davecgh/go-spew v1.1.0 // indirect
+	github.com/doroginin/grpc-gateway v1.4.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
 	github.com/go-openapi/jsonpointer v0.0.0-20180322222829-3a0015ad55fa // indirect
@@ -23,6 +24,7 @@ require (
 	github.com/sirupsen/logrus v1.0.5
 	github.com/soheilhy/cmux v0.1.4
 	github.com/stretchr/testify v1.2.2 // indirect
+	github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392
 	golang.org/x/crypto v0.0.0-20180621125126-a49355c7e3f8 // indirect
 	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f // indirect
@@ -34,5 +36,3 @@ require (
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/yaml.v2 v2.2.1 // indirect
 )
-
-replace github.com/grpc-ecosystem/grpc-gateway => github.com/utrack/grpc-gateway v0.0.0-20180624180524-fabb4258c392

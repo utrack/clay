@@ -4,6 +4,10 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/doroginin/grpc-gateway v1.4.1 h1:nSaYm8UhoH27dEso6U2pghzMOmE/I5ECuDZap0PtOdQ=
+github.com/doroginin/grpc-gateway v1.4.1/go.mod h1:xGf12DmL9dDcOi1rEZ6SGm9BF7PnHWbcPSzsSq2P1hw=
+github.com/doroginin/grpc-gateway v1.5.0-alpha-wo-vgo h1:vlVBnOnlBYh7UBjdMPaujOGaOTxiS47VWjpGe4RWivU=
+github.com/doroginin/grpc-gateway v1.5.0-alpha-wo-vgo/go.mod h1:xGf12DmL9dDcOi1rEZ6SGm9BF7PnHWbcPSzsSq2P1hw=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3 h1:EJsFVtoBv7ShDubFUW5uGJl18UkJktfyajiSArb9KEQ=
