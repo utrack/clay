@@ -1,5 +1,10 @@
 include ../env.mk
 
+$(shell vgo mod -sync)
+GOOGLEAPIS_PKG:=$(shell vgo list -m all | grep github.com/googleapis/googleapis | awk '{print ($$4 != "" ? $$4 : $$1)}')
+GOOGLEAPIS_VERSION:=$(shell vgo list -m all | grep github.com/googleapis/googleapis | awk '{print ($$5 != "" ? $$5 : $$2)}')
+GOOGLEAPIS_PATH:=${FIRST_GOPATH}/src/mod/${GOOGLEAPIS_PKG}@${GOOGLEAPIS_VERSION}
+
 pwd:
 	@pwd
 
@@ -9,10 +14,10 @@ clean:
 	rm -f main
 
 protoc: protoc-build
-	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:. --gofast_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../strings:. pb/strings.proto
+	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I/usr/local/include:${GOOGLEAPIS_PATH}:. --gofast_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../strings:. pb/strings.proto
 
 build:
 	vgo build -o main main.go
 
 test: pwd clean protoc build
-	vgo test ./...
+	vgo test -v main_test.go
