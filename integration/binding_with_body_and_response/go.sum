@@ -17,6 +17,8 @@ github.com/doroginin/grpc-gateway v1.5.0-alpha1 h1:lnlX8/jSbBH1yygCWIoi40lpSGjnm
 github.com/doroginin/grpc-gateway v1.5.0-alpha1/go.mod h1:xGf12DmL9dDcOi1rEZ6SGm9BF7PnHWbcPSzsSq2P1hw=
 github.com/doroginin/grpc-gateway v1.5.0-alpha2 h1:e4jSG1vtxnY4D1PhlPVQpw5i4AODNz21He0RqjCPaBY=
 github.com/doroginin/grpc-gateway v1.5.0-alpha2/go.mod h1:xGf12DmL9dDcOi1rEZ6SGm9BF7PnHWbcPSzsSq2P1hw=
+github.com/doroginin/grpc-gateway v1.5.0-alpha3 h1:QSutjflWA9gtulC8XW50d4sBk9Qtapw7nU6eOOG550E=
+github.com/doroginin/grpc-gateway v1.5.0-alpha3/go.mod h1:xGf12DmL9dDcOi1rEZ6SGm9BF7PnHWbcPSzsSq2P1hw=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3 h1:EJsFVtoBv7ShDubFUW5uGJl18UkJktfyajiSArb9KEQ=

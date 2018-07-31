@@ -2,12 +2,14 @@ package genhandler
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"text/template"
 
 	pbdescriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/protoc-gen-go/generator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
+	"github.com/grpc-ecosystem/grpc-gateway/utilities"
 	"github.com/pkg/errors"
 )
 
@@ -16,6 +18,13 @@ var (
 )
 
 var pkg map[string]string
+
+func getPkg(name string) string {
+	if p, ok := pkg[name]; ok && p != "" {
+		return p + "."
+	}
+	return ""
+}
 
 type param struct {
 	*descriptor.File
@@ -108,18 +117,29 @@ var (
 			return strings.Join(ret, "/")
 		},
 		// returns safe package prefix with dot(.) or empty string by imported package name or alias
-		"pkg": func(name string) string {
-			if p, ok := pkg[name]; ok && p != "" {
-				return p + "."
-			}
-			return ""
-		},
+		"pkg": getPkg,
 		"hasBindings": hasBindings,
 		"responseBodyAware": func(binding interface{}) bool {
 			_, ok := binding.(interface {
 				ResponseBody() *descriptor.Body
 			})
 			return ok
+		},
+		"NewQueryParamFilter": func(b descriptor.Binding) string {
+			var seqs [][]string
+			if b.Body != nil {
+				seqs = append(seqs, strings.Split(b.Body.FieldPath.String(), "."))
+			}
+			for _, p := range b.PathParams {
+				seqs = append(seqs, strings.Split(p.FieldPath.String(), "."))
+			}
+			arr := utilities.NewDoubleArray(seqs)
+			encodings := make([]string, len(arr.Encoding))
+			for str, enc := range arr.Encoding {
+				encodings[enc] = fmt.Sprintf("%q: %d", str, enc)
+			}
+			e := strings.Join(encodings, ", ")
+			return fmt.Sprintf("&%sDoubleArray{Encoding: map[string]int{%s}, Base: %#v, Check: %#v}", getPkg("utilities"), e, arr.Base, arr.Check)
 		},
 	}
 
@@ -153,6 +173,7 @@ var _ {{ pkg "errors" }}Frame
 var _ {{ pkg "httpruntime" }}Marshaler
 var _ {{ pkg "http" }}Handler
 var _ {{ pkg "httptransport" }}MarshalerError
+var _ {{ pkg "utilities" }}DoubleArray
 `))
 
 	footerTemplate = template.Must(template.New("footer").Funcs(funcMap).Parse(`
@@ -178,11 +199,7 @@ var (
     }
 
     {{ if not (hasAsterisk $b.ExplicitParams) }}
-        unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams = map[string]struct{}{
-            {{ range $n := $b.ExplicitParams -}}
-                "{{ $n }}": struct{}{},
-            {{ end }}
-        }
+		unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams = {{ NewQueryParamFilter $b }}
     {{ end }}
 {{ end }}
 {{ end }}
@@ -203,14 +220,9 @@ var (
         req := rif.(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }})
 
         {{ if not (hasAsterisk $b.ExplicitParams) }}
-            for k,v := range r.URL.Query() {
-                if _,ok := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams[{{ pkg "strings" }}ToLower(k)];ok {
-                    continue
-                }
-                if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateFieldFromPath(req, k, v[0]), "couldn't populate field from Path"); err != nil {
-                    return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
-                }
-            }
+            if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(req, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
+				return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
+			}
         {{ end }}
         {{- if $b.Body -}}
             {{- template "unmbody" . -}}
