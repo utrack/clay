@@ -58,6 +58,18 @@ func main() {
 		}
 	}
 
+	// Support replacing grpc-gateway by this fork: https://github.com/doroginin/grpc-gateway@v1.5.0-alpha2
+	// Also see PR: https://github.com/grpc-ecosystem/grpc-gateway/pull/712
+	var xreg interface{} = reg
+	// Permits repeated field in body field path of `google.api.http` annotation option
+	if set, ok := xreg.(interface{ SetAllowRepeatedFieldsInBody(bool) }); ok {
+		set.SetAllowRepeatedFieldsInBody(true)
+	}
+	// Use Field.GetJsonName() for generating swagger definitions
+	if set, ok := xreg.(interface{ SetUseJsonNameInSwaggerDef(bool) }); ok {
+		set.SetUseJsonNameInSwaggerDef(true)
+	}
+	reg.SetAllowDeleteBody(*allowDeleteBody)
 	reg.SetPrefix(*importPrefix)
 	for k, v := range pkgMap {
 		reg.AddPkgMap(k, v)
@@ -83,7 +95,7 @@ func main() {
 	}
 
 	if *withSwagger {
-		swagBuf, err := genSwaggerDef(req, pkgMap)
+		swagBuf, err := genSwaggerDef(reg, req)
 		if err != nil {
 			emitError(err)
 			return

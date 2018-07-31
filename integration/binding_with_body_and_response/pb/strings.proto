@@ -7,7 +7,7 @@ service Strings {
         option (google.api.http) = {
             post: "/strings/to_upper"
             body: "str"
-            response: "str"
+            response_body: "str"
         };
     }
 }
