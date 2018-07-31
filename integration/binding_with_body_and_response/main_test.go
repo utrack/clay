@@ -14,8 +14,21 @@ import (
 func TestToUpper(t *testing.T) {
 	ts := testServer()
 	defer ts.Close()
-	t.Run("slice of strings in request and slice of strings in response", func(t *testing.T) {
+	t.Run("POST slice of strings in request and slice of strings in response", func(t *testing.T) {
 		rsp, err := ts.Client().Post(ts.URL+"/strings/to_upper", "application/javascript", bytes.NewReader([]byte(`["test","boo"]`)))
+		if err != nil {
+			t.Fatalf("expected err <nil>, got: %s", err)
+		}
+		body, err := ioutil.ReadAll(rsp.Body)
+		if err != nil {
+			t.Fatalf("expected err <nil>, got: %s", err)
+		}
+		if string(body) != `["TEST","BOO"]` {
+			t.Fatalf("expected response body `[\"TEST\",\"BOO\"]`, got: %s", body)
+		}
+	})
+	t.Run("GET slice of strings in request and slice of strings in response", func(t *testing.T) {
+		rsp, err := ts.Client().Get(ts.URL+"/strings/to_upper/v2?str=test&str=boo")
 		if err != nil {
 			t.Fatalf("expected err <nil>, got: %s", err)
 		}

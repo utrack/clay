@@ -1,8 +1,8 @@
 module github.com/utrack/clay/integration/binding_with_body_and_response
 
-replace github.com/grpc-ecosystem/grpc-gateway => github.com/doroginin/grpc-gateway v1.5.0-alpha2
+replace github.com/grpc-ecosystem/grpc-gateway => github.com/doroginin/grpc-gateway v1.5.0-alpha3
 
-replace github.com/utrack/grpc-gateway => github.com/doroginin/grpc-gateway v1.5.0-alpha2
+replace github.com/utrack/grpc-gateway => github.com/doroginin/grpc-gateway v1.5.0-alpha3
 
 replace github.com/googleapis/googleapis => github.com/doroginin/googleapis v0.0.0-20180730132820-50a24711b667
 

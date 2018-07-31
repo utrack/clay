@@ -66,8 +66,8 @@ func main() {
 		set.SetAllowRepeatedFieldsInBody(true)
 	}
 	// Use Field.GetJsonName() for generating swagger definitions
-	if set, ok := xreg.(interface{ SetUseJsonNameInSwaggerDef(bool) }); ok {
-		set.SetUseJsonNameInSwaggerDef(true)
+	if set, ok := xreg.(interface{ SetUseJSONNameInSwaggerDef(bool) }); ok {
+		set.SetUseJSONNameInSwaggerDef(true)
 	}
 	reg.SetAllowDeleteBody(*allowDeleteBody)
 	reg.SetPrefix(*importPrefix)

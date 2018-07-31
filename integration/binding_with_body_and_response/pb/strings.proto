@@ -8,6 +8,10 @@ service Strings {
             post: "/strings/to_upper"
             body: "str"
             response_body: "str"
+            additional_bindings: {
+                get: "/strings/to_upper/v2"
+                response_body: "str"
+            }
         };
     }
 }
