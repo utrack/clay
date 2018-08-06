@@ -11,9 +11,9 @@ import (
 )
 
 var mpbjson = MarshalerPbJSON{
-	Marshaler:       &runtime.JSONPb{},
+	Marshaler:       &runtime.JSONPb{EmitDefaults: true,},
 	Unmarshaler:     &runtime.JSONPb{},
-	GogoMarshaler:   &gogojsonpb.Marshaler{},
+	GogoMarshaler:   &gogojsonpb.Marshaler{EmitDefaults: true,},
 	GogoUnmarshaler: &gogojsonpb.Unmarshaler{},
 }
 
