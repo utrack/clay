@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+service Strings {
+    rpc ToUpper (String) returns (String) {
+        option (google.api.http) = {
+            post: "/strings/to_upper"
+            body: "str"
+            response_body: "str"
+            additional_bindings: {
+                get: "/strings/to_upper/v2"
+                response_body: "str"
+            }
+        };
+    }
+}
+
+message String {
+    repeated string str = 1;
+}

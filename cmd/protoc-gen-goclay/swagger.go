@@ -7,27 +7,8 @@ import (
 	"github.com/utrack/grpc-gateway/protoc-gen-swagger/genswagger"
 )
 
-func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) (map[string][]byte, error) {
-	reg := descriptor.NewRegistry()
-	reg.SetPrefix(*importPrefix)
-	reg.SetAllowDeleteBody(*allowDeleteBody)
-
-	for k, v := range pkgMap {
-		reg.AddPkgMap(k, v)
-	}
-
-	if *grpcAPIConfiguration != "" {
-		if err := reg.LoadGrpcAPIServiceFromYAML(*grpcAPIConfiguration); err != nil {
-			return nil, err
-		}
-	}
-
+func genSwaggerDef(reg *descriptor.Registry, req *plugin.CodeGeneratorRequest) (map[string][]byte, error) {
 	gsw := genswagger.New(reg)
-
-	if err := reg.Load(req); err != nil {
-		return nil, err
-	}
-
 	var targets []*descriptor.File
 	for _, target := range req.FileToGenerate {
 		f, err := reg.LookupFile(target)
@@ -36,7 +17,6 @@ func genSwaggerDef(req *plugin.CodeGeneratorRequest, pkgMap map[string]string) (
 		}
 		targets = append(targets, f)
 	}
-
 	outSwag, err := gsw.Generate(targets)
 	if err != nil {
 		return nil, err

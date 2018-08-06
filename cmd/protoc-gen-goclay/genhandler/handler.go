@@ -157,6 +157,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"github.com/utrack/clay/v2/transport/httptransport",
 		"github.com/utrack/clay/v2/transport/swagger",
 		"github.com/grpc-ecosystem/grpc-gateway/runtime",
+		"github.com/grpc-ecosystem/grpc-gateway/utilities",
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",
 	}
@@ -319,7 +320,6 @@ func getPackage(path, gopath, gopkg string) string {
 		return currentPath
 	}
 }
-
 
 func hasBindings(service *descriptor.Service) bool {
 	for _, m := range service.Methods {
