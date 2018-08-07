@@ -152,6 +152,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"strings",
 		"bytes",
 		"net/http",
+		"net/url",
 
 		"github.com/utrack/clay/v2/transport/httpruntime",
 		"github.com/utrack/clay/v2/transport/httptransport",

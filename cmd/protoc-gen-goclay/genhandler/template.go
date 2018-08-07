@@ -77,6 +77,73 @@ func applyDescTemplate(p param) (string, error) {
 	return w.String(), nil
 }
 
+func goFieldName(s string) string {
+	toks := strings.Split(s, ".")
+	for pos := range toks {
+		toks[pos] = generator.CamelCase(toks[pos])
+	}
+	return strings.Join(toks, ".")
+}
+
+// addValueTyped returns code, adding the field value to url.Values.
+// Depending on the field type, different formatters may be used.
+// `range` loop is added if value is repeated.
+func addValueTyped(f *descriptor.Field) string {
+	isRepeated := false
+	if f.GetLabel() == pbdescriptor.FieldDescriptorProto_LABEL_REPEATED {
+		isRepeated = true
+	}
+
+	goName := goFieldName(f.GetName())
+
+	var valueFormatter string
+	switch f.GetType() {
+	case pbdescriptor.FieldDescriptorProto_TYPE_BOOL:
+
+		valueFormatter = "%t"
+
+	case pbdescriptor.FieldDescriptorProto_TYPE_DOUBLE,
+		pbdescriptor.FieldDescriptorProto_TYPE_FLOAT:
+
+		valueFormatter = "%f"
+
+	case pbdescriptor.FieldDescriptorProto_TYPE_INT64,
+		pbdescriptor.FieldDescriptorProto_TYPE_UINT64,
+		pbdescriptor.FieldDescriptorProto_TYPE_SINT64,
+		pbdescriptor.FieldDescriptorProto_TYPE_FIXED64,
+		pbdescriptor.FieldDescriptorProto_TYPE_SFIXED64,
+		pbdescriptor.FieldDescriptorProto_TYPE_INT32,
+		pbdescriptor.FieldDescriptorProto_TYPE_UINT32,
+		pbdescriptor.FieldDescriptorProto_TYPE_SINT32,
+		pbdescriptor.FieldDescriptorProto_TYPE_FIXED32,
+		pbdescriptor.FieldDescriptorProto_TYPE_SFIXED32:
+
+		valueFormatter = "%d"
+
+	case pbdescriptor.FieldDescriptorProto_TYPE_STRING,
+		pbdescriptor.FieldDescriptorProto_TYPE_ENUM,
+		pbdescriptor.FieldDescriptorProto_TYPE_BYTES:
+
+		valueFormatter = "%s"
+
+	default:
+		// other types are unsupported in URL Query string
+	}
+
+	if valueFormatter == "" {
+		return ""
+	}
+
+	if !isRepeated {
+		return fmt.Sprintf(`values.Add(%q, fmt.Sprintf("%s", in.%s))`, f.GetName(), valueFormatter, goName)
+	}
+
+	format := `for _, v := range in.%s {
+	values.Add(%q, fmt.Sprintf("%s", v))
+}`
+	return fmt.Sprintf(format, goName, f.GetName(), valueFormatter)
+}
+
 var (
 	varNameReplacer = strings.NewReplacer(
 		".", "_",
@@ -92,14 +159,8 @@ var (
 			}
 			return false
 		},
-		"varName": func(s string) string { return varNameReplacer.Replace(s) },
-		"goTypeName": func(s string) string {
-			toks := strings.Split(s, ".")
-			for pos := range toks {
-				toks[pos] = generator.CamelCase(toks[pos])
-			}
-			return strings.Join(toks, ".")
-		},
+		"varName":         func(s string) string { return varNameReplacer.Replace(s) },
+		"goFieldName":     goFieldName,
 		"byteStr":         func(b []byte) string { return string(b) },
 		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
 		"toGoType":        func(t pbdescriptor.FieldDescriptorProto_Type) string { return primitiveTypeToGo(t) },
@@ -119,6 +180,20 @@ var (
 		// returns safe package prefix with dot(.) or empty string by imported package name or alias
 		"pkg":         getPkg,
 		"hasBindings": hasBindings,
+		"hasBody": func(b descriptor.Binding) bool {
+			if b.Body != nil {
+				return true
+			}
+			return false
+		},
+		"inPathParams": func(f *descriptor.Field, b descriptor.Binding) bool {
+			m := map[string]bool{}
+			for _, p := range b.PathParams {
+				m[p.Target.GetName()] = true
+			}
+			return m[f.GetName()]
+		},
+		"addValueTyped": addValueTyped,
 		"responseBodyAware": func(binding interface{}) bool {
 			_, ok := binding.(interface {
 				ResponseBody() *descriptor.Body
@@ -172,6 +247,7 @@ var _ {{ pkg "strings" }}Reader
 var _ {{ pkg "errors" }}Frame
 var _ {{ pkg "httpruntime" }}Marshaler
 var _ {{ pkg "http" }}Handler
+var _ {{ pkg "url" }}Values
 var _ {{ pkg "httptransport" }}MarshalerError
 var _ {{ pkg "utilities" }}DoubleArray
 `))
@@ -188,15 +264,28 @@ var (
 {{ range $m := $svc.Methods }}
 {{ range $b := $m.Bindings }}
 
-    pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = "{{ $b.PathTmpl.Template }}"
+	pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = "{{ $b.PathTmpl.Template }}"
 
-    pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder = func(in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }}) string {
-        return {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}",{{ range $p := $b.PathParams }}in.{{ goTypeName $p.String }},{{ end }})
-    }
+	pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder = func(in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }}) string {
+		values := url.Values{}
+		{{- if not (hasBody $b) }}
+			{{- range $f := $m.RequestType.Fields }}
+				{{- if not (inPathParams $f $b) }}
+					{{ addValueTyped $f }}
+				{{- end }}
+			{{- end }}
+		{{- end }}
 
-    {{ if not (hasAsterisk $b.ExplicitParams) }}
+		u := url.URL{
+			Path: {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}" {{ range $p := $b.PathParams }}, in.{{ goFieldName $p.String }}{{ end }}),
+			RawQuery: values.Encode(),
+		}
+		return u.String()
+	}
+
+	{{ if not (hasAsterisk $b.ExplicitParams) }}
 		unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams = {{ NewQueryParamFilter $b }}
-    {{ end }}
+	{{ end }}
 {{ end }}
 {{ end }}
 )
