@@ -29,7 +29,7 @@ func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}
       return nil,err
     }
 
-    path := pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder({{ range $p := $b.PathParams }}in.{{ goTypeName $p.String }},{{ end }})
+    path := pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder(in)
 
     buf := {{ pkg "bytes" }}NewBuffer(nil)
 

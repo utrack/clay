@@ -117,7 +117,7 @@ var (
 			return strings.Join(ret, "/")
 		},
 		// returns safe package prefix with dot(.) or empty string by imported package name or alias
-		"pkg": getPkg,
+		"pkg":         getPkg,
 		"hasBindings": hasBindings,
 		"responseBodyAware": func(binding interface{}) bool {
 			_, ok := binding.(interface {
@@ -190,12 +190,8 @@ var (
 
     pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = "{{ $b.PathTmpl.Template }}"
 
-    pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder = func(
-        {{ range $p := $b.PathParams -}}
-            {{ $p.Target.GetName }} {{ toGoType $p.Target.GetType }},
-        {{ end -}}
-    ) string {
-        return {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}",{{ range $p := $b.PathParams }}{{ $p.Target.GetName }},{{ end }})
+    pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder = func(in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }}) string {
+        return {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}",{{ range $p := $b.PathParams }}in.{{ goTypeName $p.String }},{{ end }})
     }
 
     {{ if not (hasAsterisk $b.ExplicitParams) }}
