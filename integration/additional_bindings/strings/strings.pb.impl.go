@@ -7,7 +7,7 @@ import (
 	"context"
 	"strings"
 
-	desc "github.com/utrack/clay/integration/binding_with_body_and_response/pb"
+	desc "github.com/utrack/clay/integration/additional_bindings/pb"
 	transport "github.com/utrack/clay/v2/transport"
 )
 
@@ -17,12 +17,14 @@ func NewStrings() *StringsImplementation {
 	return &StringsImplementation{}
 }
 
-func (i *StringsImplementation) ToUpper(ctx context.Context, req *desc.String) (rsp *desc.String, err error) {
-	rsp = &desc.String{}
-	for _, str := range req.Str {
-		rsp.Str = append(rsp.Str, strings.ToUpper(str))
-	}
-	return
+func (i *StringsImplementation) ToUpper(ctx context.Context, req *desc.String) (*desc.String, error) {
+	resp := &desc.String{Str: strings.ToUpper(req.GetStr())}
+	return resp, nil
+}
+
+func (i *StringsImplementation) ToLower(ctx context.Context, req *desc.String) (*desc.String, error) {
+	resp := &desc.String{Str: strings.ToLower(req.GetStr())}
+	return resp, nil
 }
 
 // GetDescription is a simple alias to the ServiceDesc constructor.

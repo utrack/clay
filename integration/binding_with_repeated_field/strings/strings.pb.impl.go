@@ -7,7 +7,7 @@ import (
 	"context"
 	"strings"
 
-	desc "github.com/utrack/clay/integration/binding_with_body_and_response/pb"
+	desc "github.com/utrack/clay/integration/binding_with_repeated_field/pb"
 	transport "github.com/utrack/clay/v2/transport"
 )
 
