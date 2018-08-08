@@ -14,7 +14,7 @@ require (
 	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
 	github.com/golang/protobuf v1.1.0
-	github.com/googleapis/googleapis v0.0.0-20180726215759-201d7be7f9da // indirect
+	github.com/googleapis/googleapis v0.0.0-20180807232004-3544ab16c334 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.4.1
 	github.com/pkg/errors v0.8.0
 	github.com/utrack/clay/v2 v2.1.0
