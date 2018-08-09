@@ -27,7 +27,7 @@ endif
 
 .PHONY: install
 install: $(VGO_BIN)
-	vgo mod -vendor
+	vgo mod vendor
 
 .PHONY: integration
 integration: install

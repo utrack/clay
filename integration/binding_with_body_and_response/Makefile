@@ -18,10 +18,10 @@ protoc: protoc-build
 	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I/usr/local/include:${GOOGLEAPIS_PATH}:. --gofast_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../strings:. pb/strings.proto
 
 build:
+	vgo mod vendor
 	go build -o main main.go
 	vgo build -o main .
 
-# test: pwd clean protoc build
-test:
+test: pwd clean protoc build
 	# TODO: fix build with new vgo
-	# vgo test -v main_test.go
+	vgo test -v .
