@@ -30,7 +30,7 @@ require (
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f // indirect
 	golang.org/x/sys v0.0.0-20180709060233-1b2967e3c290 // indirect
 	golang.org/x/text v0.3.0 // indirect
-	google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d
+	google.golang.org/genproto v0.0.0-20180808183934-383e8b2c3b9e
 	google.golang.org/grpc v1.13.0
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
