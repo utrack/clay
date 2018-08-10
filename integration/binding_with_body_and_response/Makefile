@@ -1,6 +1,5 @@
 include ../env.mk
 
-$(shell vgo mod tidy)
 $(shell vgo get github.com/googleapis/googleapis)
 GOOGLEAPIS_PKG:=$(shell vgo list -m all | grep github.com/googleapis/googleapis | awk '{print ($$4 != "" ? $$4 : $$1)}')
 GOOGLEAPIS_VERSION:=$(shell vgo list -m all | grep github.com/googleapis/googleapis | awk '{print ($$5 != "" ? $$5 : $$2)}')
