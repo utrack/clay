@@ -22,5 +22,4 @@ build:
 	vgo build -o main .
 
 test: pwd clean protoc build
-	# TODO: fix build with new vgo
 	vgo test -v .
