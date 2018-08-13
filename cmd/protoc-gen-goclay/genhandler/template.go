@@ -97,15 +97,16 @@ func addValueTyped(f *descriptor.Field) string {
 	goName := goFieldName(f.GetName())
 
 	var valueFormatter string
+	var valueVerb string
 	switch f.GetType() {
 	case pbdescriptor.FieldDescriptorProto_TYPE_BOOL:
 
-		valueFormatter = "%t"
+		valueVerb = "%t"
 
 	case pbdescriptor.FieldDescriptorProto_TYPE_DOUBLE,
 		pbdescriptor.FieldDescriptorProto_TYPE_FLOAT:
 
-		valueFormatter = "%f"
+		valueVerb = "%f"
 
 	case pbdescriptor.FieldDescriptorProto_TYPE_INT64,
 		pbdescriptor.FieldDescriptorProto_TYPE_UINT64,
@@ -118,30 +119,42 @@ func addValueTyped(f *descriptor.Field) string {
 		pbdescriptor.FieldDescriptorProto_TYPE_FIXED32,
 		pbdescriptor.FieldDescriptorProto_TYPE_SFIXED32:
 
-		valueFormatter = "%d"
+		valueVerb = "%d"
 
 	case pbdescriptor.FieldDescriptorProto_TYPE_STRING,
-		pbdescriptor.FieldDescriptorProto_TYPE_ENUM,
-		pbdescriptor.FieldDescriptorProto_TYPE_BYTES:
+		pbdescriptor.FieldDescriptorProto_TYPE_ENUM:
 
-		valueFormatter = "%s"
+		valueVerb = "%s"
+
+	case pbdescriptor.FieldDescriptorProto_TYPE_BYTES:
+
+		valueFormatter = `base64.StdEncoding.EncodeToString(%s)`
 
 	default:
 		// other types are unsupported in URL Query string
 	}
 
-	if valueFormatter == "" {
+	if valueVerb == "" && valueFormatter == "" {
+		// no way to proccess the type value, skipping
 		return ""
 	}
 
+	// valueTemplater is a closure-helper for getting correct value formatter string
+	valueTemplater := func(getter string) string {
+		if valueFormatter != "" {
+			return fmt.Sprintf(valueFormatter, getter)
+		}
+		return fmt.Sprintf(`fmt.Sprintf("%s", %s)`, valueVerb, getter)
+	}
+
 	if !isRepeated {
-		return fmt.Sprintf(`values.Add(%q, fmt.Sprintf("%s", in.%s))`, f.GetName(), valueFormatter, goName)
+		return fmt.Sprintf(`values.Add(%q, %s)`, f.GetName(), valueTemplater("in."+goName))
 	}
 
 	format := `for _, v := range in.%s {
-	values.Add(%q, fmt.Sprintf("%s", v))
+	values.Add(%q, %s)
 }`
-	return fmt.Sprintf(format, goName, f.GetName(), valueFormatter)
+	return fmt.Sprintf(format, goName, f.GetName(), valueTemplater("v"))
 }
 
 var (
@@ -248,6 +261,7 @@ var _ {{ pkg "errors" }}Frame
 var _ {{ pkg "httpruntime" }}Marshaler
 var _ {{ pkg "http" }}Handler
 var _ {{ pkg "url" }}Values
+var _ {{ pkg "base64" }}Encoding
 var _ {{ pkg "httptransport" }}MarshalerError
 var _ {{ pkg "utilities" }}DoubleArray
 `))
