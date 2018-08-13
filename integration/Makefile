@@ -2,7 +2,7 @@ include env.mk
 
 all: clean protoc-build test
 
-test: protoc-build
+test:
 	@ \
 	success=0; \
 	failure=0; \

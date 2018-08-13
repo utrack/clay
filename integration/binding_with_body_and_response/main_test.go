@@ -1,4 +1,4 @@
-package main_test
+package main
 
 import (
 	"bytes"
@@ -28,7 +28,7 @@ func TestToUpper(t *testing.T) {
 		}
 	})
 	t.Run("GET slice of strings in request and slice of strings in response", func(t *testing.T) {
-		rsp, err := ts.Client().Get(ts.URL+"/strings/to_upper/v2?str=test&str=boo")
+		rsp, err := ts.Client().Get(ts.URL + "/strings/to_upper/v2?str=test&str=boo")
 		if err != nil {
 			t.Fatalf("expected err <nil>, got: %s", err)
 		}
