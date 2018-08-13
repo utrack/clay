@@ -10,6 +10,11 @@ service Strings {
     }
 }
 
+enum Enum {
+    UNKNOWN = 0;
+    FOO = 1;
+}
+
 message Types {
     double d = 1;
     float f = 2;
@@ -26,4 +31,5 @@ message Types {
     bool b = 13;
     string s = 14;
     bytes bytes = 15;
+    Enum e = 16;
 }

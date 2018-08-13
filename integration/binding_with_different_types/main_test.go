@@ -80,6 +80,10 @@ func TestEcho(t *testing.T) {
 			name: "bytes",
 			req:  strings_pb.Types{Bytes: []byte("bar")},
 		},
+		{
+			name: "enum",
+			req:  strings_pb.Types{E: strings_pb.Enum_FOO},
+		},
 	}
 	for i := range tt {
 		if tt[i].req.Bytes == nil {
