@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+service Strings {
+    rpc Echo (Types) returns (Types) {
+        option (google.api.http) = {
+            get: "/echo"
+        };
+    }
+}
+
+message Types {
+    double d = 1;
+    float f = 2;
+    int32 i32 = 3;
+    int64 i64 = 4;
+    uint32 ui32 = 5;
+    uint64 ui64 = 6;
+    sint32 si32 = 7;
+    sint64 si64 = 8;
+    fixed32 fixed32 = 9;
+    fixed64 fixed64 = 10;
+    sfixed32 sfixed32 = 11;
+    sfixed64 sfixed64 = 12;
+    bool b = 13;
+    string s = 14;
+    bytes bytes = 15;
+}
