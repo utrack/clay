@@ -14,6 +14,7 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"github.com/golang/protobuf/protoc-gen-go/generator"
 )
 
 type Generator struct {
@@ -32,11 +33,6 @@ func New(reg *descriptor.Registry, opts ...Option) *Generator {
 		options: o,
 		reg:     reg,
 	}
-	g.imports = append(g.imports,
-		g.newGoPackage("context"),
-		g.newGoPackage("github.com/pkg/errors"),
-		g.newGoPackage("github.com/utrack/clay/v2/transport", "transport"),
-	)
 	return g
 }
 
@@ -117,7 +113,7 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 				continue
 			}
 
-			implCode, err := g.getImplTemplate(file)
+			implCode, err := g.getImplTemplate(file, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -132,6 +128,35 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 				Content: proto.String(string(formatted)),
 			})
 			glog.V(1).Infof("Will emit %s", output)
+			for _, svc := range file.Services {
+				for _, method := range svc.Methods {
+					methodGoName := generator.CamelCase(strings.Trim(method.FQMN(), "."))
+					methodFileName := strings.Replace(strings.ToLower(methodGoName), "_", "", -1)
+					output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), methodFileName)
+					output = filepath.Clean(output)
+
+					if !g.options.Force && fileExists(output) {
+						glog.V(0).Infof("Implementation for `%s.%s` will not be emitted: file '%s' already exists", svc.GetName(), methodGoName, output)
+						continue
+					}
+
+					implCode, err := g.getImplTemplate(file, method)
+					if err != nil {
+						return nil, err
+					}
+					formatted, err := format.Source([]byte(implCode))
+					if err != nil {
+						glog.Errorf("%v: %s", err, annotateString(implCode))
+						return nil, err
+					}
+
+					files = append(files, &plugin.CodeGeneratorResponse_File{
+						Name:    proto.String(output),
+						Content: proto.String(string(formatted)),
+					})
+					glog.V(1).Infof("Will emit %s", output)
+				}
+			}
 		}
 	}
 
@@ -152,6 +177,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"strings",
 		"bytes",
 		"net/http",
+		"context",
 
 		"github.com/utrack/clay/v2/transport/httpruntime",
 		"github.com/utrack/clay/v2/transport/httptransport",
@@ -160,6 +186,8 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"github.com/grpc-ecosystem/grpc-gateway/utilities",
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",
+		"github.com/pkg/errors",
+		"github.com/utrack/clay/v2/transport",
 	}
 
 	if swagger != nil {
@@ -210,22 +238,27 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 	return applyDescTemplate(p)
 }
 
-func (g *Generator) getImplTemplate(f *descriptor.File) (string, error) {
+func (g *Generator) getImplTemplate(f *descriptor.File, m *descriptor.Method) (string, error) {
 	pkgSeen := make(map[string]bool)
 	var imports []descriptor.GoPackage
 	for _, pkg := range g.imports {
 		pkgSeen[pkg.Path] = true
 		imports = append(imports, pkg)
 	}
-	for _, pkg := range []string{
-		"context",
-	} {
+	deps := make([]string, 0)
+	if m == nil {
+		deps = append(deps, "github.com/utrack/clay/v2/transport")
+	} else {
+		deps = append(deps, "context", "github.com/pkg/errors")
+	}
+	for _, pkg := range deps {
 		pkgSeen[pkg] = true
 		imports = append(imports, g.newGoPackage(pkg))
 	}
 	p := param{
 		File:        f,
 		CurrentPath: f.GoPkg.Path,
+		Method:      m,
 	}
 	fileGoPkg := f.GoPkg
 	if g.options.ImplPath != "" {
@@ -236,20 +269,17 @@ func (g *Generator) getImplTemplate(f *descriptor.File) (string, error) {
 		pkgSeen[f.GoPkg.Path] = true
 		imports = append(imports, f.GoPkg)
 	}
-
-	for _, svc := range f.Services {
-		for _, m := range svc.Methods {
-			checkedAppend := func(pkg descriptor.GoPackage) {
-				if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
-					pkg.Path == fileGoPkg.Path || pkgSeen[pkg.Path] {
-					return
-				}
-				pkgSeen[pkg.Path] = true
-				imports = append(imports, pkg)
+	if m != nil {
+		checkedAppend := func(pkg descriptor.GoPackage) {
+			if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
+				pkg.Path == fileGoPkg.Path || pkgSeen[pkg.Path] {
+				return
 			}
-			checkedAppend(m.RequestType.File.GoPkg)
-			checkedAppend(m.ResponseType.File.GoPkg)
+			pkgSeen[pkg.Path] = true
+			imports = append(imports, pkg)
 		}
+		checkedAppend(m.RequestType.File.GoPkg)
+		checkedAppend(m.ResponseType.File.GoPkg)
 	}
 	p.Imports = imports
 
