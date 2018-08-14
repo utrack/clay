@@ -108,26 +108,25 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 			output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), base)
 			output = filepath.Clean(output)
 
-			if !g.options.Force && fileExists(output) {
+			if g.options.Force || !fileExists(output) {
+				implCode, err := g.getImplTemplate(file, nil)
+				if err != nil {
+					return nil, err
+				}
+				formatted, err := format.Source([]byte(implCode))
+				if err != nil {
+					glog.Errorf("%v: %s", err, annotateString(implCode))
+					return nil, err
+				}
+
+				files = append(files, &plugin.CodeGeneratorResponse_File{
+					Name:    proto.String(output),
+					Content: proto.String(string(formatted)),
+				})
+				glog.V(1).Infof("Will emit %s", output)
+			} else {
 				glog.V(0).Infof("Implementation will not be emitted: file '%s' already exists", output)
-				continue
 			}
-
-			implCode, err := g.getImplTemplate(file, nil)
-			if err != nil {
-				return nil, err
-			}
-			formatted, err := format.Source([]byte(implCode))
-			if err != nil {
-				glog.Errorf("%v: %s", err, annotateString(implCode))
-				return nil, err
-			}
-
-			files = append(files, &plugin.CodeGeneratorResponse_File{
-				Name:    proto.String(output),
-				Content: proto.String(string(formatted)),
-			})
-			glog.V(1).Infof("Will emit %s", output)
 			for _, svc := range file.Services {
 				for _, method := range svc.Methods {
 					methodGoName := generator.CamelCase(strings.Trim(method.FQMN(), "."))
@@ -135,26 +134,25 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 					output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), methodFileName)
 					output = filepath.Clean(output)
 
-					if !g.options.Force && fileExists(output) {
-						glog.V(0).Infof("Implementation for `%s.%s` will not be emitted: file '%s' already exists", svc.GetName(), methodGoName, output)
-						continue
-					}
+					if g.options.Force || !fileExists(output) {
+						implCode, err := g.getImplTemplate(file, method)
+						if err != nil {
+							return nil, err
+						}
+						formatted, err := format.Source([]byte(implCode))
+						if err != nil {
+							glog.Errorf("%v: %s", err, annotateString(implCode))
+							return nil, err
+						}
 
-					implCode, err := g.getImplTemplate(file, method)
-					if err != nil {
-						return nil, err
+						files = append(files, &plugin.CodeGeneratorResponse_File{
+							Name:    proto.String(output),
+							Content: proto.String(string(formatted)),
+						})
+						glog.V(1).Infof("Will emit %s", output)
+					} else {
+						glog.V(0).Infof("Implementation for '%s' will not be emitted: file '%s' already exists", methodGoName, output)
 					}
-					formatted, err := format.Source([]byte(implCode))
-					if err != nil {
-						glog.Errorf("%v: %s", err, annotateString(implCode))
-						return nil, err
-					}
-
-					files = append(files, &plugin.CodeGeneratorResponse_File{
-						Name:    proto.String(output),
-						Content: proto.String(string(formatted)),
-					})
-					glog.V(1).Infof("Will emit %s", output)
 				}
 			}
 		}

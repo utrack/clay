@@ -39,6 +39,7 @@ _testmain.go
 /integration/**/*.pb.*go
 # Unignore some files, used in tests
 !/integration/impl_exists/strings/strings.pb.impl.go
+!/integration/impl_exists/strings/strings.toupper.pb.impl.go
 !/integration/binding_with_body_and_response/strings/strings.pb.impl.go
 
 # Ignore vendor, needed for better local development
