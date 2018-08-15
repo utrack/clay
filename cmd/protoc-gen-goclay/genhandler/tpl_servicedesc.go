@@ -70,7 +70,7 @@ func (d *{{ $svc.GetName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
         defer r.Body.Close()
 
         unmFunc := unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}(r)
-        rsp,err := _{{ $svc.GetName }}_{{ $m.GetName }}_Handler(d.svc,r.Context(),unmFunc,d.opts.UnaryInterceptor)
+        rsp,err := _{{ $svc.GetName }}_{{ $m.GetName | goTypeName }}_Handler(d.svc,r.Context(),unmFunc,d.opts.UnaryInterceptor)
 
         if err != nil {
             if err,ok := err.({{ pkg "httptransport" }}MarshalerError); ok {
