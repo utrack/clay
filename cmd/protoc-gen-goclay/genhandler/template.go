@@ -78,7 +78,7 @@ func applyDescTemplate(p param) (string, error) {
 	return w.String(), nil
 }
 
-func goFieldName(s string) string {
+func goTypeName(s string) string {
 	toks := strings.Split(s, ".")
 	for pos := range toks {
 		toks[pos] = generator.CamelCase(toks[pos])
@@ -95,7 +95,7 @@ func addValueTyped(f *descriptor.Field) string {
 		isRepeated = true
 	}
 
-	goName := goFieldName(f.GetName())
+	goName := goTypeName(f.GetName())
 
 	var valueFormatter string
 	var valueVerb string
@@ -174,7 +174,7 @@ var (
 			return false
 		},
 		"varName":         func(s string) string { return varNameReplacer.Replace(s) },
-		"goFieldName":     goFieldName,
+		"goTypeName":      goTypeName,
 		"byteStr":         func(b []byte) string { return string(b) },
 		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
 		"toGoType":        func(t pbdescriptor.FieldDescriptorProto_Type) string { return primitiveTypeToGo(t) },
@@ -292,7 +292,7 @@ var (
 		{{- end }}
 
 		u := url.URL{
-			Path: {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}" {{ range $p := $b.PathParams }}, in.{{ goFieldName $p.String }}{{ end }}),
+			Path: {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}" {{ range $p := $b.PathParams }}, in.{{ goTypeName $p.String }}{{ end }}),
 			RawQuery: values.Encode(),
 		}
 		return u.String()
