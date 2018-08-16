@@ -32,6 +32,7 @@ type param struct {
 	SwaggerBuffer    []byte
 	ApplyMiddlewares bool
 	CurrentPath      string
+	Method           *descriptor.Method
 }
 
 func applyImplTemplate(p param) (string, error) {
@@ -368,26 +369,23 @@ import (
     {{ range $i := .Imports }}{{ if not $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
 )
 
+{{ if .Method }}
+func (i *{{ .Method.Service.GetName }}Implementation) {{ .Method.Name | goTypeName }}(ctx {{ pkg "context" }}Context, req *{{ .Method.RequestType.GoType $.CurrentPath }}) (*{{ .Method.ResponseType.GoType $.CurrentPath }}, error) {
+    return nil, {{ pkg "errors" }}New("not implemented")
+}
+{{ else }}
 {{ range $service := .Services }}
-
 type {{ $service.GetName }}Implementation struct {}
 
 func New{{ $service.GetName }}() *{{ $service.GetName }}Implementation {
     return &{{ $service.GetName }}Implementation{}
 }
-
-{{ range $method := $service.Methods }}
-func (i *{{ $service.GetName }}Implementation) {{ $method.Name }}(ctx {{ pkg "context" }}Context, req *{{ $method.RequestType.GoType $.CurrentPath }}) (*{{ $method.ResponseType.GoType $.CurrentPath }}, error) {
-    return nil, {{ pkg "errors" }}New("not implemented")
-}
-{{ end }}
-
 // GetDescription is a simple alias to the ServiceDesc constructor.
 // It makes it possible to register the service implementation @ the server.
 func (i *{{ $service.GetName }}Implementation) GetDescription() {{ pkg "transport" }}ServiceDesc {
     return {{ pkg "desc" }}New{{ $service.GetName }}ServiceDesc(i)
 }
-
+{{ end }}
 {{ end }}
 `))
 )

@@ -23,7 +23,7 @@ func New{{ $svc.GetName }}HTTPClient(c *{{ pkg "http" }}Client,addr string) *{{ 
 {{ range $m := $svc.Methods }}
 {{ if $m.Bindings }}
 {{ with $b := index $m.Bindings 0 }}
-func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName }}(ctx {{ pkg "context" }}Context,in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }},opts ...{{ pkg "grpc" }}CallOption) (*{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path }},error) {
+func (c *{{ $svc.GetName }}_httpClient) {{ $m.GetName | goTypeName }}(ctx {{ pkg "context" }}Context,in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }},opts ...{{ pkg "grpc" }}CallOption) (*{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path }},error) {
     mw,err := {{ pkg "httpclient" }}NewMiddlewareGRPC(opts)
     if err != nil {
       return nil,err

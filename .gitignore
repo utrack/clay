@@ -39,8 +39,10 @@ _testmain.go
 /integration/**/*.pb.*go
 # Unignore some files, used in tests
 !/integration/impl_exists/strings/strings.pb.impl.go
+!/integration/impl_exists/strings/strings.toupper.pb.impl.go
 !/integration/additional_bindings/strings/strings.pb.impl.go
 !/integration/binding_with_body_and_response/strings/strings.pb.impl.go
+!/integration/binding_with_body_and_response/strings/strings.toupper.pb.impl.go
 !/integration/binding_with_repeated_field/strings/strings.pb.impl.go
 !/integration/binding_with_different_types/strings/strings.pb.impl.go
 
