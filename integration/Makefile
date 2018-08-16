@@ -6,7 +6,7 @@ test:
 	@ \
 	success=0; \
 	failure=0; \
-	for i in `find */ -type f -name Makefile -not -path "*/vendor/*"`; do \
+	for i in `find */ -type f -name Makefile -not -path "*vendor/*"`; do \
 		cd $${i%/*}; \
 		if make -C . test; then \
 			success=$$((success+1)); \

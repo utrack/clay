@@ -1,8 +1,6 @@
-module github.com/utrack/clay/integration/binding_with_body_and_response
+module github.com/utrack/clay/integration/binding_with_repeated_field
 
-replace github.com/grpc-ecosystem/grpc-gateway => github.com/doroginin/grpc-gateway v1.5.0-alpha4
-
-replace github.com/utrack/grpc-gateway => github.com/doroginin/grpc-gateway v1.5.0-alpha3
+replace github.com/grpc-ecosystem/grpc-gateway => github.com/doroginin/grpc-gateway v1.5.0-alpha3
 
 replace github.com/utrack/clay/v2 => ../..
 

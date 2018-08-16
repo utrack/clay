@@ -7,9 +7,10 @@ import (
 	"context"
 	"strings"
 
-	desc "github.com/utrack/clay/integration/impl_exists/pb"
+	desc "github.com/utrack/clay/integration/additional_bindings/pb"
 )
 
 func (i *StringsImplementation) ToUpper(ctx context.Context, req *desc.String) (*desc.String, error) {
-	return &desc.String{Str: strings.ToUpper(req.Str)}, nil
+	resp := &desc.String{Str: strings.ToUpper(req.GetStr())}
+	return resp, nil
 }

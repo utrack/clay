@@ -11,10 +11,10 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/generator"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	"github.com/golang/protobuf/protoc-gen-go/generator"
 )
 
 type Generator struct {
@@ -175,6 +175,8 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"strings",
 		"bytes",
 		"net/http",
+		"net/url",
+		"encoding/base64",
 		"context",
 
 		"github.com/utrack/clay/v2/transport/httpruntime",

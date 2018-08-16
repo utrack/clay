@@ -55,7 +55,7 @@ func TestHTTPHeadersResponse(t *testing.T) {
 		return nil, nil
 	}
 
-	req, err := http.NewRequest("POST", ts.URL+pattern_goclay_Strings_ToLower_0_builder(), bytes.NewReader([]byte("{}")))
+	req, err := http.NewRequest("POST", ts.URL+pattern_goclay_Strings_ToLower_0_builder(&String{}), bytes.NewReader([]byte("{}")))
 	so.Nil(err)
 
 	rsp, err := http.DefaultClient.Do(req)

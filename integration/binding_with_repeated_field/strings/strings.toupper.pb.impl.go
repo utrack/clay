@@ -7,7 +7,7 @@ import (
 	"context"
 	"strings"
 
-	desc "github.com/utrack/clay/integration/binding_with_body_and_response/pb"
+	desc "github.com/utrack/clay/integration/binding_with_repeated_field/pb"
 )
 
 func (i *StringsImplementation) ToUpper(ctx context.Context, req *desc.String) (rsp *desc.String, err error) {
