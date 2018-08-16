@@ -43,7 +43,7 @@ _testmain.go
 !/integration/additional_bindings/strings/strings.toupper.pb.impl.go
 !/integration/binding_with_body_and_response/strings/strings.pb.impl.go
 !/integration/binding_with_body_and_response/strings/strings.toupper.pb.impl.go
-!/integration/binding_with_repeated_field/strings/strings.pb.impl.go
+!/integration/binding_with_repeated_field/strings/strings.toupper.pb.impl.go
 !/integration/binding_with_different_types/strings/strings.echo.pb.impl.go
 
 # Ignore vendor, needed for better local development

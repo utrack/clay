@@ -8,14 +8,7 @@ import (
 	"strings"
 
 	desc "github.com/utrack/clay/integration/binding_with_repeated_field/pb"
-	transport "github.com/utrack/clay/v2/transport"
 )
-
-type StringsImplementation struct{}
-
-func NewStrings() *StringsImplementation {
-	return &StringsImplementation{}
-}
 
 func (i *StringsImplementation) ToUpper(ctx context.Context, req *desc.String) (rsp *desc.String, err error) {
 	rsp = &desc.String{}
@@ -23,10 +16,4 @@ func (i *StringsImplementation) ToUpper(ctx context.Context, req *desc.String) (
 		rsp.Str = append(rsp.Str, strings.ToUpper(str))
 	}
 	return
-}
-
-// GetDescription is a simple alias to the ServiceDesc constructor.
-// It makes it possible to register the service implementation @ the server.
-func (i *StringsImplementation) GetDescription() transport.ServiceDesc {
-	return desc.NewStringsServiceDesc(i)
 }
