@@ -319,13 +319,12 @@ func fileExists(path string) bool {
 }
 
 func typeExists(typeName string, pkg *ast.Package) bool {
-	if pkg != nil {
-		for _, f := range pkg.Files {
-			for _, d := range f.Decls {
-				gd, ok := d.(*ast.GenDecl)
-				if !ok {
-					continue
-				}
+	if pkg == nil {
+		return false
+	}
+	for _, f := range pkg.Files {
+		for _, d := range f.Decls {
+			if gd, ok := d.(*ast.GenDecl); ok {
 				for _, s := range gd.Specs {
 					if ts, ok := s.(*ast.TypeSpec); ok && ts.Name != nil && ts.Name.Name == typeName {
 						return true
@@ -338,22 +337,15 @@ func typeExists(typeName string, pkg *ast.Package) bool {
 }
 
 func methodExists(typeName, methodName string, pkg *ast.Package) bool {
-	if pkg != nil {
-		for _, f := range pkg.Files {
-			for _, d := range f.Decls {
-				fd, ok := d.(*ast.FuncDecl)
-				if !ok {
-					continue
-				}
-				if fd.Name != nil && fd.Name.Name == methodName {
-					if fd.Recv != nil && len(fd.Recv.List) > 0 {
-						se, ok := fd.Recv.List[0].Type.(*ast.StarExpr)
-						if !ok {
-							continue
-						}
-						if i, ok := se.X.(*ast.Ident); ok && i.Name == typeName {
-							return true
-						}
+	if pkg == nil {
+		return false
+	}
+	for _, f := range pkg.Files {
+		for _, d := range f.Decls {
+			if fd, ok := d.(*ast.FuncDecl); ok && fd.Name != nil && fd.Name.Name == methodName && fd.Recv != nil && len(fd.Recv.List) > 0 {
+				if se, ok := fd.Recv.List[0].Type.(*ast.StarExpr); ok {
+					if i, ok := se.X.(*ast.Ident); ok && i.Name == typeName {
+						return true
 					}
 				}
 			}
