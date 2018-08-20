@@ -2,8 +2,11 @@ package genhandler
 
 import (
 	"fmt"
+	"go/ast"
 	"go/build"
 	"go/format"
+	"go/parser"
+	"go/token"
 	"os"
 	"path"
 	"path/filepath"
@@ -11,9 +14,9 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/generator"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
@@ -105,37 +108,44 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 		glog.V(1).Infof("Will emit %s", output)
 
 		if g.options.Impl {
-			output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), base)
-			output = filepath.Clean(output)
-
-			if g.options.Force || !fileExists(output) {
-				implCode, err := g.getImplTemplate(file, nil)
-				if err != nil {
-					return nil, err
-				}
-				formatted, err := format.Source([]byte(implCode))
-				if err != nil {
-					glog.Errorf("%v: %s", err, annotateString(implCode))
-					return nil, err
-				}
-
-				files = append(files, &plugin.CodeGeneratorResponse_File{
-					Name:    proto.String(output),
-					Content: proto.String(string(formatted)),
-				})
-				glog.V(1).Infof("Will emit %s", output)
-			} else {
-				glog.V(0).Infof("Implementation will not be emitted: file '%s' already exists", output)
-			}
+			fileSet := token.NewFileSet()
+			astPkgs, _ := parser.ParseDir(fileSet, filepath.Join(goPkg, g.options.ImplPath), func(info os.FileInfo) bool {
+				name := info.Name()
+				return !info.IsDir() && !strings.HasPrefix(name, ".") &&
+					!strings.HasSuffix(name, "_test.go") && strings.HasSuffix(name, ".go")
+			}, parser.DeclarationErrors)
 			for _, svc := range file.Services {
-				for _, method := range svc.Methods {
-					methodGoName := generator.CamelCase(strings.Trim(method.FQMN(), "."))
-					methodFileName := strings.Replace(strings.ToLower(methodGoName), "_", "", -1)
-					output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), methodFileName)
-					output = filepath.Clean(output)
+				serviceGoName := svc.GetName() + "Implementation"
+				serviceFileName := internal.ToSnake(svc.GetName())
+				if exists := typeExists(serviceGoName, astPkgs[file.GoPkg.Name]); exists && !g.options.Force {
+					glog.V(0).Infof("Implementation of service `%s` will not be emitted: type `%s` already exists in package `%s`", svc.GetName(), serviceGoName, file.GoPkg.Name)
+				} else {
+					output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), serviceFileName)
+					implCode, err := g.getImplTemplate(file, svc, nil)
+					if err != nil {
+						return nil, err
+					}
+					formatted, err := format.Source([]byte(implCode))
+					if err != nil {
+						glog.Errorf("%v: %s", err, annotateString(implCode))
+						return nil, err
+					}
 
-					if g.options.Force || !fileExists(output) {
-						implCode, err := g.getImplTemplate(file, method)
+					files = append(files, &plugin.CodeGeneratorResponse_File{
+						Name:    proto.String(output),
+						Content: proto.String(string(formatted)),
+					})
+					glog.V(1).Infof("Will emit %s", output)
+				}
+				for _, method := range svc.Methods {
+					methodGoName := goTypeName(method.GetName())
+					methodFileName := internal.ToSnake(methodGoName)
+					if exists := methodExists(serviceGoName, methodGoName, astPkgs[file.GoPkg.Name]); exists && !g.options.Force {
+						glog.V(0).Infof("Implementation of method `%s` for service `%s` will not be emitted: method already exists in package: `%s`", methodGoName, svc.GetName(), file.GoPkg.Name)
+					} else {
+						output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.%s.pb.impl.go"), serviceFileName, methodFileName)
+						output = filepath.Clean(output)
+						implCode, err := g.getImplTemplate(file, svc, method)
 						if err != nil {
 							return nil, err
 						}
@@ -150,8 +160,6 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 							Content: proto.String(string(formatted)),
 						})
 						glog.V(1).Infof("Will emit %s", output)
-					} else {
-						glog.V(0).Infof("Implementation for '%s' will not be emitted: file '%s' already exists", methodGoName, output)
 					}
 				}
 			}
@@ -238,7 +246,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 	return applyDescTemplate(p)
 }
 
-func (g *Generator) getImplTemplate(f *descriptor.File, m *descriptor.Method) (string, error) {
+func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m *descriptor.Method) (string, error) {
 	pkgSeen := make(map[string]bool)
 	var imports []descriptor.GoPackage
 	for _, pkg := range g.imports {
@@ -255,9 +263,10 @@ func (g *Generator) getImplTemplate(f *descriptor.File, m *descriptor.Method) (s
 		pkgSeen[pkg] = true
 		imports = append(imports, g.newGoPackage(pkg))
 	}
-	p := param{
+	p := implParam{
 		File:        f,
 		CurrentPath: f.GoPkg.Path,
+		Service:     s,
 		Method:      m,
 	}
 	fileGoPkg := f.GoPkg
@@ -305,6 +314,44 @@ func fileExists(path string) bool {
 	}
 	if _, err := os.Stat(filepath.Join(dir, path)); err == nil {
 		return true
+	}
+	return false
+}
+
+func typeExists(typeName string, pkg *ast.Package) bool {
+	if pkg != nil {
+		for _, f := range pkg.Files {
+			for _, d := range f.Decls {
+				if gd, ok := d.(*ast.GenDecl); ok {
+					for _, s := range gd.Specs {
+						if ts, ok := s.(*ast.TypeSpec); ok && ts.Name != nil && ts.Name.Name == typeName {
+							return true
+						}
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+func methodExists(typeName, methodName string, pkg *ast.Package) bool {
+	if pkg != nil {
+		for _, f := range pkg.Files {
+			for _, d := range f.Decls {
+				if fd, ok := d.(*ast.FuncDecl); ok {
+					if fd.Name != nil && fd.Name.Name == methodName {
+						if fd.Recv != nil && len(fd.Recv.List) > 0 {
+							if se, ok := fd.Recv.List[0].Type.(*ast.StarExpr); ok {
+								if i, ok := se.X.(*ast.Ident); ok && i.Name == typeName {
+									return true
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	return false
 }

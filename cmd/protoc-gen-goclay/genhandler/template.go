@@ -31,11 +31,17 @@ type param struct {
 	Imports          []descriptor.GoPackage
 	SwaggerBuffer    []byte
 	ApplyMiddlewares bool
-	CurrentPath      string
-	Method           *descriptor.Method
 }
 
-func applyImplTemplate(p param) (string, error) {
+type implParam struct {
+	*descriptor.File
+	Imports     []descriptor.GoPackage
+	CurrentPath string
+	Method      *descriptor.Method
+	Service     *descriptor.Service
+}
+
+func applyImplTemplate(p implParam) (string, error) {
 	w := bytes.NewBuffer(nil)
 
 	if err := implTemplate.Execute(w, p); err != nil {
@@ -80,8 +86,12 @@ func applyDescTemplate(p param) (string, error) {
 
 func goTypeName(s string) string {
 	toks := strings.Split(s, ".")
-	for pos := range toks {
-		toks[pos] = generator.CamelCase(toks[pos])
+	i := 0
+	if len(toks) > 1 {
+		i = 1
+	}
+	for pos := range toks[i:] {
+		toks[pos+i] = generator.CamelCase(toks[pos+i])
 	}
 	return strings.Join(toks, ".")
 }
@@ -208,12 +218,6 @@ var (
 			return m[f.GetName()]
 		},
 		"addValueTyped": addValueTyped,
-		"responseBodyAware": func(binding interface{}) bool {
-			_, ok := binding.(interface {
-				ResponseBody() *descriptor.Body
-			})
-			return ok
-		},
 		"NewQueryParamFilter": func(b descriptor.Binding) string {
 			var seqs [][]string
 			if b.Body != nil {
@@ -274,14 +278,14 @@ var _ {{ pkg "utilities" }}DoubleArray
 
 	marshalersTemplate = template.Must(template.New("patterns").Funcs(funcMap).Parse(`
 {{ range $svc := .Services }}
-// patterns for {{ $svc.GetName }}
+// patterns for {{ $svc.GetName | goTypeName }}
 var (
 {{ range $m := $svc.Methods }}
 {{ range $b := $m.Bindings }}
 
-	pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = "{{ $b.PathTmpl.Template }}"
+	pattern_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }} = "{{ $b.PathTmpl.Template }}"
 
-	pattern_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_builder = func(in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }}) string {
+	pattern_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_builder = func(in *{{ $m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }}) string {
 		values := url.Values{}
 		{{- if not (hasBody $b) }}
 			{{- range $f := $m.RequestType.Fields }}
@@ -299,7 +303,7 @@ var (
 	}
 
 	{{ if not (hasAsterisk $b.ExplicitParams) }}
-		unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams = {{ NewQueryParamFilter $b }}
+		unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams = {{ NewQueryParamFilter $b }}
 	{{ end }}
 {{ end }}
 {{ end }}
@@ -310,17 +314,17 @@ var (
 	patternsTemplate = template.Must(template.New("patterns").Funcs(funcMap).Parse(`
 {{ define "base" }}
 {{ range $svc := .Services }}
-// marshalers for {{ $svc.GetName }}
+// marshalers for {{ $svc.GetName | goTypeName }}
 var (
 {{ range $m := $svc.Methods }}
 {{ range $b := $m.Bindings }}
 
-    unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) func(interface{})(error) {
+    unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) func(interface{})(error) {
     return func(rif interface{}) error {
-        req := rif.(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path }})
+        req := rif.(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }})
 
         {{ if not (hasAsterisk $b.ExplicitParams) }}
-            if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(req, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
+            if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(req, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
 				return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
 			}
         {{ end }}
@@ -370,22 +374,20 @@ import (
 )
 
 {{ if .Method }}
-func (i *{{ .Method.Service.GetName }}Implementation) {{ .Method.Name | goTypeName }}(ctx {{ pkg "context" }}Context, req *{{ .Method.RequestType.GoType $.CurrentPath }}) (*{{ .Method.ResponseType.GoType $.CurrentPath }}, error) {
+func (i *{{ .Method.Service.GetName | goTypeName }}Implementation) {{ .Method.Name | goTypeName }}(ctx {{ pkg "context" }}Context, req *{{ .Method.RequestType.GoType $.CurrentPath | goTypeName }}) (*{{ .Method.ResponseType.GoType $.CurrentPath | goTypeName }}, error) {
     return nil, {{ pkg "errors" }}New("not implemented")
 }
 {{ else }}
-{{ range $service := .Services }}
-type {{ $service.GetName }}Implementation struct {}
+type {{ .Service.GetName | goTypeName }}Implementation struct {}
 
-func New{{ $service.GetName }}() *{{ $service.GetName }}Implementation {
-    return &{{ $service.GetName }}Implementation{}
+func New{{ .Service.GetName | goTypeName }}() *{{ .Service.GetName | goTypeName }}Implementation {
+    return &{{ .Service.GetName | goTypeName }}Implementation{}
 }
 // GetDescription is a simple alias to the ServiceDesc constructor.
 // It makes it possible to register the service implementation @ the server.
-func (i *{{ $service.GetName }}Implementation) GetDescription() {{ pkg "transport" }}ServiceDesc {
-    return {{ pkg "desc" }}New{{ $service.GetName }}ServiceDesc(i)
+func (i *{{ .Service.GetName | goTypeName }}Implementation) GetDescription() {{ pkg "transport" }}ServiceDesc {
+    return {{ pkg "desc" }}New{{ .Service.GetName | goTypeName }}ServiceDesc(i)
 }
-{{ end }}
 {{ end }}
 `))
 )

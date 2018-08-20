@@ -4,7 +4,7 @@ import (
 	"github.com/golang/glog"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
-	"github.com/utrack/grpc-gateway/protoc-gen-swagger/genswagger"
+	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/genswagger"
 )
 
 func genSwaggerDef(reg *descriptor.Registry, req *plugin.CodeGeneratorRequest) (map[string][]byte, error) {
