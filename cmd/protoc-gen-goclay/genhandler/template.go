@@ -35,10 +35,10 @@ type param struct {
 
 type implParam struct {
 	*descriptor.File
-	Imports     []descriptor.GoPackage
-	CurrentPath string
-	Method      *descriptor.Method
-	Service     *descriptor.Service
+	Imports       []descriptor.GoPackage
+	ImplGoPkgPath string
+	Method        *descriptor.Method
+	Service       *descriptor.Service
 }
 
 func applyImplTemplate(p implParam) (string, error) {
@@ -94,6 +94,10 @@ func goTypeName(s string) string {
 		toks[pos+i] = generator.CamelCase(toks[pos+i])
 	}
 	return strings.Join(toks, ".")
+}
+
+func implTypeName(service *descriptor.Service) string {
+	return goTypeName(service.GetName()) + "Implementation"
 }
 
 // addValueTyped returns code, adding the field value to url.Values.
@@ -185,6 +189,7 @@ var (
 		},
 		"varName":         func(s string) string { return varNameReplacer.Replace(s) },
 		"goTypeName":      goTypeName,
+		"implTypeName":    implTypeName,
 		"byteStr":         func(b []byte) string { return string(b) },
 		"escapeBackTicks": func(s string) string { return strings.Replace(s, "`", "` + \"``\" + `", -1) },
 		"toGoType":        func(t pbdescriptor.FieldDescriptorProto_Type) string { return primitiveTypeToGo(t) },
@@ -374,18 +379,18 @@ import (
 )
 
 {{ if .Method }}
-func (i *{{ .Method.Service.GetName | goTypeName }}Implementation) {{ .Method.Name | goTypeName }}(ctx {{ pkg "context" }}Context, req *{{ .Method.RequestType.GoType $.CurrentPath | goTypeName }}) (*{{ .Method.ResponseType.GoType $.CurrentPath | goTypeName }}, error) {
+func (i *{{ .Method.Service | implTypeName }}) {{ .Method.Name | goTypeName }}(ctx {{ pkg "context" }}Context, req *{{ .Method.RequestType.GoType $.ImplGoPkgPath | goTypeName }}) (*{{ .Method.ResponseType.GoType $.ImplGoPkgPath | goTypeName }}, error) {
     return nil, {{ pkg "errors" }}New("not implemented")
 }
 {{ else }}
-type {{ .Service.GetName | goTypeName }}Implementation struct {}
+type {{ .Service | implTypeName}} struct {}
 
-func New{{ .Service.GetName | goTypeName }}() *{{ .Service.GetName | goTypeName }}Implementation {
-    return &{{ .Service.GetName | goTypeName }}Implementation{}
+func New{{ .Service.GetName | goTypeName }}() *{{ .Service | implTypeName}} {
+    return &{{ .Service | implTypeName}}{}
 }
 // GetDescription is a simple alias to the ServiceDesc constructor.
 // It makes it possible to register the service implementation @ the server.
-func (i *{{ .Service.GetName | goTypeName }}Implementation) GetDescription() {{ pkg "transport" }}ServiceDesc {
+func (i *{{ .Service | implTypeName}}) GetDescription() {{ pkg "transport" }}ServiceDesc {
     return {{ pkg "desc" }}New{{ .Service.GetName | goTypeName }}ServiceDesc(i)
 }
 {{ end }}
