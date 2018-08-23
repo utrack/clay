@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package="pb/strings";
+
+import "google/api/annotations.proto";
+
+service strings_service {
+    rpc ToUpper (String) returns (String) {
+        option (google.api.http) = {
+            get: "/strings/to_upper/{str}"
+        };
+    }
+}
+
+message String {
+    string str = 1;
+}

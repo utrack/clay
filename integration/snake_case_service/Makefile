@@ -4,11 +4,7 @@ pwd:
 	@pwd
 
 clean:
-	rm -f ./pb/strings/strings.pb.go
-	rm -f ./pb/strings/strings.pb.goclay.go
-	rm -f ./strings/strings.pb.impl.go
-	rm -f ./strings/strings.to_lower.pb.impl.go
-	rm -f ./strings/strings.to_upper.pb.impl.go
+	find . -regex "\.\/.*\/.*\.go" -exec rm {} +
 	rm -f main
 
 protoc: protoc-build
@@ -19,4 +15,3 @@ build:
 	vgo build -o main .
 
 test: pwd clean protoc build
-	vgo test ./pb/strings

@@ -2,8 +2,11 @@ package genhandler
 
 import (
 	"fmt"
+	"go/ast"
 	"go/build"
 	"go/format"
+	"go/parser"
+	"go/token"
 	"os"
 	"path"
 	"path/filepath"
@@ -11,9 +14,9 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/generator"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
 	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
@@ -68,6 +71,111 @@ func (g *Generator) newGoPackage(pkgPath string, aalias ...string) descriptor.Go
 	return gopkg
 }
 
+func (g *Generator) generateDesc(file *descriptor.File) (*plugin.CodeGeneratorResponse_File, error) {
+	descCode, err := g.getDescTemplate(g.options.SwaggerDef[file.GetName()], file)
+
+	if err != nil {
+		return nil, err
+	}
+	formatted, err := format.Source([]byte(descCode))
+	if err != nil {
+		glog.Errorf("%v: %s", err, annotateString(descCode))
+		return nil, err
+	}
+	name := filepath.Base(file.GetName())
+	ext := filepath.Ext(name)
+	base := strings.TrimSuffix(name, ext)
+
+	output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, "%s.pb.goclay.go"), base)
+	output = filepath.Clean(output)
+
+	glog.V(1).Infof("Will emit %s", output)
+
+	return &plugin.CodeGeneratorResponse_File{
+		Name:    proto.String(output),
+		Content: proto.String(string(formatted)),
+	}, nil
+}
+
+func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGeneratorResponse_File, err error) {
+	astPkg := astPkg(descriptor.GoPackage{
+		Name: file.GoPkg.Name,
+		Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath),
+	})
+	for _, svc := range file.Services {
+		if code, err := g.generateImplService(file, svc, astPkg); err == nil {
+			files = append(files, code...)
+		} else {
+			return nil, err
+		}
+	}
+	return files, nil
+}
+
+func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.Service, astPkg *ast.Package) ([]*plugin.CodeGeneratorResponse_File, error) {
+	var files []*plugin.CodeGeneratorResponse_File
+
+	if exists := astTypeExists(implTypeName(svc), astPkg); !exists || g.options.Force {
+		output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.pb.impl.go"), internal.SnakeCase(svc.GetName()))
+		implCode, err := g.getImplTemplate(file, svc, nil)
+
+		if err != nil {
+			return nil, err
+		}
+		formatted, err := format.Source([]byte(implCode))
+		if err != nil {
+			glog.Errorf("%v: %s", err, annotateString(implCode))
+			return nil, err
+		}
+
+		files = append(files, &plugin.CodeGeneratorResponse_File{
+			Name:    proto.String(output),
+			Content: proto.String(string(formatted)),
+		})
+
+		glog.V(1).Infof("Will emit %s", output)
+	} else {
+		glog.V(0).Infof("Implementation of service `%s` will not be emitted: type `%s` already exists in package `%s`", svc.GetName(), implTypeName(svc), file.GoPkg.Name)
+	}
+
+	for _, method := range svc.Methods {
+		if code, err := g.generateImplServiceMethod(file, svc, method, astPkg); err == nil {
+			files = append(files, code...)
+		} else {
+			return nil, err
+		}
+	}
+
+	return files, nil
+}
+
+func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descriptor.Service, method *descriptor.Method, astPkg *ast.Package) ([]*plugin.CodeGeneratorResponse_File, error) {
+	methodGoName := goTypeName(method.GetName())
+	if exists := astMethodExists(implTypeName(svc), methodGoName, astPkg); !exists || g.options.Force {
+		output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.%s.pb.impl.go"), internal.SnakeCase(svc.GetName()), internal.SnakeCase(methodGoName))
+		output = filepath.Clean(output)
+		implCode, err := g.getImplTemplate(file, svc, method)
+		if err != nil {
+			return nil, err
+		}
+		formatted, err := format.Source([]byte(implCode))
+		if err != nil {
+			glog.Errorf("%v: %s", err, annotateString(implCode))
+			return nil, err
+		}
+
+		glog.V(1).Infof("Will emit %s", output)
+
+		return []*plugin.CodeGeneratorResponse_File{{
+			Name:    proto.String(output),
+			Content: proto.String(string(formatted)),
+		}}, nil
+	}
+	glog.V(0).Infof("Implementation of method `%s` for service `%s` will not be emitted: method already exists in package: `%s`", methodGoName, svc.GetName(), file.GoPkg.Name)
+
+	return nil, nil
+}
+
 func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGeneratorResponse_File, error) {
 	var files []*plugin.CodeGeneratorResponse_File
 	for _, file := range targets {
@@ -77,83 +185,18 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 			glog.V(0).Infof("%s: %v", file.GetName(), errNoTargetService)
 			continue
 		}
-		descCode, err := g.getDescTemplate(g.options.SwaggerDef[file.GetName()], file)
 
-		if err != nil {
+		if code, err := g.generateDesc(file); err == nil {
+			files = append(files, code)
+		} else {
 			return nil, err
 		}
-		formatted, err := format.Source([]byte(descCode))
-		if err != nil {
-			glog.Errorf("%v: %s", err, annotateString(descCode))
-			return nil, err
-		}
-		name := filepath.Base(file.GetName())
-		ext := filepath.Ext(name)
-		base := strings.TrimSuffix(name, ext)
-
-		goPkg := ""
-		if file.GoPkg.Path != "." {
-			goPkg = file.GoPkg.Path
-		}
-		output := fmt.Sprintf(filepath.Join(goPkg, "%s.pb.goclay.go"), base)
-		output = filepath.Clean(output)
-
-		files = append(files, &plugin.CodeGeneratorResponse_File{
-			Name:    proto.String(output),
-			Content: proto.String(string(formatted)),
-		})
-		glog.V(1).Infof("Will emit %s", output)
 
 		if g.options.Impl {
-			output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), base)
-			output = filepath.Clean(output)
-
-			if g.options.Force || !fileExists(output) {
-				implCode, err := g.getImplTemplate(file, nil)
-				if err != nil {
-					return nil, err
-				}
-				formatted, err := format.Source([]byte(implCode))
-				if err != nil {
-					glog.Errorf("%v: %s", err, annotateString(implCode))
-					return nil, err
-				}
-
-				files = append(files, &plugin.CodeGeneratorResponse_File{
-					Name:    proto.String(output),
-					Content: proto.String(string(formatted)),
-				})
-				glog.V(1).Infof("Will emit %s", output)
+			if code, err := g.generateImpl(file); err == nil {
+				files = append(files, code...)
 			} else {
-				glog.V(0).Infof("Implementation will not be emitted: file '%s' already exists", output)
-			}
-			for _, svc := range file.Services {
-				for _, method := range svc.Methods {
-					methodGoName := generator.CamelCase(strings.Trim(method.FQMN(), "."))
-					methodFileName := strings.Replace(strings.ToLower(methodGoName), "_", "", -1)
-					output := fmt.Sprintf(filepath.Join(goPkg, g.options.ImplPath, "%s.pb.impl.go"), methodFileName)
-					output = filepath.Clean(output)
-
-					if g.options.Force || !fileExists(output) {
-						implCode, err := g.getImplTemplate(file, method)
-						if err != nil {
-							return nil, err
-						}
-						formatted, err := format.Source([]byte(implCode))
-						if err != nil {
-							glog.Errorf("%v: %s", err, annotateString(implCode))
-							return nil, err
-						}
-
-						files = append(files, &plugin.CodeGeneratorResponse_File{
-							Name:    proto.String(output),
-							Content: proto.String(string(formatted)),
-						})
-						glog.V(1).Infof("Will emit %s", output)
-					} else {
-						glog.V(0).Infof("Implementation for '%s' will not be emitted: file '%s' already exists", methodGoName, output)
-					}
-				}
+				return nil, err
 			}
 		}
 	}
@@ -238,7 +281,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 	return applyDescTemplate(p)
 }
 
-func (g *Generator) getImplTemplate(f *descriptor.File, m *descriptor.Method) (string, error) {
+func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m *descriptor.Method) (string, error) {
 	pkgSeen := make(map[string]bool)
 	var imports []descriptor.GoPackage
 	for _, pkg := range g.imports {
@@ -255,15 +298,22 @@ func (g *Generator) getImplTemplate(f *descriptor.File, m *descriptor.Method) (s
 		pkgSeen[pkg] = true
 		imports = append(imports, g.newGoPackage(pkg))
 	}
-	p := param{
-		File:        f,
-		CurrentPath: f.GoPkg.Path,
-		Method:      m,
+	p := implParam{
+		ImplGoPkgPath: f.GoPkg.Path,
+		Service:       s,
+		Method:        m,
+		File:          f,
 	}
 	fileGoPkg := f.GoPkg
 	if g.options.ImplPath != "" {
 		rootImport := getRootImportPath(f)
-		p.CurrentPath = filepath.Join(rootImport, g.options.ImplPath)
+		p.ImplGoPkgPath = filepath.Join(rootImport, g.options.ImplPath)
+		// restore orig f.GoPkg
+		defer func() {
+			f.GoPkg = fileGoPkg
+		}()
+		// set relative f.GoPkg for proper determining package for types from desc import
+		// f.GoPkg uses in function .Method.RequestType.GoType
 		f.GoPkg = g.newGoPackage(rootImport, "desc")
 		f.GoPkg.Name = fileGoPkg.Name
 		pkgSeen[f.GoPkg.Path] = true
@@ -292,21 +342,6 @@ func annotateString(str string) string {
 		strs[pos] = fmt.Sprintf("%v: %v", pos, strs[pos])
 	}
 	return strings.Join(strs, "\n")
-}
-
-func fileExists(path string) bool {
-	dir, err := filepath.Abs(".")
-	if err != nil {
-		glog.V(-1).Info(err)
-	}
-	dir, err = filepath.EvalSymlinks(dir)
-	if err != nil {
-		glog.V(-1).Info(err)
-	}
-	if _, err := os.Stat(filepath.Join(dir, path)); err == nil {
-		return true
-	}
-	return false
 }
 
 func getRootImportPath(file *descriptor.File) string {
@@ -355,6 +390,52 @@ func hasBindings(service *descriptor.Service) bool {
 	for _, m := range service.Methods {
 		if len(m.Bindings) > 0 {
 			return true
+		}
+	}
+	return false
+}
+
+func astPkg(pkg descriptor.GoPackage) *ast.Package {
+	fileSet := token.NewFileSet()
+	astPkgs, _ := parser.ParseDir(fileSet, pkg.Path, func(info os.FileInfo) bool {
+		name := info.Name()
+		return !info.IsDir() && !strings.HasPrefix(name, ".") &&
+			!strings.HasSuffix(name, "_test.go") && strings.HasSuffix(name, ".go")
+	}, parser.DeclarationErrors)
+	return astPkgs[pkg.Name]
+}
+
+func astTypeExists(typeName string, pkg *ast.Package) bool {
+	if pkg == nil {
+		return false
+	}
+	for _, f := range pkg.Files {
+		for _, d := range f.Decls {
+			if gd, ok := d.(*ast.GenDecl); ok {
+				for _, s := range gd.Specs {
+					if ts, ok := s.(*ast.TypeSpec); ok && ts.Name != nil && ts.Name.Name == typeName {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+func astMethodExists(typeName, methodName string, pkg *ast.Package) bool {
+	if pkg == nil {
+		return false
+	}
+	for _, f := range pkg.Files {
+		for _, d := range f.Decls {
+			if fd, ok := d.(*ast.FuncDecl); ok && fd.Name != nil && fd.Name.Name == methodName && fd.Recv != nil && len(fd.Recv.List) > 0 {
+				if se, ok := fd.Recv.List[0].Type.(*ast.StarExpr); ok {
+					if i, ok := se.X.(*ast.Ident); ok && i.Name == typeName {
+						return true
+					}
+				}
+			}
 		}
 	}
 	return false

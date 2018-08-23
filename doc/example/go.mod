@@ -12,6 +12,6 @@ require (
 	github.com/sirupsen/logrus v1.0.5
 	github.com/utrack/clay/v2 v2.0.0
 	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0
-	google.golang.org/genproto v0.0.0-20180808183934-383e8b2c3b9e
+	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
 	google.golang.org/grpc v1.13.0
 )

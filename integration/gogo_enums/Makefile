@@ -7,7 +7,7 @@ clean:
 	rm -f ./pb/strings/strings.pb.go
 	rm -f ./pb/strings/strings.pb.goclay.go
 	rm -f ./strings/strings.pb.impl.go
-	rm -f ./strings/strings.tolower.pb.impl.go
+	rm -f ./strings/strings.to_lower.pb.impl.go
 	rm -f main
 
 protoc: protoc-build
