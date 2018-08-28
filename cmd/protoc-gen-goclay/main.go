@@ -58,8 +58,16 @@ func main() {
 		}
 	}
 
-	reg.SetAllowRepeatedFieldsInBody(true)
-	reg.SetUseJSONNamesForFields(true)
+	// Remove this type cast when grpc-gateway will release new version.
+	// For now this functions only present in master branch
+	var xreg interface{} = reg
+	if set, ok := xreg.(interface{ SetAllowRepeatedFieldsInBody(bool) }); ok {
+		set.SetAllowRepeatedFieldsInBody(true)
+	}
+	// Use Field.GetJsonName() for generating swagger definitions
+	if set, ok := xreg.(interface{ SetUseJSONNamesForFields(bool) }); ok {
+		set.SetUseJSONNamesForFields(true)
+	}
 	reg.SetAllowDeleteBody(*allowDeleteBody)
 	reg.SetPrefix(*importPrefix)
 	for k, v := range pkgMap {
