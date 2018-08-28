@@ -3,6 +3,7 @@ package genhandler
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strings"
 	"text/template"
 
@@ -238,6 +239,15 @@ var (
 			}
 			e := strings.Join(encodings, ", ")
 			return fmt.Sprintf("&%sDoubleArray{Encoding: map[string]int{%s}, Base: %#v, Check: %#v}", getPkg("utilities"), e, arr.Base, arr.Check)
+		},
+		"ResponseBody": func(binding interface{}) *descriptor.Body {
+			v := reflect.ValueOf(binding).Elem()
+			if f := v.FieldByName("ResponseBody"); f.IsValid() {
+				if body, ok := f.Interface().(*descriptor.Body); ok {
+					return body
+				}
+			}
+			return nil
 		},
 	}
 
