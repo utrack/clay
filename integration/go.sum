@@ -33,6 +33,8 @@ github.com/googleapis/googleapis v0.0.0-20180827150141-bdd31f00f7c5/go.mod h1:Xr
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.0/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/grpc-gateway v0.0.0-20180817141043-e679739db1de h1:A6Hxbe1XwGJt5EJbd0Qd8t65xeqzPu1agFnQ3hUrPDU=
 github.com/grpc-ecosystem/grpc-gateway v0.0.0-20180817141043-e679739db1de/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
+github.com/grpc-ecosystem/grpc-gateway v1.4.1-0.20180817141043-e679739db1de h1:fU4MhBfPXpDT0lRcDhE7AT+7aM6QqhKfpxSg3dqWGRk=
+github.com/grpc-ecosystem/grpc-gateway v1.4.1-0.20180817141043-e679739db1de/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/grpc-ecosystem/grpc-gateway v1.4.1 h1:pX7cnDwSSmG0dR9yNjCQSSpmsJOqFdT7SzVp5Yl9uVw=
 github.com/grpc-ecosystem/grpc-gateway v1.4.1/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/jmoiron/jsonq v0.0.0-20150511023944-e874b168d07e h1:ZZCvgaRDZg1gC9/1xrsgaJzQUCQgniKtw0xjWywWAOE=
