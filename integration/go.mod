@@ -8,7 +8,7 @@ require (
 	github.com/gogo/protobuf v1.0.0
 	github.com/golang/protobuf v1.1.0
 	github.com/googleapis/googleapis v0.0.0-20180827150141-bdd31f00f7c5 // indirect
-	github.com/grpc-ecosystem/grpc-gateway v0.0.0-20180817141043-e679739db1de
+	github.com/grpc-ecosystem/grpc-gateway v1.4.1-0.20180817141043-e679739db1de
 	github.com/jmoiron/jsonq v0.0.0-20150511023944-e874b168d07e
 	github.com/pkg/errors v0.8.0
 	github.com/stretchr/testify v1.2.2

@@ -28,6 +28,7 @@ github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5y
 github.com/googleapis/googleapis v0.0.0-20180822222337-0010da628f6e/go.mod h1:XrPm4xpez/lHHyE+8/G+NqQRcB4lg42HF9zQVTvxtXw=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.0/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/grpc-gateway v0.0.0-20180817141043-e679739db1de/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
+github.com/grpc-ecosystem/grpc-gateway v1.4.1-0.20180817141043-e679739db1de/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/grpc-ecosystem/grpc-gateway v1.4.1 h1:pX7cnDwSSmG0dR9yNjCQSSpmsJOqFdT7SzVp5Yl9uVw=
 github.com/grpc-ecosystem/grpc-gateway v1.4.1/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/jmoiron/jsonq v0.0.0-20150511023944-e874b168d07e/go.mod h1:+rHyWac2R9oAZwFe1wGY2HBzFJJy++RHBg1cU23NkD8=
