@@ -28,6 +28,8 @@ github.com/grpc-ecosystem/grpc-gateway v0.0.0-20180817141043-e679739db1de h1:A6H
 github.com/grpc-ecosystem/grpc-gateway v0.0.0-20180817141043-e679739db1de/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/grpc-ecosystem/grpc-gateway v1.4.1 h1:pX7cnDwSSmG0dR9yNjCQSSpmsJOqFdT7SzVp5Yl9uVw=
 github.com/grpc-ecosystem/grpc-gateway v1.4.1/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
+github.com/grpc-ecosystem/grpc-gateway v1.5.0 h1:WcmKMm43DR7RdtlkEXQJyo5ws8iTp98CyhCCbOHMvNI=
+github.com/grpc-ecosystem/grpc-gateway v1.5.0/go.mod h1:RSKVYQBd5MCa4OVpNdGskqpgL2+G+NZTnrVHpWWfpdw=
 github.com/mailru/easyjson v0.0.0-20180606163543-3fdea8d05856 h1:hOnidOuIWNsFRPcxxStGeN3NNm4n4+w6KJ9cVJIh70o=
 github.com/mailru/easyjson v0.0.0-20180606163543-3fdea8d05856/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/onsi/ginkgo v1.5.0 h1:uZr+v/TFDdYkdA+j02sPO1kA5owrfjBGCJAogfIyThE=

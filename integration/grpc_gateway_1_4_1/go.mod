@@ -4,7 +4,7 @@ require (
 	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/go-openapi/spec v0.0.0-20180825180323-f1468acb3b29
 	github.com/golang/protobuf v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway v1.4.1
+	github.com/grpc-ecosystem/grpc-gateway v1.5.0
 	github.com/pkg/errors v0.8.0
 	github.com/utrack/clay/v2 v2.2.5
 	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d
@@ -13,3 +13,5 @@ require (
 )
 
 replace github.com/utrack/clay/v2 => ../..
+
+replace github.com/grpc-ecosystem/grpc-gateway => github.com/grpc-ecosystem/grpc-gateway v1.4.1
