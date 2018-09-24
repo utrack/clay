@@ -8,7 +8,7 @@ require (
 	github.com/pkg/errors v0.8.0
 	github.com/utrack/clay/v2 v2.2.5
 	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d
-	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
+	google.golang.org/genproto v0.0.0-20180918203901-c3f76f3b92d1
 	google.golang.org/grpc v1.14.0
 )
 
