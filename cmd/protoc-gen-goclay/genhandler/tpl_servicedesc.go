@@ -82,19 +82,17 @@ func (d *{{ $svc.GetName | goTypeName }}Desc) RegisterHTTP(mux {{ pkg "transport
         }
 
         _,outbound := {{ pkg "httpruntime" }}MarshalerForRequest(r)
-        buf := bytes.NewBuffer([]byte{})
+        w.Header().Set("Content-Type", outbound.ContentType())
         {{ if $b | ResponseBody -}}
             xrsp := rsp.(*{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }})
-            err = outbound.Marshal(buf, {{ $b.ResponseBody.AssignableExpr "xrsp" }})
+            err = outbound.Marshal(w, {{ $b.ResponseBody.AssignableExpr "xrsp" }})
         {{ else -}}
-            err = outbound.Marshal(buf, rsp)
+            err = outbound.Marshal(w, rsp)
         {{ end -}}
         if err != nil {
             {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"couldn't write response"))
             return
         }
-        w.Header().Set("Content-Type", outbound.ContentType())
-        buf.WriteTo(w)
     })
 
 {{ if $.ApplyMiddlewares }}

@@ -12,7 +12,7 @@ require (
 	github.com/go-openapi/swag v0.0.0-20180405201759-811b1089cde9 // indirect
 	github.com/gogo/protobuf v1.0.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.1.0
+	github.com/golang/protobuf v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/grpc-gateway v1.5.0
 	github.com/mailru/easyjson v0.0.0-20180606163543-3fdea8d05856 // indirect

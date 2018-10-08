@@ -6,7 +6,7 @@ require (
 	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
 	github.com/gogo/protobuf v1.0.0
-	github.com/golang/protobuf v1.1.0
+	github.com/golang/protobuf v1.2.0
 	github.com/googleapis/googleapis v0.0.0-20181002202253-cd17066d7926 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.5.0
 	github.com/jmoiron/jsonq v0.0.0-20150511023944-e874b168d07e
