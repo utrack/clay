@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gogo/protobuf/types"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 	"time"
 
+	"github.com/gogo/protobuf/types"
 	strings_pb "github.com/utrack/clay/integration/binding_with_different_types_post/pb"
 	strings_srv "github.com/utrack/clay/integration/binding_with_different_types_post/strings"
 )
