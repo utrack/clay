@@ -46,6 +46,8 @@ _testmain.go
 !/integration/binding_with_repeated_field/strings/strings.to_upper.pb.impl.go
 !/integration/binding_with_different_types/strings/strings.echo.pb.impl.go
 !/integration/binding_with_different_types_post/strings/strings.echo.pb.impl.go
+!/integration/response_vs_response_body/strings/strings.echo.pb.impl.go
+!/integration/response_vs_response_body/strings/strings.echo2.pb.impl.go
 !/integration/panic_in_response_marshaler/strings/strings.echo.pb.impl.go
 
 # Ignore vendor, needed for better local development

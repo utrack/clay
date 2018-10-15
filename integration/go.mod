@@ -7,7 +7,7 @@ require (
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
 	github.com/gogo/protobuf v1.0.0
 	github.com/golang/protobuf v1.2.0
-	github.com/googleapis/googleapis v0.0.0-20181005165555-8f1de3d40e28 // indirect
+	github.com/googleapis/googleapis v0.0.0-20181009235822-84588c65131a // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.5.0
 	github.com/jmoiron/jsonq v0.0.0-20150511023944-e874b168d07e
 	github.com/pkg/errors v0.8.0

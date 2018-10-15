@@ -69,9 +69,13 @@ func (c *{{ $svc.GetName | goTypeName }}_httpClient) {{ $m.GetName | goTypeName 
         return nil,{{ pkg "errors" }}Errorf("%v %v: server returned HTTP %v: '%v'",req.Method,req.URL.String(),rsp.StatusCode,string(b))
     }
 
-    ret := &{{$m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}
-    err = m.Unmarshal(rsp.Body, ret)
-    return ret, {{ pkg "errors" }}Wrap(err, "can't unmarshal response")
+    ret := {{$m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}
+    {{ if $b | ResponseBody }}
+        err = m.Unmarshal(rsp.Body, &{{ .ResponseBody.AssignableExpr "ret"}})
+	{{ else }}
+        err = m.Unmarshal(rsp.Body, &ret)
+    {{ end }}
+    return &ret, {{ pkg "errors" }}Wrap(err, "can't unmarshal response")
 }
 {{ end }}
 {{ end }}
