@@ -1,6 +1,7 @@
 package genhandler
 
 import (
+	"bufio"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/golang/glog"
@@ -98,6 +100,7 @@ func (g *Generator) generateDesc(file *descriptor.File) (*plugin.CodeGeneratorRe
 }
 
 func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGeneratorResponse_File, err error) {
+	guessModule()
 	astPkg := astPkg(descriptor.GoPackage{
 		Name: file.GoPkg.Name,
 		Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath),
@@ -306,15 +309,15 @@ func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m
 	}
 	fileGoPkg := f.GoPkg
 	if g.options.ImplPath != "" {
-		rootImport := getRootImportPath(f)
-		p.ImplGoPkgPath = filepath.Join(rootImport, g.options.ImplPath)
+		descImport := getDescImportPath(f)
+		p.ImplGoPkgPath = filepath.Join(descImport, g.options.ImplPath)
 		// restore orig f.GoPkg
 		defer func() {
 			f.GoPkg = fileGoPkg
 		}()
 		// set relative f.GoPkg for proper determining package for types from desc import
 		// f.GoPkg uses in function .Method.RequestType.GoType
-		f.GoPkg = g.newGoPackage(rootImport, "desc")
+		f.GoPkg = g.newGoPackage(descImport, "desc")
 		f.GoPkg.Name = fileGoPkg.Name
 		pkgSeen[f.GoPkg.Path] = true
 		imports = append(imports, f.GoPkg)
@@ -344,45 +347,59 @@ func annotateString(str string) string {
 	return strings.Join(strs, "\n")
 }
 
-func getRootImportPath(file *descriptor.File) string {
-	goImportPath := ""
-	if file.GoPkg.Path != "." {
-		goImportPath = file.GoPkg.Path
-	}
-	// dir is current working directory
-	dir, err := filepath.Abs(".")
+func getDescImportPath(file *descriptor.File) string {
+	// wd is current working directory
+	wd, err := filepath.Abs(".")
 	if err != nil {
 		glog.V(-1).Info(err)
 	}
-	xdir, direrr := filepath.EvalSymlinks(dir)
+	// xwd = wd but after symlink evaluation
+	xwd, direrr := filepath.EvalSymlinks(wd)
+
+	// if we know module
+	if module != "" {
+		return getImportPath(file.GoPkg, wd, "")
+	}
+
 	for _, gp := range strings.Split(build.Default.GOPATH, ":") {
 		gp = filepath.Clean(gp)
 		// xgp = gp but after symlink evaluation
 		xgp, gperr := filepath.EvalSymlinks(gp)
-		if strings.HasPrefix(dir, gp) {
-			return getPackage(dir, gp, goImportPath)
+		if strings.HasPrefix(wd, gp) {
+			return getImportPath(file.GoPkg, wd, gp)
 		}
-		if direrr == nil && strings.HasPrefix(xdir, gp) {
-			return getPackage(xdir, gp, goImportPath)
+		if direrr == nil && strings.HasPrefix(xwd, gp) {
+			return getImportPath(file.GoPkg, xwd, gp)
 		}
-		if gperr == nil && strings.HasPrefix(dir, xgp) {
-			return getPackage(dir, xgp, goImportPath)
+		if gperr == nil && strings.HasPrefix(wd, xgp) {
+			return getImportPath(file.GoPkg, wd, xgp)
 		}
-		if gperr == nil && direrr == nil && strings.HasPrefix(xdir, xgp) {
-			return getPackage(xdir, xgp, goImportPath)
+		if gperr == nil && direrr == nil && strings.HasPrefix(xwd, xgp) {
+			return getImportPath(file.GoPkg, xwd, xgp)
 		}
 	}
 	return ""
 }
 
-func getPackage(path, gopath, gopkg string) string {
-	currentPath := strings.TrimPrefix(path, filepath.Join(gopath, "src")+string(filepath.Separator))
-	if strings.HasPrefix(gopkg, currentPath) {
+// getImportPath returns full go import path for specified gopkg
+// wd - current working directory
+// gopath - current gopath (can be empty if you are not in gopath)
+func getImportPath(goPackage descriptor.GoPackage, wd, gopath string) string {
+	var wdImportPath, gopkg string
+	if goPackage.Path != "." {
+		gopkg = goPackage.Path
+	}
+	if module != "" && moduleDir != "" {
+		wdImportPath = filepath.Join(module, strings.TrimPrefix(wd, moduleDir))
+	} else {
+		wdImportPath = strings.TrimPrefix(wd, filepath.Join(gopath, "src")+string(filepath.Separator))
+	}
+	if strings.HasPrefix(gopkg, wdImportPath) {
 		return gopkg
 	} else if gopkg != "" {
-		return filepath.Join(currentPath, gopkg)
+		return filepath.Join(wdImportPath, gopkg)
 	} else {
-		return currentPath
+		return wdImportPath
 	}
 }
 
@@ -439,4 +456,54 @@ func astMethodExists(typeName, methodName string, pkg *ast.Package) bool {
 		}
 	}
 	return false
+}
+
+var module string
+var moduleDir string
+var moduleRegExp = regexp.MustCompile("^module (.*?)(?: //.*)?$")
+
+func guessModule() {
+	// dir is current working directory
+	dir, err := filepath.Abs(".")
+	if err != nil {
+		glog.V(-1).Info(err)
+	}
+
+	// try to find go.mod
+	mod := ""
+	root := dir
+	for {
+		if _, err := os.Stat(filepath.Join(root, "go.mod")); err == nil {
+			mod = filepath.Join(root, "go.mod")
+			break
+		}
+		if root == "" {
+			break
+		}
+		d := filepath.Dir(root)
+		if d == root {
+			break
+		}
+		root = d
+	}
+
+	// if go.mod found
+	if mod != "" {
+		glog.V(1).Infof("Found mod file: %s", mod)
+		fd, err := os.Open(mod)
+		if err != nil {
+			glog.V(-1).Info(err)
+		}
+		defer fd.Close()
+		scanner := bufio.NewScanner(fd)
+		for scanner.Scan() {
+			line := scanner.Bytes()
+			if matches := moduleRegExp.FindSubmatch(line); len(matches) > 1 {
+				module = string(matches[1])
+				moduleDir = root
+				glog.V(1).Infof("Current module: %s", module)
+				glog.V(1).Infof("Project directory: %s", moduleDir)
+			}
+		}
+	}
 }
