@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+service Strings2 {
+    rpc ToUpper (String) returns (String) {
+        option (google.api.http) = {
+            get: "/strings2/to_upper/{str}"
+        };
+    }
+    rpc ToLower (String) returns (String) {
+        option (google.api.http) = {
+            post: "/strings2/to_lower"
+            body: "*"
+        };
+    }
+}
+
+message String {
+    string str = 1;
+}

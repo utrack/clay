@@ -6,6 +6,7 @@ type options struct {
 	SwaggerDef              map[string][]byte
 	Impl                    bool
 	Force                   bool
+	ServiceSubDir           bool
 	ApplyDefaultMiddlewares bool
 }
 
@@ -51,5 +52,12 @@ func DescPath(path string) Option {
 func Force(force bool) Option {
 	return func(o *options) {
 		o.Force = force
+	}
+}
+
+// ServiceSubDir sets impl generation into sub directory
+func ServiceSubDir(force bool) Option {
+	return func(o *options) {
+		o.ServiceSubDir = force
 	}
 }

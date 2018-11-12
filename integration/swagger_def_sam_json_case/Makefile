@@ -6,9 +6,9 @@ pwd:
 clean:
 	rm -f ./pb/strings/strings.pb.go
 	rm -f ./pb/strings/strings.pb.goclay.go
-	rm -f ./strings/strings.pb.impl.go
-	rm -f ./strings/strings.to_lower.pb.impl.go
-	rm -f ./strings/strings.to_upper.pb.impl.go
+	rm -f ./strings/strings.go
+	rm -f ./strings/strings.to_lower.go
+	rm -f ./strings/strings.to_upper.go
 	rm -f main
 
 protoc: protoc-build
