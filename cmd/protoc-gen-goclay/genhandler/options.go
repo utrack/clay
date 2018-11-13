@@ -56,8 +56,8 @@ func Force(force bool) Option {
 }
 
 // ServiceSubDir sets impl generation into sub directory
-func ServiceSubDir(force bool) Option {
+func ServiceSubDir(subDir bool) Option {
 	return func(o *options) {
-		o.ServiceSubDir = force
+		o.ServiceSubDir = subDir
 	}
 }
