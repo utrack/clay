@@ -101,12 +101,27 @@ func (g *Generator) generateDesc(file *descriptor.File) (*plugin.CodeGeneratorRe
 
 func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGeneratorResponse_File, err error) {
 	guessModule()
-	astPkg := astPkg(descriptor.GoPackage{
-		Name: file.GoPkg.Name,
-		Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath),
-	})
+	var pkg *ast.Package
+	if !g.options.ServiceSubDir {
+		pkg, err = astPkg(descriptor.GoPackage{
+			Name: file.GoPkg.Name,
+			Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath),
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 	for _, svc := range file.Services {
-		if code, err := g.generateImplService(file, svc, astPkg); err == nil {
+		if g.options.ServiceSubDir {
+			pkg, err = astPkg(descriptor.GoPackage{
+				Name: file.GoPkg.Name,
+				Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.SnakeCase(svc.GetName())),
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+		if code, err := g.generateImplService(file, svc, pkg); err == nil {
 			files = append(files, code...)
 		} else {
 			return nil, err
@@ -119,7 +134,12 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 	var files []*plugin.CodeGeneratorResponse_File
 
 	if exists := astTypeExists(implTypeName(svc), astPkg); !exists || g.options.Force {
-		output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.pb.impl.go"), internal.SnakeCase(svc.GetName()))
+		var output string
+		if g.options.ServiceSubDir {
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.SnakeCase(svc.GetName()), "%s.go"), internal.SnakeCase(svc.GetName()))
+		} else {
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), internal.SnakeCase(svc.GetName()))
+		}
 		implCode, err := g.getImplTemplate(file, svc, nil)
 
 		if err != nil {
@@ -155,7 +175,12 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descriptor.Service, method *descriptor.Method, astPkg *ast.Package) ([]*plugin.CodeGeneratorResponse_File, error) {
 	methodGoName := goTypeName(method.GetName())
 	if exists := astMethodExists(implTypeName(svc), methodGoName, astPkg); !exists || g.options.Force {
-		output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.%s.pb.impl.go"), internal.SnakeCase(svc.GetName()), internal.SnakeCase(methodGoName))
+		var output string
+		if g.options.ServiceSubDir {
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.SnakeCase(svc.GetName()), "%s.%s.go"), internal.SnakeCase(svc.GetName()), internal.SnakeCase(methodGoName))
+		} else {
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.%s.go"), internal.SnakeCase(svc.GetName()), internal.SnakeCase(methodGoName))
+		}
 		output = filepath.Clean(output)
 		implCode, err := g.getImplTemplate(file, svc, method)
 		if err != nil {
@@ -412,14 +437,27 @@ func hasBindings(service *descriptor.Service) bool {
 	return false
 }
 
-func astPkg(pkg descriptor.GoPackage) *ast.Package {
+func astPkg(pkg descriptor.GoPackage) (*ast.Package, error) {
 	fileSet := token.NewFileSet()
-	astPkgs, _ := parser.ParseDir(fileSet, pkg.Path, func(info os.FileInfo) bool {
+	astPkgs, err := parser.ParseDir(fileSet, pkg.Path, func(info os.FileInfo) bool {
 		name := info.Name()
 		return !info.IsDir() && !strings.HasPrefix(name, ".") &&
 			!strings.HasSuffix(name, "_test.go") && strings.HasSuffix(name, ".go")
 	}, parser.DeclarationErrors)
-	return astPkgs[pkg.Name]
+	if filterError(err) != nil {
+		return nil, err
+	}
+	return astPkgs[pkg.Name], nil
+}
+
+func filterError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if _, ok := err.(*os.PathError); ok {
+		return nil
+	}
+	return err
 }
 
 func astTypeExists(typeName string, pkg *ast.Package) bool {

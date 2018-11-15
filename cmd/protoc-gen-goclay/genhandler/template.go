@@ -97,8 +97,17 @@ func goTypeName(s string) string {
 	return strings.Join(toks, ".")
 }
 
+func MustRegisterImplTypeNameTemplate(tmpl string) {
+	implTypeNameTmpl = template.Must(template.New("impl-type-name").Parse(tmpl))
+}
+
 func implTypeName(service *descriptor.Service) string {
-	return goTypeName(service.GetName()) + "Implementation"
+	type params struct {
+		ServiceName string
+	}
+	var name bytes.Buffer
+	implTypeNameTmpl.Execute(&name, params{ServiceName: goTypeName(service.GetName())})
+	return name.String()
 }
 
 // addValueTyped returns code, adding the field value to url.Values.
@@ -405,4 +414,5 @@ func (i *{{ .Service | implTypeName}}) GetDescription() {{ pkg "transport" }}Ser
 }
 {{ end }}
 `))
+	implTypeNameTmpl = template.Must(template.New("impl-type-name").Parse(`{{ .ServiceName }}Implementation`))
 )
