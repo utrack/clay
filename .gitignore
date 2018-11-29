@@ -44,11 +44,16 @@ _testmain.go
 /integration/**/pb/strings.to_upper.go
 /integration/**/pb/strings.go
 /integration/**/strings/strings2.go
+/integration/**/strings/to_lower.go
+/integration/**/strings/to_upper.go
 /integration/**/strings/strings2.to_lower.go
 /integration/**/strings/strings2.to_upper.go
 /integration/**/strings2/strings2.go
 /integration/**/strings2/strings2.to_lower.go
 /integration/**/strings2/strings2.to_upper.go
+/integration/**/strings-api/strings_api.go
+/integration/**/strings-api/to_lower.go
+/integration/**/strings-api/to_upper.go
 /integration/snake_case_service/strings/strings_service.go
 /integration/snake_case_service/strings/strings_service.to_upper.go
 # Unignore some files, used in tests

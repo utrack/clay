@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/api/annotations.proto";
 
-service Strings2 {
+service StringsAPI {
     rpc ToUpper (String) returns (String) {
         option (google.api.http) = {
             get: "/strings2/to_upper/{str}"
