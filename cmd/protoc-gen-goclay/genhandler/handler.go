@@ -115,7 +115,7 @@ func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGen
 		if g.options.ServiceSubDir {
 			pkg, err = astPkg(descriptor.GoPackage{
 				Name: file.GoPkg.Name,
-				Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.SnakeCase(svc.GetName())),
+				Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName())),
 			})
 			if err != nil {
 				return nil, err
@@ -136,7 +136,7 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 	if exists := astTypeExists(implTypeName(svc), astPkg); !exists || g.options.Force {
 		var output string
 		if g.options.ServiceSubDir {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.SnakeCase(svc.GetName()), "%s.go"), internal.SnakeCase(svc.GetName()))
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), internal.SnakeCase(svc.GetName()))
 		} else {
 			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), internal.SnakeCase(svc.GetName()))
 		}
@@ -177,7 +177,7 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 	if exists := astMethodExists(implTypeName(svc), methodGoName, astPkg); !exists || g.options.Force {
 		var output string
 		if g.options.ServiceSubDir {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.SnakeCase(svc.GetName()), "%s.%s.go"), internal.SnakeCase(svc.GetName()), internal.SnakeCase(methodGoName))
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), internal.SnakeCase(methodGoName))
 		} else {
 			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.%s.go"), internal.SnakeCase(svc.GetName()), internal.SnakeCase(methodGoName))
 		}
