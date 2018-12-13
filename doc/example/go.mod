@@ -10,8 +10,8 @@ require (
 	github.com/pkg/errors v0.8.0
 	github.com/rakyll/statik v0.1.1
 	github.com/sirupsen/logrus v1.0.5
-	github.com/utrack/clay/v2 v2.0.0
-	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0
+	github.com/utrack/clay/v2 v2.1.0
+	golang.org/x/net v0.0.0-20181005035420-146acd28ed58
 	google.golang.org/genproto v0.0.0-20180918203901-c3f76f3b92d1
 	google.golang.org/grpc v1.13.0
 )

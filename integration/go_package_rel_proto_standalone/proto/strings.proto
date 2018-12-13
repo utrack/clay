@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-option go_package="pb/strings";
-
 import "google/api/annotations.proto";
 
 service Strings {
