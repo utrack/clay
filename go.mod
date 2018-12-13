@@ -10,7 +10,7 @@ require (
 	github.com/go-openapi/jsonreference v0.0.0-20180322222742-3fb327e6747d // indirect
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
 	github.com/go-openapi/swag v0.0.0-20180405201759-811b1089cde9 // indirect
-	github.com/gogo/protobuf v1.0.0
+	github.com/gogo/protobuf v1.2.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
