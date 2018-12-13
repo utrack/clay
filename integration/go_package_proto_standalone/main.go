@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/utrack/clay/integration/go_package_rel_gopath_with_alias/strings"
+	"github.com/utrack/clay/integration/go_package_proto_standalone/strings"
 )
 
 func main() {
 	r := chi.NewMux()
-	desc := fmt.NewStrings().GetDescription()
+	desc := strings.NewStrings().GetDescription()
 	desc.RegisterHTTP(r)
 
 	r.Handle("/swagger.json", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

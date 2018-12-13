@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package=";str";
+option go_package="strings";
 
 import "google/api/annotations.proto";
 
