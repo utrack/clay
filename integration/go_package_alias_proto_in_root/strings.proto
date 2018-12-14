@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package="github.com/utrack/clay/integration/go_package_gopath/pb";
+option go_package="srt";
 
 import "google/api/annotations.proto";
 
