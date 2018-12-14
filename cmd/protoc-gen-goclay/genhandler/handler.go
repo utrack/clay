@@ -281,6 +281,13 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 					return
 				}
 				pkgSeen[pkg.Path] = true
+
+				// always generate alias for external packages, when types used in req/resp object
+				if pkg.Alias == "" {
+					pkg.Alias = pkg.Name
+					pkgSeen[pkg.Path] = false
+				}
+
 				imports = append(imports, pkg)
 			}
 
@@ -340,12 +347,20 @@ func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m
 		defer func() {
 			f.GoPkg = fileGoPkg
 		}()
+
 		// set relative f.GoPkg for proper determining package for types from desc import
 		// f.GoPkg uses in function .Method.RequestType.GoType
-		f.GoPkg = g.newGoPackage(descImport, "desc")
-		f.GoPkg.Name = fileGoPkg.Name
-		pkgSeen[f.GoPkg.Path] = true
-		imports = append(imports, f.GoPkg)
+		if m == nil ||
+			descImport == m.RequestType.File.GoPkg.Path ||
+			descImport == m.ResponseType.File.GoPkg.Path ||
+			strings.HasSuffix(descImport, "/"+m.RequestType.File.GoPkg.Path) ||
+			strings.HasSuffix(descImport, "/"+m.ResponseType.File.GoPkg.Path) {
+
+			f.GoPkg = g.newGoPackage(descImport, "desc")
+			f.GoPkg.Name = fileGoPkg.Name
+			pkgSeen[f.GoPkg.Path] = true
+			imports = append(imports, f.GoPkg)
+		}
 	}
 	if m != nil {
 		checkedAppend := func(pkg descriptor.GoPackage) {
@@ -354,11 +369,19 @@ func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m
 				return
 			}
 			pkgSeen[pkg.Path] = true
+
+			// always generate alias for external packages, when types used in req/resp object
+			if pkg.Alias == "" {
+				pkg.Alias = pkg.Name
+				pkgSeen[pkg.Path] = false
+			}
+
 			imports = append(imports, pkg)
 		}
 		checkedAppend(m.RequestType.File.GoPkg)
 		checkedAppend(m.ResponseType.File.GoPkg)
 	}
+
 	p.Imports = imports
 
 	return applyImplTemplate(p)
