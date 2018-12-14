@@ -9,7 +9,7 @@ import (
 
 func main() {
 	r := chi.NewMux()
-	desc := srt.NewStrings().GetDescription()
+	desc := str.NewStrings().GetDescription()
 	desc.RegisterHTTP(r)
 
 	r.Handle("/swagger.json", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
