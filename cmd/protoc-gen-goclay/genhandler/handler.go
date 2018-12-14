@@ -348,14 +348,14 @@ func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m
 			f.GoPkg = fileGoPkg
 		}()
 
-		// set relative f.GoPkg for proper determining package for types from desc import
-		// f.GoPkg uses in function .Method.RequestType.GoType
-		if m == nil ||
-			descImport == m.RequestType.File.GoPkg.Path ||
-			descImport == m.ResponseType.File.GoPkg.Path ||
-			strings.HasSuffix(descImport, "/"+m.RequestType.File.GoPkg.Path) ||
-			strings.HasSuffix(descImport, "/"+m.ResponseType.File.GoPkg.Path) {
+		// Generate desc imports only if need
+		if m != nil &&
+			strings.Index(m.RequestType.File.GoPkg.Path, "/") >= 0 && !strings.HasSuffix(descImport, m.RequestType.File.GoPkg.Path) &&
+			strings.Index(m.ResponseType.File.GoPkg.Path, "/") >= 0 && !strings.HasSuffix(descImport, m.ResponseType.File.GoPkg.Path) {
+		} else {
 
+			// set relative f.GoPkg for proper determining package for types from desc import
+			// f.GoPkg uses in function .Method.RequestType.GoType
 			f.GoPkg = g.newGoPackage(descImport, "desc")
 			f.GoPkg.Name = fileGoPkg.Name
 			pkgSeen[f.GoPkg.Path] = true

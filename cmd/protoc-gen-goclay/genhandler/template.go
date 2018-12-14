@@ -404,6 +404,7 @@ func (i *{{ .Method.Service | implTypeName }}) {{ .Method.Name | goTypeName }}(c
 {{ else }}
 type {{ .Service | implTypeName}} struct {}
 
+// New{{ .Service.GetName | goTypeName }} create new {{ .Service | implTypeName}}
 func New{{ .Service.GetName | goTypeName }}() *{{ .Service | implTypeName}} {
     return &{{ .Service | implTypeName}}{}
 }
