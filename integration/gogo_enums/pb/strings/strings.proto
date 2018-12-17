@@ -4,7 +4,6 @@ import "google/api/annotations.proto";
 
 
 package strings;
-option go_package="pb/strings";
 option java_multiple_files = true;
 option java_outer_classname = "Strings";
 option java_package = "com.strings.pb";

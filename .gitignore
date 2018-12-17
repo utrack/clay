@@ -48,6 +48,8 @@ _testmain.go
 /integration/**/strings/to_upper.go
 /integration/**/strings/strings2.to_lower.go
 /integration/**/strings/strings2.to_upper.go
+/integration/**/strings/strings.empty_response.go
+/integration/**/strings/strings.without_desc.go
 /integration/**/strings2/strings2.go
 /integration/**/strings2/strings2.to_lower.go
 /integration/**/strings2/strings2.to_upper.go

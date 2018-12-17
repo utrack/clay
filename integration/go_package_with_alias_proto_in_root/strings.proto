@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option go_package="github.com/utrack/clay/integration/go_package_with_alias_proto_in_root/pb/strings;str";
+
+import "google/api/annotations.proto";
+
+service Strings {
+    rpc ToUpper (String) returns (String) {
+        option (google.api.http) = {
+            get: "/strings/to_upper/{str}"
+        };
+    }
+    rpc ToLower (String) returns (String) {
+        option (google.api.http) = {
+            post: "/strings/to_lower"
+            body: "*"
+        };
+    }
+}
+
+message String {
+    string str = 1;
+}
