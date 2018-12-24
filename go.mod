@@ -21,7 +21,7 @@ require (
 	golang.org/x/net v0.0.0-20181005035420-146acd28ed58
 	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
 	google.golang.org/genproto v0.0.0-20180918203901-c3f76f3b92d1
-	google.golang.org/grpc v1.13.0
+	google.golang.org/grpc v1.16.0
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 )
