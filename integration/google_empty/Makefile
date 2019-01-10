@@ -23,6 +23,7 @@ clean:
 	rm -f ./strings/strings.to_upper.go
 	rm -f ./strings/strings.empty_response.go
 	rm -f ./strings/strings.without_desc.go
+	rm -f ./strings/strings.without_desc_and_option.go
 	rm -f main
 
 protoc: protoc-build

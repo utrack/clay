@@ -23,11 +23,12 @@ service Strings {
             get: "/strings/empty"
         };
     }
-
     rpc WithoutDesc (google.protobuf.Empty) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             get: "/strings/without_desc"
         };
+    }
+    rpc WithoutDescAndOption (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
 }
 
