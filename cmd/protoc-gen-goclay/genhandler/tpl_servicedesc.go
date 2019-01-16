@@ -81,6 +81,11 @@ func (d *{{ $svc.GetName | goTypeName }}Desc) RegisterHTTP(mux {{ pkg "transport
             return
         }
 
+        if ctxErr := r.Context().Err(); ctxErr != nil && ctxErr == context.Canceled {
+           w.WriteHeader(499) // Client Closed Request
+           return
+        }
+
         _,outbound := {{ pkg "httpruntime" }}MarshalerForRequest(r)
         w.Header().Set("Content-Type", outbound.ContentType())
         {{ if $b | ResponseBody -}}
