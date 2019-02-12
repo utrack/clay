@@ -364,8 +364,7 @@ func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m
 	}
 	if m != nil {
 		checkedAppend := func(pkg descriptor.GoPackage) {
-			if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
-				pkg.Path == fileGoPkg.Path || pkgSeen[pkg.Path] {
+			if pkg.Path == fileGoPkg.Path || pkgSeen[pkg.Path] {
 				return
 			}
 			pkgSeen[pkg.Path] = true
