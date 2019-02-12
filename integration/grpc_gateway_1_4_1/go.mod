@@ -1,7 +1,7 @@
 module github.com/utrack/clay/integration/grpc_gateway_1_4_1
 
 require (
-	github.com/go-chi/chi v3.3.3+incompatible
+	github.com/go-chi/chi v0.0.0-20180827203443-b5294d106738
 	github.com/go-openapi/spec v0.0.0-20180825180323-f1468acb3b29
 	github.com/golang/protobuf v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.5.0
