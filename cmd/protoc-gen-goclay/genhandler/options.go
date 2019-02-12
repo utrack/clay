@@ -8,6 +8,7 @@ type options struct {
 	Force                   bool
 	ServiceSubDir           bool
 	ApplyDefaultMiddlewares bool
+	ImplFileNameTmpl        string
 }
 
 type Option func(*options)
