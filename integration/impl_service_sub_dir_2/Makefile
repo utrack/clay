@@ -9,8 +9,8 @@ clean:
 	rm -f ./pb/strings-api/strings_api.pb.go
 	rm -f ./pb/strings-api/strings_api.pb.goclay.go
 	rm -f ./strings/strings.go
-	rm -f ./strings/to_lower.go
-	rm -f ./strings/to_upper.go
+	rm -f ./to_lower.go
+	rm -f ./to_upper.go
 	rm -f ./strings-api/strings_api.go
 	rm -f ./strings-api/to_lower.go
 	rm -f ./strings-api/to_upper.go
