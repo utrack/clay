@@ -21,12 +21,12 @@ message String {
 }
 
 service Strings2 {
-    rpc ToUpper (String) returns (String) {
+    rpc ToUpper2 (String) returns (String) {
         option (google.api.http) = {
             get: "/strings2/to_upper/{str}"
         };
     }
-    rpc ToLower (String) returns (String) {
+    rpc ToLower2 (String) returns (String) {
         option (google.api.http) = {
             post: "/strings2/to_lower"
             body: "*"
