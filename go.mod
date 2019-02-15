@@ -2,7 +2,7 @@ module github.com/utrack/clay/v2
 
 require (
 	github.com/ghodss/yaml v1.0.0 // indirect
-	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
+	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/go-openapi/jsonpointer v0.17.2 // indirect
 	github.com/go-openapi/jsonreference v0.17.2 // indirect
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee

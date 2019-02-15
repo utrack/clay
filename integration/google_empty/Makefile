@@ -19,11 +19,11 @@ clean:
 	rm -f ./pb/strings/strings.pb.go
 	rm -f ./pb/strings/strings.pb.goclay.go
 	rm -f ./strings/strings.go
-	rm -f ./strings/strings.to_lower.go
-	rm -f ./strings/strings.to_upper.go
-	rm -f ./strings/strings.empty_response.go
-	rm -f ./strings/strings.without_desc.go
-	rm -f ./strings/strings.without_desc_and_option.go
+	rm -f ./strings/to_lower.go
+	rm -f ./strings/to_upper.go
+	rm -f ./strings/empty_response.go
+	rm -f ./strings/without_desc.go
+	rm -f ./strings/without_desc_and_option.go
 	rm -f main
 
 protoc: protoc-build

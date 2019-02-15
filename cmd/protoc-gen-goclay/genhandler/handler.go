@@ -136,9 +136,9 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 	if exists := astTypeExists(implTypeName(svc), astPkg); !exists || g.options.Force {
 		var output string
 		if g.options.ServiceSubDir {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), internal.SnakeCase(svc.GetName()))
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, nil))
 		} else {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), internal.SnakeCase(svc.GetName()))
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, nil))
 		}
 		implCode, err := g.getImplTemplate(file, svc, nil)
 
@@ -177,9 +177,9 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 	if exists := astMethodExists(implTypeName(svc), methodGoName, astPkg); !exists || g.options.Force {
 		var output string
 		if g.options.ServiceSubDir {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), internal.SnakeCase(methodGoName))
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, method))
 		} else {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.%s.go"), internal.SnakeCase(svc.GetName()), internal.SnakeCase(methodGoName))
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, method))
 		}
 		output = filepath.Clean(output)
 		implCode, err := g.getImplTemplate(file, svc, method)

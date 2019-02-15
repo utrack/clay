@@ -3,7 +3,7 @@ module github.com/utrack/clay/doc/example
 replace github.com/utrack/clay/v2 => ../../
 
 require (
-	github.com/go-chi/chi v0.0.0-20171222161133-e83ac2304db3
+	github.com/go-chi/chi v3.3.3+incompatible
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
 	github.com/golang/protobuf v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.5.0

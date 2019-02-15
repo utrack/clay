@@ -27,6 +27,7 @@ var (
 	forceImpl            = flag.Bool("force", false, "force regenerate implementation if it already exists (for impl = true)")
 	serviceSubDir        = flag.Bool("impl_service_sub_dir", false, "generate implementation for each service into sub directory")
 	implTypeNameTmpl     = flag.String("impl_type_name_tmpl", "{{ .ServiceName}}Implementation", "template for generating name of implementation structure")
+	implFileNameTmpl     = flag.String("impl_file_name_tmpl", "{{ if .MethodName }}{{ .MethodName }}{{ else }}{{ .ServiceName }}{{ end }}", "template for generating implementations filename")
 )
 
 func main() {
@@ -89,6 +90,7 @@ func main() {
 	}
 
 	genhandler.MustRegisterImplTypeNameTemplate(*implTypeNameTmpl)
+	genhandler.MustRegisterImplFileNameTemplate(*implFileNameTmpl)
 
 	opts := []genhandler.Option{
 		genhandler.Impl(*withImpl),

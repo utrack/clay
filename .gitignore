@@ -40,16 +40,19 @@ _testmain.go
 /integration/**/strings/strings.go
 /integration/**/strings/strings.to_lower.go
 /integration/**/strings/strings.to_upper.go
-/integration/**/pb/strings.to_lower.go
-/integration/**/pb/strings.to_upper.go
+/integration/**/pb/to_lower.go
+/integration/**/pb/to_upper.go
 /integration/**/pb/strings.go
 /integration/**/strings/strings2.go
 /integration/**/strings/to_lower.go
 /integration/**/strings/to_upper.go
+/integration/**/strings/to_lower2.go
+/integration/**/strings/to_upper2.go
 /integration/**/strings/strings2.to_lower.go
 /integration/**/strings/strings2.to_upper.go
-/integration/**/strings/strings.empty_response.go
-/integration/**/strings/strings.without_desc.go
+/integration/**/strings/empty_response.go
+/integration/**/strings/without_desc.go
+/integration/**/strings/without_desc_and_option.go
 /integration/**/strings2/strings2.go
 /integration/**/strings2/strings2.to_lower.go
 /integration/**/strings2/strings2.to_upper.go
@@ -66,6 +69,7 @@ _testmain.go
 !/integration/binding_with_body_and_response/strings/strings.to_upper.go
 !/integration/binding_with_repeated_field/strings/strings.to_upper.go
 !/integration/client_cancel_request/app/strings/strings.to_upper.go
+!/integration/impl_file_name_tmpl/strings/strings.to_upper.go
 
 # Ignore vendor, needed for better local development
 vendor/
