@@ -16,6 +16,7 @@ import (
 type Option func(*serverOpts)
 
 type serverOpts struct {
+	Host    string
 	RPCPort int
 	// If HTTPPort is the same then muxing listener is created.
 	HTTPPort int
@@ -112,5 +113,12 @@ func WithHTTPGracefull(fn func(sc chan os.Signal) func() error) Option {
 	}
 	return func(o *serverOpts) {
 		o.HTTPGracefullFunc = fn
+	}
+}
+
+// WithHost sets default server host
+func WithHost(host string) Option {
+	return func(o *serverOpts) {
+		o.Host = host
 	}
 }
