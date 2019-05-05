@@ -7,7 +7,7 @@ import (
 	"github.com/utrack/clay/v2/transport"
 
 	"github.com/go-chi/chi"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 )
 
@@ -83,6 +83,7 @@ func WithHTTPMux(mux *chi.Mux) Option {
 	}
 }
 
+// WithHTTPRouterMux func sets HTTPMux Router
 func WithHTTPRouterMux(mux transport.Router) Option {
 	return func(o *serverOpts) {
 		o.HTTPMux = mux
