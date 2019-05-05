@@ -1,6 +1,9 @@
 package server
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/utrack/clay/v2/server"
 	"github.com/utrack/clay/v2/server/middlewares/mwhttp"
 	"github.com/utrack/clay/v2/transport"
@@ -43,6 +46,22 @@ func WithHTTPMux(mux *chi.Mux) Option {
 	return server.WithHTTPMux(mux)
 }
 
+// WithHTTPRouterMux func sets HTTPMux Router
 func WithHTTPRouterMux(mux transport.Router) Option {
 	return server.WithHTTPRouterMux(mux)
+}
+
+// WithHTTPServer sets HTTP Server to use insted of the default
+func WithHTTPServer(srv *http.Server) Option {
+	return server.WithHTTPServer(srv)
+}
+
+// WithHTTPGracefull applies Gracefull shutdown func to server
+func WithHTTPGracefull(fn func(sc chan os.Signal) func() error) Option {
+	return server.WithHTTPGracefull(fn)
+}
+
+// WithHost sets default server host
+func WithHost(host string) Option {
+	return server.WithHost(host)
 }

@@ -24,7 +24,7 @@ type serverOpts struct {
 	// HTTPServer holds pointer to custom Server instance
 	HTTPServer *http.Server
 	// HTTPGracefullFunc for gracefull shutdown http server
-	HTTPGracefullFunc func(sc chan os.Signal) func() error
+	GracefullFunc func(sc chan os.Signal) func() error
 
 	HTTPMiddlewares []func(http.Handler) http.Handler
 
@@ -106,13 +106,13 @@ func WithHTTPServer(srv *http.Server) Option {
 	}
 }
 
-// WithHTTPGracefull applies Gracefull shutdown func to server
-func WithHTTPGracefull(fn func(sc chan os.Signal) func() error) Option {
+// WithGracefull applies Gracefull shutdown func to server
+func WithGracefull(fn func(sc chan os.Signal) func() error) Option {
 	if fn == nil {
 		panic("sent Gracefull func is nil")
 	}
 	return func(o *serverOpts) {
-		o.HTTPGracefullFunc = fn
+		o.GracefullFunc = fn
 	}
 }
 

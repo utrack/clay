@@ -71,11 +71,17 @@ func (s *Server) run() error {
 			return err
 		})
 	}
-	if s.opts.HTTPServer != nil || s.opts.HTTPGracefullFunc != nil {
-		sigint := make(chan os.Signal, 1)
-		signal.Notify(sigint, os.Interrupt)
-		fn := s.opts.HTTPGracefullFunc(sigint)
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt)
+	if s.opts.GracefullFunc != nil {
+		fn := s.opts.GracefullFunc(sigint)
 		g.Go(fn)
+	} else {
+		g.Go(func() error {
+			<-sigint
+			s.Stop()
+			return nil
+		})
 	}
 	g.Go(func() error {
 		if s.opts.HTTPServer != nil {
