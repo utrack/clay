@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/utrack/clay/v2/server/middlewares/mwhttp"
 	"github.com/utrack/clay/v2/transport"
@@ -19,6 +20,10 @@ type serverOpts struct {
 	// If HTTPPort is the same then muxing listener is created.
 	HTTPPort int
 	HTTPMux  transport.Router
+	// HTTPServer holds pointer to custom Server instance
+	HTTPServer *http.Server
+	// HTTPGracefullFunc for gracefull shutdown http server
+	HTTPGracefullFunc func(sc chan os.Signal) func() error
 
 	HTTPMiddlewares []func(http.Handler) http.Handler
 
@@ -87,5 +92,25 @@ func WithHTTPMux(mux *chi.Mux) Option {
 func WithHTTPRouterMux(mux transport.Router) Option {
 	return func(o *serverOpts) {
 		o.HTTPMux = mux
+	}
+}
+
+// WithHTTPServer sets HTTP Server to use insted of the default
+func WithHTTPServer(srv *http.Server) Option {
+	if srv == nil {
+		panic("sent Server pointer is nil")
+	}
+	return func(o *serverOpts) {
+		o.HTTPServer = srv
+	}
+}
+
+// WithHTTPGracefull applies Gracefull shutdown func to server
+func WithHTTPGracefull(fn func(sc chan os.Signal) func() error) Option {
+	if fn == nil {
+		panic("sent Gracefull func is nil")
+	}
+	return func(o *serverOpts) {
+		o.HTTPGracefullFunc = fn
 	}
 }
