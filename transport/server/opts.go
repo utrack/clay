@@ -56,9 +56,9 @@ func WithHTTPServer(srv *http.Server) Option {
 	return server.WithHTTPServer(srv)
 }
 
-// WithHTTPGracefull applies Gracefull shutdown func to server
-func WithHTTPGracefull(fn func(sc chan os.Signal) func() error) Option {
-	return server.WithHTTPGracefull(fn)
+// WithGracefull applies Gracefull shutdown func to server
+func WithGracefull(fn func(sc chan os.Signal) func() error) Option {
+	return server.WithGracefull(fn)
 }
 
 // WithHost sets default server host
