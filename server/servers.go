@@ -1,25 +1,37 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi"
 	"google.golang.org/grpc"
 )
 
 type serverSet struct {
-	http chi.Router
-	grpc *grpc.Server
+	http    chi.Router
+	grpc    *grpc.Server
+	httpSrv *http.Server
 }
 
 func newServerSet(listeners *listenerSet, opts *serverOpts) *serverSet {
-	http := chi.NewMux()
+	r := chi.NewMux()
 	if len(opts.HTTPMiddlewares) > 0 {
-		http.Use(opts.HTTPMiddlewares...)
+		r.Use(opts.HTTPMiddlewares...)
 	}
-	http.Mount("/", opts.HTTPMux)
+	r.Mount("/", opts.HTTPMux)
 
 	srv := &serverSet{
-		grpc: grpc.NewServer(opts.GRPCOpts...),
-		http: http,
+		http: r,
+	}
+	if opts.GRPCServer != nil {
+		srv.grpc = opts.GRPCServer
+	} else {
+		srv.grpc = grpc.NewServer(opts.GRPCOpts...)
+	}
+	if opts.HTTPServer != nil {
+		srv.httpSrv = opts.HTTPServer
+	} else {
+		srv.httpSrv = &http.Server{}
 	}
 	return srv
 }

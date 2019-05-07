@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/utrack/clay/v2/server/middlewares/mwhttp"
 	"github.com/utrack/clay/v2/transport"
@@ -23,9 +22,8 @@ type serverOpts struct {
 	HTTPMux  transport.Router
 	// HTTPServer holds pointer to custom Server instance
 	HTTPServer *http.Server
-	// HTTPGracefullFunc for gracefull shutdown http server
-	GracefullFunc func(sc chan os.Signal) func() error
-
+	// GRPCServer holds pointer to custom Server instance
+	GRPCServer      *grpc.Server
 	HTTPMiddlewares []func(http.Handler) http.Handler
 
 	GRPCOpts             []grpc.ServerOption
@@ -106,13 +104,13 @@ func WithHTTPServer(srv *http.Server) Option {
 	}
 }
 
-// WithGracefull applies Gracefull shutdown func to server
-func WithGracefull(fn func(sc chan os.Signal) func() error) Option {
-	if fn == nil {
-		panic("sent Gracefull func is nil")
+// WithGRPCServer sets GRPC Server to use insted of the default
+func WithGRPCServer(srv *grpc.Server) Option {
+	if srv == nil {
+		panic("sent Server pointer is nil")
 	}
 	return func(o *serverOpts) {
-		o.GracefullFunc = fn
+		o.GRPCServer = srv
 	}
 }
 

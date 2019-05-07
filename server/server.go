@@ -2,12 +2,8 @@ package server
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
-	"os"
-	"os/signal"
-	"time"
 
 	"github.com/utrack/clay/v2/transport"
 	"golang.org/x/sync/errgroup"
@@ -71,25 +67,9 @@ func (s *Server) run() error {
 			return err
 		})
 	}
-	sigint := make(chan os.Signal, 1)
-	signal.Notify(sigint, os.Interrupt)
-	if s.opts.GracefullFunc != nil {
-		fn := s.opts.GracefullFunc(sigint)
-		g.Go(fn)
-	} else {
-		g.Go(func() error {
-			<-sigint
-			s.Stop()
-			return nil
-		})
-	}
 	g.Go(func() error {
-		if s.opts.HTTPServer != nil {
-			s.opts.HTTPServer.Handler = s.srv.http
-			err := s.opts.HTTPServer.Serve(s.listeners.HTTP)
-			return err
-		}
-		err := http.Serve(s.listeners.HTTP, s.srv.http)
+		s.srv.httpSrv.Handler = s.srv.http
+		err := s.srv.httpSrv.Serve(s.listeners.HTTP)
 		return err
 	})
 	g.Go(func() error {
@@ -102,32 +82,6 @@ func (s *Server) run() error {
 
 // Stop stops the server gracefully.
 func (s *Server) Stop() {
-	var g errgroup.Group
-	if s.opts.HTTPServer != nil {
-		g.Go(func() error {
-			return s.opts.HTTPServer.Shutdown(context.Background())
-		})
-	}
-	g.Go(func() error {
-		s.srv.grpc.GracefulStop()
-		return nil
-	})
-	g.Wait()
-}
-
-// StopWithTimeout stops the server gracefully.
-func (s *Server) StopWithTimeout(timeout time.Duration) {
-	var g errgroup.Group
-	if s.opts.HTTPServer != nil {
-		g.Go(func() error {
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-			return s.opts.HTTPServer.Shutdown(ctx)
-		})
-	}
-	g.Go(func() error {
-		s.srv.grpc.GracefulStop()
-		return nil
-	})
-	g.Wait()
+	// TODO grace HTTP
+	s.srv.grpc.GracefulStop()
 }
