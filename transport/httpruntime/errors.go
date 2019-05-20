@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
@@ -21,12 +21,7 @@ var SetError func(context.Context, *http.Request, http.ResponseWriter, error) = 
 func DefaultSetError(ctx context.Context, req *http.Request, w http.ResponseWriter, err error) {
 	errCode := http.StatusInternalServerError
 	if grpcErr, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
-		switch grpcErr.GRPCStatus().Code() {
-		case codes.NotFound:
-			errCode = http.StatusNotFound
-		case codes.InvalidArgument:
-			errCode = http.StatusBadRequest
-		}
+		errCode = runtime.HTTPStatusFromCode(grpcErr.GRPCStatus().Code())
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(errCode)
