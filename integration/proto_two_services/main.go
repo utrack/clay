@@ -9,12 +9,14 @@ import (
 
 func main() {
 	r := chi.NewMux()
-	desc := strings.NewStrings().GetDescription()
-	desc.RegisterHTTP(r)
+	desc1 := strings.NewStrings().GetDescription()
+	desc1.RegisterHTTP(r)
+	desc2 := strings.NewStrings2().GetDescription()
+	desc2.RegisterHTTP(r)
 
 	r.Handle("/swagger.json", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/javascript")
-		w.Write(desc.SwaggerDef())
+		w.Write(desc1.SwaggerDef())
 	}))
 
 	http.ListenAndServe(":8080", r)

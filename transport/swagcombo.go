@@ -27,8 +27,8 @@ func (c *swagJoiner) AddDefinition(buf []byte) error {
 		c.result = def
 	}
 
-	paths := def["paths"].(map[string]interface{})
-	structs := def["definitions"].(map[string]interface{})
+	paths, _ := def["paths"].(map[string]interface{})
+	structs, _ := def["definitions"].(map[string]interface{})
 	if c.paths == nil {
 		c.paths = paths
 		c.defs = structs

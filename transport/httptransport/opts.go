@@ -1,6 +1,7 @@
 package httptransport
 
 import (
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/utrack/clay/v2/transport/swagger"
 	"google.golang.org/grpc"
 )
@@ -19,8 +20,11 @@ type OptionUnaryInterceptor struct {
 // Apply implements transport.DescOption.
 func (o OptionUnaryInterceptor) Apply(oo *DescOptions) {
 	if oo.UnaryInterceptor != nil {
-		// Chaining can be done via mwitkow/grpc-middleware for example.
-		panic("UnaryInterceptor is already applied, can't apply twice")
+		oo.UnaryInterceptor = grpc_middleware.ChainUnaryServer(
+			oo.UnaryInterceptor,
+			o.Interceptor,
+		)
+		return
 	}
 	oo.UnaryInterceptor = o.Interceptor
 }

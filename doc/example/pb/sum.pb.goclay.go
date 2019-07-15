@@ -112,7 +112,7 @@ func (d *SummatorDesc) RegisterHTTP(mux transport.Router) {
 					httpruntime.SetError(r.Context(), r, w, errors.Wrap(err.Err, "couldn't parse request"))
 					return
 				}
-				httpruntime.SetError(r.Context(), r, w, errors.Wrap(err, "returned from handler"))
+				httpruntime.SetError(r.Context(), r, w, err)
 				return
 			}
 

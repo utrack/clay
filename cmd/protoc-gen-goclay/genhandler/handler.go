@@ -1,6 +1,7 @@
 package genhandler
 
 import (
+	"bufio"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/golang/glog"
@@ -98,12 +100,28 @@ func (g *Generator) generateDesc(file *descriptor.File) (*plugin.CodeGeneratorRe
 }
 
 func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGeneratorResponse_File, err error) {
-	astPkg := astPkg(descriptor.GoPackage{
-		Name: file.GoPkg.Name,
-		Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath),
-	})
+	guessModule()
+	var pkg *ast.Package
+	if !g.options.ServiceSubDir {
+		pkg, err = astPkg(descriptor.GoPackage{
+			Name: file.GoPkg.Name,
+			Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath),
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 	for _, svc := range file.Services {
-		if code, err := g.generateImplService(file, svc, astPkg); err == nil {
+		if g.options.ServiceSubDir {
+			pkg, err = astPkg(descriptor.GoPackage{
+				Name: file.GoPkg.Name,
+				Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName())),
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+		if code, err := g.generateImplService(file, svc, pkg); err == nil {
 			files = append(files, code...)
 		} else {
 			return nil, err
@@ -116,7 +134,12 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 	var files []*plugin.CodeGeneratorResponse_File
 
 	if exists := astTypeExists(implTypeName(svc), astPkg); !exists || g.options.Force {
-		output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.pb.impl.go"), internal.SnakeCase(svc.GetName()))
+		var output string
+		if g.options.ServiceSubDir {
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, nil))
+		} else {
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, nil))
+		}
 		implCode, err := g.getImplTemplate(file, svc, nil)
 
 		if err != nil {
@@ -152,7 +175,12 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descriptor.Service, method *descriptor.Method, astPkg *ast.Package) ([]*plugin.CodeGeneratorResponse_File, error) {
 	methodGoName := goTypeName(method.GetName())
 	if exists := astMethodExists(implTypeName(svc), methodGoName, astPkg); !exists || g.options.Force {
-		output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.%s.pb.impl.go"), internal.SnakeCase(svc.GetName()), internal.SnakeCase(methodGoName))
+		var output string
+		if g.options.ServiceSubDir {
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, method))
+		} else {
+			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, method))
+		}
 		output = filepath.Clean(output)
 		implCode, err := g.getImplTemplate(file, svc, method)
 		if err != nil {
@@ -253,6 +281,13 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 					return
 				}
 				pkgSeen[pkg.Path] = true
+
+				// always generate alias for external packages, when types used in req/resp object
+				if pkg.Alias == "" {
+					pkg.Alias = pkg.Name
+					pkgSeen[pkg.Path] = false
+				}
+
 				imports = append(imports, pkg)
 			}
 
@@ -306,31 +341,46 @@ func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m
 	}
 	fileGoPkg := f.GoPkg
 	if g.options.ImplPath != "" {
-		rootImport := getRootImportPath(f)
-		p.ImplGoPkgPath = filepath.Join(rootImport, g.options.ImplPath)
+		descImport := getDescImportPath(f)
+		p.ImplGoPkgPath = filepath.Join(descImport, g.options.ImplPath)
 		// restore orig f.GoPkg
 		defer func() {
 			f.GoPkg = fileGoPkg
 		}()
-		// set relative f.GoPkg for proper determining package for types from desc import
-		// f.GoPkg uses in function .Method.RequestType.GoType
-		f.GoPkg = g.newGoPackage(rootImport, "desc")
-		f.GoPkg.Name = fileGoPkg.Name
-		pkgSeen[f.GoPkg.Path] = true
-		imports = append(imports, f.GoPkg)
+
+		// Generate desc imports only if need
+		if m != nil &&
+			strings.Index(m.RequestType.File.GoPkg.Path, "/") >= 0 && !strings.HasSuffix(descImport, m.RequestType.File.GoPkg.Path) &&
+			strings.Index(m.ResponseType.File.GoPkg.Path, "/") >= 0 && !strings.HasSuffix(descImport, m.ResponseType.File.GoPkg.Path) {
+		} else {
+
+			// set relative f.GoPkg for proper determining package for types from desc import
+			// f.GoPkg uses in function .Method.RequestType.GoType
+			f.GoPkg = g.newGoPackage(descImport, "desc")
+			f.GoPkg.Name = fileGoPkg.Name
+			pkgSeen[f.GoPkg.Path] = true
+			imports = append(imports, f.GoPkg)
+		}
 	}
 	if m != nil {
 		checkedAppend := func(pkg descriptor.GoPackage) {
-			if m.Options == nil || !proto.HasExtension(m.Options, annotations.E_Http) ||
-				pkg.Path == fileGoPkg.Path || pkgSeen[pkg.Path] {
+			if pkg.Path == fileGoPkg.Path || pkgSeen[pkg.Path] {
 				return
 			}
 			pkgSeen[pkg.Path] = true
+
+			// always generate alias for external packages, when types used in req/resp object
+			if pkg.Alias == "" {
+				pkg.Alias = pkg.Name
+				pkgSeen[pkg.Path] = false
+			}
+
 			imports = append(imports, pkg)
 		}
 		checkedAppend(m.RequestType.File.GoPkg)
 		checkedAppend(m.ResponseType.File.GoPkg)
 	}
+
 	p.Imports = imports
 
 	return applyImplTemplate(p)
@@ -344,45 +394,59 @@ func annotateString(str string) string {
 	return strings.Join(strs, "\n")
 }
 
-func getRootImportPath(file *descriptor.File) string {
-	goImportPath := ""
-	if file.GoPkg.Path != "." {
-		goImportPath = file.GoPkg.Path
-	}
-	// dir is current working directory
-	dir, err := filepath.Abs(".")
+func getDescImportPath(file *descriptor.File) string {
+	// wd is current working directory
+	wd, err := filepath.Abs(".")
 	if err != nil {
 		glog.V(-1).Info(err)
 	}
-	xdir, direrr := filepath.EvalSymlinks(dir)
+	// xwd = wd but after symlink evaluation
+	xwd, direrr := filepath.EvalSymlinks(wd)
+
+	// if we know module
+	if module != "" {
+		return getImportPath(file.GoPkg, wd, "")
+	}
+
 	for _, gp := range strings.Split(build.Default.GOPATH, ":") {
 		gp = filepath.Clean(gp)
 		// xgp = gp but after symlink evaluation
 		xgp, gperr := filepath.EvalSymlinks(gp)
-		if strings.HasPrefix(dir, gp) {
-			return getPackage(dir, gp, goImportPath)
+		if strings.HasPrefix(wd, gp) {
+			return getImportPath(file.GoPkg, wd, gp)
 		}
-		if direrr == nil && strings.HasPrefix(xdir, gp) {
-			return getPackage(xdir, gp, goImportPath)
+		if direrr == nil && strings.HasPrefix(xwd, gp) {
+			return getImportPath(file.GoPkg, xwd, gp)
 		}
-		if gperr == nil && strings.HasPrefix(dir, xgp) {
-			return getPackage(dir, xgp, goImportPath)
+		if gperr == nil && strings.HasPrefix(wd, xgp) {
+			return getImportPath(file.GoPkg, wd, xgp)
 		}
-		if gperr == nil && direrr == nil && strings.HasPrefix(xdir, xgp) {
-			return getPackage(xdir, xgp, goImportPath)
+		if gperr == nil && direrr == nil && strings.HasPrefix(xwd, xgp) {
+			return getImportPath(file.GoPkg, xwd, xgp)
 		}
 	}
 	return ""
 }
 
-func getPackage(path, gopath, gopkg string) string {
-	currentPath := strings.TrimPrefix(path, filepath.Join(gopath, "src")+string(filepath.Separator))
-	if strings.HasPrefix(gopkg, currentPath) {
+// getImportPath returns full go import path for specified gopkg
+// wd - current working directory
+// gopath - current gopath (can be empty if you are not in gopath)
+func getImportPath(goPackage descriptor.GoPackage, wd, gopath string) string {
+	var wdImportPath, gopkg string
+	if goPackage.Path != "." {
+		gopkg = goPackage.Path
+	}
+	if module != "" && moduleDir != "" {
+		wdImportPath = filepath.Join(module, strings.TrimPrefix(wd, moduleDir))
+	} else {
+		wdImportPath = strings.TrimPrefix(wd, filepath.Join(gopath, "src")+string(filepath.Separator))
+	}
+	if strings.HasPrefix(gopkg, wdImportPath) {
 		return gopkg
 	} else if gopkg != "" {
-		return filepath.Join(currentPath, gopkg)
+		return filepath.Join(wdImportPath, gopkg)
 	} else {
-		return currentPath
+		return wdImportPath
 	}
 }
 
@@ -395,14 +459,27 @@ func hasBindings(service *descriptor.Service) bool {
 	return false
 }
 
-func astPkg(pkg descriptor.GoPackage) *ast.Package {
+func astPkg(pkg descriptor.GoPackage) (*ast.Package, error) {
 	fileSet := token.NewFileSet()
-	astPkgs, _ := parser.ParseDir(fileSet, pkg.Path, func(info os.FileInfo) bool {
+	astPkgs, err := parser.ParseDir(fileSet, pkg.Path, func(info os.FileInfo) bool {
 		name := info.Name()
 		return !info.IsDir() && !strings.HasPrefix(name, ".") &&
 			!strings.HasSuffix(name, "_test.go") && strings.HasSuffix(name, ".go")
 	}, parser.DeclarationErrors)
-	return astPkgs[pkg.Name]
+	if filterError(err) != nil {
+		return nil, err
+	}
+	return astPkgs[pkg.Name], nil
+}
+
+func filterError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if _, ok := err.(*os.PathError); ok {
+		return nil
+	}
+	return err
 }
 
 func astTypeExists(typeName string, pkg *ast.Package) bool {
@@ -439,4 +516,54 @@ func astMethodExists(typeName, methodName string, pkg *ast.Package) bool {
 		}
 	}
 	return false
+}
+
+var module string
+var moduleDir string
+var moduleRegExp = regexp.MustCompile("^module (.*?)(?: //.*)?$")
+
+func guessModule() {
+	// dir is current working directory
+	dir, err := filepath.Abs(".")
+	if err != nil {
+		glog.V(-1).Info(err)
+	}
+
+	// try to find go.mod
+	mod := ""
+	root := dir
+	for {
+		if _, err := os.Stat(filepath.Join(root, "go.mod")); err == nil {
+			mod = filepath.Join(root, "go.mod")
+			break
+		}
+		if root == "" {
+			break
+		}
+		d := filepath.Dir(root)
+		if d == root {
+			break
+		}
+		root = d
+	}
+
+	// if go.mod found
+	if mod != "" {
+		glog.V(1).Infof("Found mod file: %s", mod)
+		fd, err := os.Open(mod)
+		if err != nil {
+			glog.V(-1).Info(err)
+		}
+		defer fd.Close()
+		scanner := bufio.NewScanner(fd)
+		for scanner.Scan() {
+			line := scanner.Bytes()
+			if matches := moduleRegExp.FindSubmatch(line); len(matches) > 1 {
+				module = string(matches[1])
+				moduleDir = root
+				glog.V(1).Infof("Current module: %s", module)
+				glog.V(1).Infof("Project directory: %s", moduleDir)
+			}
+		}
+	}
 }

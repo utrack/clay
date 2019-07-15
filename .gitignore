@@ -37,18 +37,42 @@ _testmain.go
 
 # Ignore generated .pb.go files in integration tests
 /integration/**/*.pb.*go
+/integration/**/strings/strings.go
+/integration/**/strings/strings.to_lower.go
+/integration/**/strings/strings.to_upper.go
+/integration/**/pb/to_lower.go
+/integration/**/pb/to_upper.go
+/integration/**/pb/strings.go
+/integration/**/strings/strings2.go
+/integration/**/strings/to_lower.go
+/integration/**/strings/to_upper.go
+/integration/**/strings/to_lower2.go
+/integration/**/strings/to_upper2.go
+/integration/**/strings/strings2.to_lower.go
+/integration/**/strings/strings2.to_upper.go
+/integration/**/strings/empty_response.go
+/integration/**/strings/without_desc.go
+/integration/**/strings/without_desc_and_option.go
+/integration/**/strings2/strings2.go
+/integration/**/strings2/strings2.to_lower.go
+/integration/**/strings2/strings2.to_upper.go
+/integration/**/strings-api/strings_api.go
+/integration/**/strings-api/to_lower.go
+/integration/**/strings-api/to_upper.go
+/integration/snake_case_service/strings/strings_service.go
+/integration/snake_case_service/strings/strings_service.to_upper.go
 # Unignore some files, used in tests
-!/integration/impl_exists/strings/strings.pb.impl.go
-!/integration/impl_exists/strings/strings.to_upper.pb.impl.go
-!/integration/additional_bindings/strings/strings.to_upper.pb.impl.go
-!/integration/binding_with_body_and_response/strings/strings.pb.impl.go
-!/integration/binding_with_body_and_response/strings/strings.to_upper.pb.impl.go
-!/integration/binding_with_repeated_field/strings/strings.to_upper.pb.impl.go
-!/integration/binding_with_different_types/strings/strings.echo.pb.impl.go
-!/integration/binding_with_different_types_post/strings/strings.echo.pb.impl.go
-!/integration/response_vs_response_body/strings/strings.echo.pb.impl.go
-!/integration/response_vs_response_body/strings/strings.echo2.pb.impl.go
-!/integration/panic_in_response_marshaler/strings/strings.echo.pb.impl.go
+!/integration/impl_exists/strings/strings.go
+!/integration/impl_exists/strings/strings.to_upper.go
+!/integration/additional_bindings/strings/strings.to_upper.go
+!/integration/binding_with_body_and_response/strings/strings.go
+!/integration/binding_with_body_and_response/strings/strings.to_upper.go
+!/integration/binding_with_repeated_field/strings/strings.to_upper.go
+!/integration/client_cancel_request/app/strings/strings.to_upper.go
+!/integration/impl_file_name_tmpl/strings/strings.to_upper.go
+!/integration/response_vs_response_body/strings/strings.echo.go
+!/integration/response_vs_response_body/strings/strings.echo2.go
+
 
 # Ignore vendor, needed for better local development
 vendor/

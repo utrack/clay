@@ -12,6 +12,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
 	"github.com/pkg/errors"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
 )
 
 var (
@@ -97,8 +98,37 @@ func goTypeName(s string) string {
 	return strings.Join(toks, ".")
 }
 
+func MustRegisterImplTypeNameTemplate(tmpl string) {
+	implTypeNameTmpl = template.Must(template.New("impl-type-name").Parse(tmpl))
+}
+
+func MustRegisterImplFileNameTemplate(tmpl string) {
+	implFileNameTmpl = template.Must(template.New("impl-file-name").Parse(tmpl))
+}
+
 func implTypeName(service *descriptor.Service) string {
-	return goTypeName(service.GetName()) + "Implementation"
+	type params struct {
+		ServiceName string
+	}
+	var name bytes.Buffer
+	implTypeNameTmpl.Execute(&name, params{ServiceName: goTypeName(service.GetName())})
+	return name.String()
+}
+
+func implFileName(service *descriptor.Service, method *descriptor.Method) string {
+	type params struct {
+		ServiceName string
+		MethodName  string
+	}
+	var name bytes.Buffer
+	p := params{
+		ServiceName: internal.SnakeCase(service.GetName()),
+	}
+	if method != nil {
+		p.MethodName = internal.SnakeCase(goTypeName(method.GetName()))
+	}
+	implFileNameTmpl.Execute(&name, p)
+	return name.String()
 }
 
 // addValueTyped returns code, adding the field value to url.Values.
@@ -395,6 +425,7 @@ func (i *{{ .Method.Service | implTypeName }}) {{ .Method.Name | goTypeName }}(c
 {{ else }}
 type {{ .Service | implTypeName}} struct {}
 
+// New{{ .Service.GetName | goTypeName }} create new {{ .Service | implTypeName}}
 func New{{ .Service.GetName | goTypeName }}() *{{ .Service | implTypeName}} {
     return &{{ .Service | implTypeName}}{}
 }
@@ -405,4 +436,7 @@ func (i *{{ .Service | implTypeName}}) GetDescription() {{ pkg "transport" }}Ser
 }
 {{ end }}
 `))
+	implTypeNameTmpl *template.Template
+
+	implFileNameTmpl *template.Template
 )

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option go_package="github.com/utrack/clay/integration/google_empty/pb/strings";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service Strings {
+    rpc ToUpper (String) returns (String) {
+        option (google.api.http) = {
+            get: "/strings/to_upper/{str}"
+        };
+    }
+    rpc ToLower (String) returns (String) {
+        option (google.api.http) = {
+            post: "/strings/to_lower"
+            body: "*"
+        };
+    }
+    rpc EmptyResponse (EmptyRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/strings/empty"
+        };
+    }
+    rpc WithoutDesc (google.protobuf.Empty) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/strings/without_desc"
+        };
+    }
+    rpc WithoutDescAndOption (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+}
+
+message EmptyRequest {
+    google.protobuf.Timestamp t = 1;
+    google.protobuf.Empty e = 2;
+}
+
+message String {
+    string str = 1;
+}

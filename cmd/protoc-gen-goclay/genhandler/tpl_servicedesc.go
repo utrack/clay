@@ -77,8 +77,13 @@ func (d *{{ $svc.GetName | goTypeName }}Desc) RegisterHTTP(mux {{ pkg "transport
               {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err.Err,"couldn't parse request"))
               return
             }
-            {{ pkg "httpruntime" }}SetError(r.Context(),r,w,{{ pkg "errors" }}Wrap(err,"returned from handler"))
+            {{ pkg "httpruntime" }}SetError(r.Context(),r,w,err)
             return
+        }
+
+        if ctxErr := r.Context().Err(); ctxErr != nil && ctxErr == context.Canceled {
+           w.WriteHeader(499) // Client Closed Request
+           return
         }
 
         _,outbound := {{ pkg "httpruntime" }}MarshalerForRequest(r)

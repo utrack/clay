@@ -4,7 +4,11 @@ pwd:
 	@pwd
 
 clean:
-	find . -regex "\.\/.*\/.*\.go" -exec rm {} +
+	rm -f ./pb/strings/strings.pb.go
+	rm -f ./pb/strings/strings.pb.goclay.go
+	rm -f ./strings/strings.go
+	rm -f ./strings/to_lower.go
+	rm -f ./strings/to_upper.go
 	rm -f main
 
 protoc: protoc-build
