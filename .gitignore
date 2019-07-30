@@ -70,8 +70,8 @@ _testmain.go
 !/integration/binding_with_repeated_field/strings/strings.to_upper.go
 !/integration/client_cancel_request/app/strings/strings.to_upper.go
 !/integration/impl_file_name_tmpl/strings/strings.to_upper.go
-!/integration/response_vs_response_body/strings/strings.echo.go
-!/integration/response_vs_response_body/strings/strings.echo2.go
+!/integration/response_vs_response_body/strings/strings.echo.pb.impl.go
+!/integration/response_vs_response_body/strings/strings.echo2.pb.impl.go
 
 # Ignore vendor, needed for better local development
 vendor/
