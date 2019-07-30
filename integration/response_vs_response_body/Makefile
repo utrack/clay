@@ -4,8 +4,6 @@ GOGO_PKG:=$(shell go list -m all | grep github.com/gogo/protobuf | awk '{print (
 GOGO_VERSION:=$(shell go list -m all | grep github.com/gogo/protobuf | awk '{print ($$5 != "" ? $$5 : $$2)}')
 GOGO_PATH:=${FIRST_GOPATH}/pkg/mod/${GOGO_PKG}@${GOGO_VERSION}
 
-GRPC_GATEWAY_PATH:=/Users/dzenin/dev/pkg/mod/github.com/grpc-ecosystem/grpc-gateway@v1.9.2
-
 pwd:
 	@pwd
 
