@@ -16,3 +16,5 @@ require (
 replace github.com/utrack/clay/v2 => ../..
 
 replace github.com/grpc-ecosystem/grpc-gateway => github.com/grpc-ecosystem/grpc-gateway v1.4.1
+
+replace github.com/gogo/protobuf => github.com/dzendmitry/protobuf v1.3.1

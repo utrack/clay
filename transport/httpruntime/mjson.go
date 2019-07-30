@@ -2,11 +2,12 @@ package httpruntime
 
 import (
 	"io"
+	"io/ioutil"
 	"reflect"
 
 	gogojsonpb "github.com/gogo/protobuf/jsonpb"
+	"github.com/gogo/protobuf/proto"
 	gogoproto "github.com/gogo/protobuf/proto"
-	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 )
 
@@ -56,7 +57,16 @@ func (m MarshalerPbJSON) Unmarshal(r io.Reader, dst interface{}) error {
 			return m.GogoUnmarshaler.Unmarshal(r, pm)
 		}
 	}
-	return m.Unmarshaler.NewDecoder(r).Decode(dst)
+
+	body, err := ioutil.ReadAll(r)
+	if err != nil {
+		return err
+	}
+	if isArray(body) {
+		return m.GogoUnmarshaler.UnmarshalArray(body, dst)
+	}
+
+	return m.Unmarshaler.Unmarshal(body, dst)
 }
 
 func (m MarshalerPbJSON) Marshal(w io.Writer, src interface{}) error {
@@ -65,5 +75,30 @@ func (m MarshalerPbJSON) Marshal(w io.Writer, src interface{}) error {
 			return m.GogoMarshaler.Marshal(w, pm)
 		}
 	}
+	if in := tryToMakeArrayWithData(src); in != nil {
+		return m.GogoMarshaler.MarshalArray(w, in)
+	}
 	return m.Marshaler.NewEncoder(w).Encode(src)
+}
+
+type arrayWithData []interface{}
+func tryToMakeArrayWithData(in interface{}) arrayWithData {
+	switch reflect.TypeOf(in).Kind() {
+	default:
+		return nil
+	case reflect.Slice, reflect.Array:
+		s := reflect.ValueOf(in)
+		b := make(arrayWithData, 0, s.Len())
+		for i := 0; i < s.Len(); i++ {
+			b = append(b, s.Index(i).Interface())
+		}
+		return b
+	}
+}
+
+func isArray(body []byte) bool {
+	if len(body) > 0 && body[0] == '[' && body[len(body)-1] == ']' {
+		return true
+	}
+	return false
 }
