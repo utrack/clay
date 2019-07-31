@@ -129,7 +129,7 @@ func TestEcho(t *testing.T) {
 			}
 
 			ts.Lock()
-			resp2, err := client.Echo2(context.Background(), &stringspb.ListTypes{List: []*stringspb.Types{&tc.req},})
+			resp2, err := client.Echo2(context.Background(), &stringspb.ListTypes{List: []*stringspb.Types{&tc.req}})
 			echoBody2, _ := ioutil.ReadAll(ts.RW)
 			ts.Unlock()
 			if err != nil {
@@ -144,9 +144,9 @@ func TestEcho(t *testing.T) {
 					"got: %#v", tc.req, *resp2.List[0])
 			}
 
-			if "[" +string(echoBody)+"]" != string(echoBody2) {
+			if "["+string(echoBody)+"]" != string(echoBody2) {
 				t.Fatalf("expected <response from echo2> = `[` + <response from echo> +`]`, got\n"+
-					"<response from echo>  = %s\n" +
+					"<response from echo>  = %s\n"+
 					"<response from echo2> = %s", echoBody, echoBody2)
 			}
 		})
