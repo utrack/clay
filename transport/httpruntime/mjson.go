@@ -63,7 +63,10 @@ func (m MarshalerPbJSON) Unmarshal(r io.Reader, dst interface{}) error {
 		return err
 	}
 	if isArray(body) {
-		return m.GogoUnmarshaler.UnmarshalArray(body, dst)
+		err := m.GogoUnmarshaler.UnmarshalArray(body, dst)
+		if err == nil {
+			return nil
+		}
 	}
 
 	return m.Unmarshaler.Unmarshal(body, dst)
