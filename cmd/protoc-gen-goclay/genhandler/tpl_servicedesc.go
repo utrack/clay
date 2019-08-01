@@ -33,7 +33,7 @@ func (d *{{ $svc.GetName | goTypeName }}Desc) Apply(oo ... {{ pkg "transport" }}
 
 // SwaggerDef returns this file's Swagger definition.
 func (d *{{ $svc.GetName | goTypeName }}Desc) SwaggerDef(options ...{{ pkg "swagger" }}Option) (result []byte) {
-    {{ if $.SwaggerBuffer }}if len(options) > 0 {
+    {{ if $.SwaggerBuffer }}if len(options) > 0 || len(d.opts.SwaggerDefaultOpts) > 0 {
         var err error
         var s = &{{ pkg "spec" }}Swagger{}
         if err = s.UnmarshalJSON(_swaggerDef_{{ varName $.GetName }}); err != nil {

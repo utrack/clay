@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+// Strings RPC_COMMENT
+service Strings {
+// ToUpper FUNC1_COMMENT
+    rpc ToUpper (String) returns (String) {
+        option (google.api.http) = {
+            get: "/strings/to_upper/{str}"
+        };
+    }
+// ToLower FUNC2_COMMENT
+    rpc ToLower (String) returns (String) {
+        option (google.api.http) = {
+            post: "/strings/to_lower"
+            body: "*"
+        };
+    }
+}
+
+// String STRUCT_COMMENT
+message String {
+// Str MEM_COMMENT
+    string str = 1;
+}
