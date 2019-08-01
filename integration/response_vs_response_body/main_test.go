@@ -15,6 +15,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	stringspb "github.com/utrack/clay/integration/response_vs_response_body/pb"
 	stringssrv "github.com/utrack/clay/integration/response_vs_response_body/strings"
+	"github.com/utrack/clay/v2/transport/httpruntime"
 )
 
 func TestEcho(t *testing.T) {
@@ -150,6 +151,90 @@ func TestEcho(t *testing.T) {
 					"<response from echo2> = %s", echoBody, echoBody2)
 			}
 		})
+	}
+
+	from := []*CustomType{{
+		A: 3,
+		B: "15",
+		C: 10.0,
+		D: []int{20},
+		E: map[string]interface{}{
+			"F": CustomType{},
+		},
+	}}
+	to := make([]*CustomType, 0)
+
+	var buf bytes.Buffer
+	marshaller := httpruntime.DefaultMarshaler(nil)
+	err := marshaller.Marshal(&buf, from)
+	if err != nil {
+		t.Fatalf("expected err <nil>, got: %q", err)
+	}
+	err = marshaller.Unmarshal(&buf, &to)
+	if err != nil {
+		t.Fatalf("expected err <nil>, got: %q", err)
+	}
+	compareCustomType(t, from, to)
+
+	a := from[0]
+	err = marshaller.Marshal(&buf, a)
+	if err != nil {
+		t.Fatalf("expected err <nil>, got: %q", err)
+	}
+	var b CustomType
+	err = marshaller.Unmarshal(&buf, &b)
+	if err != nil {
+		t.Fatalf("expected err <nil>, got: %q", err)
+	}
+	compareCustomType(t, []*CustomType{a}, []*CustomType{&b})
+}
+
+type CustomType struct {
+	A int64                  `json:"A"`
+	B string                 `json:"B"`
+	C float64                `json:"C"`
+	D []int                  `json:"D"`
+	E map[string]interface{} `json:"E"`
+}
+
+func compareCustomType(t *testing.T, from, to []*CustomType) {
+	if len(from) != len(to) {
+		t.Fatalf("expected len %#v\n"+
+			"got: %#v", len(from), len(to))
+	}
+	for i := range from {
+		if from[i].A != to[i].A {
+			t.Fatalf("expected A %#v\n"+
+				"got: %#v", from[i].A, to[i].A)
+		}
+		if from[i].B != to[i].B {
+			t.Fatalf("expected B %#v\n"+
+				"got: %#v", from[i].B, to[i].B)
+		}
+		if from[i].C != to[i].C {
+			t.Fatalf("expected C %#v\n"+
+				"got: %#v", from[i].C, to[i].C)
+		}
+		if len(from[i].D) != len(from[i].D) {
+			t.Fatalf("expected len D %#v\n"+
+				"got: %#v", len(from[i].D), len(to[i].D))
+		}
+		for id := range from[i].D {
+			if from[i].D[id] != to[i].D[id] {
+				t.Fatalf("expected D %#v\n"+
+					"got: %#v", from[i].D[id], to[i].D[id])
+			}
+		}
+		if len(from[i].E) != len(from[i].E) {
+			t.Fatalf("expected len E %#v\n"+
+				"got: %#v", len(from[i].E), len(to[i].E))
+		}
+		for k := range from[i].E {
+			_, ok := to[i].E[k]
+			if !ok {
+				t.Fatalf("expected key E %#v\n", k)
+			}
+		}
 	}
 }
 

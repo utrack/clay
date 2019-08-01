@@ -63,7 +63,10 @@ func (m MarshalerPbJSON) Unmarshal(r io.Reader, dst interface{}) error {
 		return err
 	}
 	if isArray(body) {
-		return m.GogoUnmarshaler.UnmarshalArray(body, dst)
+		err := m.GogoUnmarshaler.UnmarshalArray(body, dst)
+		if err == nil {
+			return nil
+		}
 	}
 
 	return m.Unmarshaler.Unmarshal(body, dst)
@@ -90,7 +93,11 @@ func tryToMakeArrayWithData(in interface{}) arrayWithData {
 		s := reflect.ValueOf(in)
 		b := make(arrayWithData, 0, s.Len())
 		for i := 0; i < s.Len(); i++ {
-			b = append(b, s.Index(i).Interface())
+			itf := s.Index(i).Interface()
+			if _, ok := itf.(proto.Message); !ok {
+				return nil
+			}
+			b = append(b, itf)
 		}
 		return b
 	}
