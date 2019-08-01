@@ -130,7 +130,7 @@ func TestEcho(t *testing.T) {
 			}
 
 			ts.Lock()
-			resp2, err := client.Echo2(context.Background(), &stringspb.ListTypes{List: []*stringspb.Types{&tc.req},})
+			resp2, err := client.Echo2(context.Background(), &stringspb.ListTypes{List: []*stringspb.Types{&tc.req}})
 			echoBody2, _ := ioutil.ReadAll(ts.RW)
 			ts.Unlock()
 			if err != nil {
@@ -145,9 +145,9 @@ func TestEcho(t *testing.T) {
 					"got: %#v", tc.req, *resp2.List[0])
 			}
 
-			if "[" +string(echoBody)+"]" != string(echoBody2) {
+			if "["+string(echoBody)+"]" != string(echoBody2) {
 				t.Fatalf("expected <response from echo2> = `[` + <response from echo> +`]`, got\n"+
-					"<response from echo>  = %s\n" +
+					"<response from echo>  = %s\n"+
 					"<response from echo2> = %s", echoBody, echoBody2)
 			}
 		})
@@ -174,6 +174,30 @@ func TestEcho(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected err <nil>, got: %q", err)
 	}
+	compareCustomType(t, from, to)
+
+	a := from[0]
+	err = marshaller.Marshal(&buf, a)
+	if err != nil {
+		t.Fatalf("expected err <nil>, got: %q", err)
+	}
+	var b CustomType
+	err = marshaller.Unmarshal(&buf, &b)
+	if err != nil {
+		t.Fatalf("expected err <nil>, got: %q", err)
+	}
+	compareCustomType(t, []*CustomType{a}, []*CustomType{&b})
+}
+
+type CustomType struct {
+	A int64                  `json:"A"`
+	B string                 `json:"B"`
+	C float64                `json:"C"`
+	D []int                  `json:"D"`
+	E map[string]interface{} `json:"E"`
+}
+
+func compareCustomType(t *testing.T, from, to []*CustomType) {
 	if len(from) != len(to) {
 		t.Fatalf("expected len %#v\n"+
 			"got: %#v", len(from), len(to))
@@ -212,14 +236,6 @@ func TestEcho(t *testing.T) {
 			}
 		}
 	}
-}
-
-type CustomType struct {
-	A int64                  `json:"A"`
-	B string                 `json:"B"`
-	C float64                `json:"C"`
-	D []int                  `json:"D"`
-	E map[string]interface{} `json:"E"`
 }
 
 func testServer() *Server {
