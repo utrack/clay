@@ -15,6 +15,5 @@ protoc: protoc-build
 
 build:
 	go build -o main main.go
-	vgo build -o main .
 
 test: pwd clean protoc build
