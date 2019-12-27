@@ -19,12 +19,14 @@ func TestToUpper(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected err <nil>, got: %s", err)
 		}
-		body, err := ioutil.ReadAll(rsp.Body)
+		bodyBytes, err := ioutil.ReadAll(rsp.Body)
 		if err != nil {
 			t.Fatalf("expected err <nil>, got: %s", err)
 		}
-		if string(body) != `["TEST","BOO"]` {
-			t.Fatalf("expected response body `[\"TEST\",\"BOO\"]`, got: %s", body)
+		body := string(bodyBytes)
+		exp := `["TEST","BOO"]` + "\n"
+		if body != exp {
+			t.Fatalf("expected response body `"+exp+"`, got: %s", body)
 		}
 	})
 	t.Run("GET slice of strings in request and slice of strings in response", func(t *testing.T) {
@@ -36,8 +38,9 @@ func TestToUpper(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected err <nil>, got: %s", err)
 		}
-		if string(body) != `["TEST","BOO"]` {
-			t.Fatalf("expected response body `[\"TEST\",\"BOO\"]`, got: %s", body)
+		exp := `["TEST","BOO"]` + "\n"
+		if string(body) != exp {
+			t.Fatalf("expected response body `"+exp+"`, got: %s", body)
 		}
 	})
 	t.Run("check response scheme in swagger json definition", func(t *testing.T) {
