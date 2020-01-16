@@ -14,8 +14,8 @@ export GEN_GOFAST_BIN
 GEN_GOGOFAST_BIN:=$(DIR)/bin/protoc-gen-gogofast
 export GEN_GOGOFAST_BIN
 
-GRPC_GATEWAY_PKG:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$4 != "" ? $$4 : $$1)}')
-GRPC_GATEWAY_VERSION:=$(shell vgo list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$5 != "" ? $$5 : $$2)}')
+GRPC_GATEWAY_PKG:=$(shell go list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$4 != "" ? $$4 : $$1)}')
+GRPC_GATEWAY_VERSION:=$(shell go list -m all | grep github.com/grpc-ecosystem/grpc-gateway | awk '{print ($$5 != "" ? $$5 : $$2)}')
 GRPC_GATEWAY_PATH:=${FIRST_GOPATH}/pkg/mod/${GRPC_GATEWAY_PKG}@${GRPC_GATEWAY_VERSION}
 export GRPC_GATEWAY_PATH
 
@@ -25,7 +25,7 @@ NC=:\033[0m
 
 protoc-build:
 	$(info #Installing binary dependencies...)
-	GOBIN=$(LOCAL_BIN) vgo install github.com/utrack/clay/v2/cmd/protoc-gen-goclay
-	GOBIN=$(LOCAL_BIN) vgo install github.com/golang/protobuf/protoc-gen-go
-	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gofast
-	GOBIN=$(LOCAL_BIN) vgo install github.com/gogo/protobuf/protoc-gen-gogofast
+	GOBIN=$(LOCAL_BIN) go install github.com/utrack/clay/v2/cmd/protoc-gen-goclay
+	GOBIN=$(LOCAL_BIN) go install github.com/golang/protobuf/protoc-gen-go
+	GOBIN=$(LOCAL_BIN) go install github.com/gogo/protobuf/protoc-gen-gofast
+	GOBIN=$(LOCAL_BIN) go install github.com/gogo/protobuf/protoc-gen-gogofast
