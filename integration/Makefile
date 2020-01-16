@@ -2,8 +2,9 @@ all: test
 
 include env.mk
 
-SUBDIRS := $(wildcard */.)
-SUBDIRS := $(filter-out bin/., $(SUBDIRS))
+SUBDIRS := $(wildcard */)
+SUBDIRS := $(dir $(SUBDIRS))
+SUBDIRS := $(filter-out bin/, $(SUBDIRS))
 SUBCLEAN = $(addsuffix .clean,$(SUBDIRS))
 
 
