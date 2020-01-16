@@ -1,7 +1,7 @@
 include ../env.mk
 
-GOGO_PKG:=$(shell vgo list -m all | grep github.com/gogo/protobuf | awk '{print ($$4 != "" ? $$4 : $$1)}')
-GOGO_VERSION:=$(shell vgo list -m all | grep github.com/gogo/protobuf | awk '{print ($$5 != "" ? $$5 : $$2)}')
+GOGO_PKG:=$(shell go list -m all | grep github.com/gogo/protobuf | awk '{print ($$4 != "" ? $$4 : $$1)}')
+GOGO_VERSION:=$(shell go list -m all | grep github.com/gogo/protobuf | awk '{print ($$5 != "" ? $$5 : $$2)}')
 GOGO_PATH:=${FIRST_GOPATH}/pkg/mod/${GOGO_PKG}@${GOGO_VERSION}
 
 pwd:
@@ -20,4 +20,4 @@ build:
 	
 
 test: pwd clean protoc build
-	vgo test -v .
+	go test -v .

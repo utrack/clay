@@ -17,4 +17,4 @@ build:
 
 
 test: pwd clean protoc build
-	vgo test -v .
+	go test -v .

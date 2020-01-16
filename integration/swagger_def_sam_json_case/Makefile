@@ -19,4 +19,4 @@ build:
 
 
 test: pwd clean protoc build
-	vgo test ./pb/strings
+	go test ./pb/strings
