@@ -15,7 +15,6 @@ protoc: protoc-build
 	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:. --gofast_out=plugins=grpc:. --goclay_out=impl=true:. pb/strings.proto
 
 build:
-	go build -o main main.go
-	vgo build -o main .
+	go build -o main .
 
 test: pwd clean protoc build

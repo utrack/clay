@@ -8,11 +8,9 @@ env:
 before_install:
   - ./install-protobuf.sh
   - PATH=/home/travis/bin:$PATH protoc --version
-  # accomodate forks
-  - test ! -d $GOPATH/src/github.com/utrack/clay && mkdir -p $GOPATH/src/github.com/utrack; mv $TRAVIS_BUILD_DIR $_ || true
 
 script:
-  - PATH=/home/travis/bin:$GOPATH/bin:$PATH make integration
+  - GO111MODULE=on PATH=/home/travis/bin:$GOPATH/bin:$PATH make integration
 
 language: go
 
