@@ -45,6 +45,12 @@ func (ts *TransportStream) Method() string {
 
 // SendHeader implements grpc.ServerTransportStream.
 func (ts *TransportStream) SendHeader(md metadata.MD) error {
+	for k := range md {
+		vv := md.Get(k)
+		for i := range vv {
+			ts.w.Header().Add(k, vv[i])
+		}
+	}
 	ts.w.WriteHeader(http.StatusOK)
 	return nil
 }
