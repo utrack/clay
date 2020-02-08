@@ -12,16 +12,13 @@ require (
 	github.com/golang/protobuf v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/grpc-gateway v1.5.0
-	github.com/onsi/ginkgo v1.7.0 // indirect
-	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pkg/errors v0.8.0
-	github.com/sirupsen/logrus v1.0.5
 	github.com/soheilhy/cmux v0.1.4
-	golang.org/x/crypto v0.0.0-20180621125126-a49355c7e3f8 // indirect
 	golang.org/x/net v0.0.0-20181005035420-146acd28ed58
 	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
+	golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e // indirect
 	google.golang.org/genproto v0.0.0-20180918203901-c3f76f3b92d1
 	google.golang.org/grpc v1.16.0
-	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
-	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 )
+
+go 1.13
