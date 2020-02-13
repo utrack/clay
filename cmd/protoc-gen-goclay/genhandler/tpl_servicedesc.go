@@ -5,62 +5,9 @@ import "text/template"
 var regTemplate = template.Must(template.New("svc-reg").Funcs(funcMap).Parse(`
 {{ define "base" }}
 {{ range $svc := .Services }}
-// {{ $svc.GetName | goTypeName }}Desc is a descriptor/registrator for the {{ $svc.GetName | goTypeName  }}Server.
-type {{ $svc.GetName | goTypeName }}Desc struct {
-      svc {{ $svc.GetName | goTypeName }}Server
-      opts {{ pkg "httptransport" }}DescOptions
-}
-
-// New{{ $svc.GetName | goTypeName }}ServiceDesc creates new registrator for the {{ $svc.GetName | goTypeName }}Server.
-// It implements httptransport.ConfigurableServiceDesc as well.
-func New{{ $svc.GetName | goTypeName  }}ServiceDesc(svc {{ $svc.GetName | goTypeName }}Server) *{{ $svc.GetName | goTypeName }}Desc {
-      return &{{ $svc.GetName | goTypeName  }}Desc{
-svc:svc,
-}
-}
-
-// RegisterGRPC implements service registrator interface.
-func (d *{{ $svc.GetName | goTypeName }}Desc) RegisterGRPC(s *{{ pkg "grpc" }}Server) {
-      Register{{ $svc.GetName | goTypeName }}Server(s,d.svc)
-}
-
-// Apply applies passed options. 
-func (d *{{ $svc.GetName | goTypeName }}Desc) Apply(oo ... {{ pkg "transport" }}DescOption) {
-      for _,o := range oo {
-            o.Apply(&d.opts)
-      }
-}
-
-// SwaggerDef returns this file's Swagger definition.
-func (d *{{ $svc.GetName | goTypeName }}Desc) SwaggerDef(options ...{{ pkg "swagger" }}Option) (result []byte) {
-    {{ if $.SwaggerBuffer }}if len(options) > 0 || len(d.opts.SwaggerDefaultOpts) > 0 {
-        var err error
-        var s = &{{ pkg "spec" }}Swagger{}
-        if err = s.UnmarshalJSON(_swaggerDef_{{ varName $.GetName }}); err != nil {
-            panic("Bad swagger definition: " + err.Error())
-        }
-
-        for _, o := range d.opts.SwaggerDefaultOpts {
-            o(s)
-        }
-        for _, o := range options {
-            o(s)
-        }
-        if result, err = s.MarshalJSON(); err != nil {
-            panic("Failed marshal {{ pkg "spec" }}Swagger definition: " + err.Error())
-        }
-    } else {
-        result = _swaggerDef_{{ varName $.GetName }}
-    }
-    {{ end -}}
-    return result
-}
 
 // RegisterHTTP registers this service's HTTP handlers/bindings.
 func (d *{{ $svc.GetName | goTypeName }}Desc) RegisterHTTP(mux {{ pkg "transport" }}Router) {
-    {{ if $svc | hasBindings -}}
-        chiMux, isChi := mux.({{ pkg "chi" }}Router)
-    {{ end }}
     {{ range $m := $svc.Methods }}
     {{ range $b := $m.Bindings -}}
 {
@@ -105,7 +52,6 @@ func (d *{{ $svc.GetName | goTypeName }}Desc) RegisterHTTP(mux {{ pkg "transport
 {{ end }}
 
     if isChi {
-        chiMux.Method("{{ $b.HTTPMethod }}",pattern_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}, h)
     } else {
         {{ if $b.PathParams -}}
             panic("query URI params supported only for {{ pkg "chi" }}Router")
