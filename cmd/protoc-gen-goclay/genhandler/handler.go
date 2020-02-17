@@ -306,13 +306,17 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		}
 	}
 
-	p := param{File: f, Imports: imports,
+	p := param{
+		File:             f,
+		Imports:          imports,
 		ApplyMiddlewares: g.options.ApplyDefaultMiddlewares,
+		Registry:         g.reg,
 	}
 
 	if swagger != nil {
 		p.SwaggerBuffer = swagger
 	}
+
 	return applyDescTemplate(p)
 }
 
