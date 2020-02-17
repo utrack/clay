@@ -29,6 +29,7 @@ func getPkg(name string) string {
 }
 
 type param struct {
+	Registry *descriptor.Registry
 	*descriptor.File
 	Imports          []descriptor.GoPackage
 	SwaggerBuffer    []byte
@@ -279,6 +280,26 @@ var (
 			}
 			return nil
 		},
+		// TODO move reg to map init
+		"createBindingBodyTree": func(b *descriptor.Binding, reg *descriptor.Registry, assignExpr, goPkg string) []string {
+			ret := []string{}
+			for i := 0; i < len(b.Body.FieldPath); i++ {
+				f := b.Body.FieldPath[i]
+				if f.Target.GetType() != pbdescriptor.FieldDescriptorProto_TYPE_MESSAGE ||
+					f.Target.GetLabel() == pbdescriptor.FieldDescriptorProto_LABEL_REPEATED {
+					break
+				}
+				aExpr := b.Body.FieldPath[:i+1]
+				pkg := f.Target.Message.File.GetPackage()
+				fMsg, err := reg.LookupMsg(pkg, f.Target.FieldDescriptorProto.GetTypeName())
+				if err != nil {
+					panic(err)
+				}
+
+				ret = append(ret, aExpr.AssignableExpr(assignExpr)+" = &"+fMsg.GoType(goPkg)+"{}")
+			}
+			return ret
+		},
 	}
 
 	headerTemplate = template.Must(template.New("header").Funcs(funcMap).Parse(`
@@ -374,7 +395,14 @@ var (
 			}
         {{ end }}
         {{- if $b.Body -}}
-            {{- template "unmbody" . -}}
+    {{- range $t := createBindingBodyTree $b $.Registry "req" $.GoPkg.Path }}
+    {{ $t }}
+    {{- end }}
+
+    inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
+    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
+        return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
+    }
         {{- end -}}
         {{- if $b.PathParams -}}
             {{- template "unmpath" . -}}
@@ -388,10 +416,6 @@ var (
 {{ end }}
 {{ end }}
 {{ define "unmbody" }}
-    inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
-    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
-        return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
-    }
 {{ end }}
 {{ define "unmpath" }}
     rctx := {{ pkg "chi" }}RouteContext(r.Context())

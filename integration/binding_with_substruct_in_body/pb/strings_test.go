@@ -1,11 +1,13 @@
 package strings
 
 import (
+	"context"
 	"testing"
 
 	"bytes"
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,6 +16,10 @@ func TestBindingSubstruct(t *testing.T) {
 
 	reqBody := []byte(`{"req":"success"}`)
 	req, err := http.NewRequest("PUT", "/strings/123", bytes.NewReader(reqBody))
+
+	cctx := chi.NewRouteContext()
+	cctx.URLParams.Add("id", "123")
+	req = req.WithContext(context.WithValue(context.Background(), chi.RouteCtxKey, cctx))
 	so.Nil(err)
 
 	got := String{}
@@ -22,5 +28,5 @@ func TestBindingSubstruct(t *testing.T) {
 	err = f(&got)
 	so.Nil(err)
 	so.Equal(int32(123), got.Id)
-	so.Equal("success", got.Substruct.Req)
+	so.Equal("success", got.Substruct.Reqs1.Req)
 }

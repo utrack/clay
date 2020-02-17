@@ -6,7 +6,7 @@ service Strings {
   rpc ToUpper(String) returns (Empty) {
     option (google.api.http) = {
       put : "/strings/{id}"
-      body : "substruct"
+      body : "substruct.reqs1"
     };
   }
 }
@@ -14,7 +14,8 @@ service Strings {
 message Empty {}
 
 message String {
-  message Subtype { string req = 1; }
+  message Subtype { Subtype2 reqs1 = 1; }
+  message Subtype2 { string req = 1; }
   int32 id = 1;
   Subtype substruct = 2;
 }
