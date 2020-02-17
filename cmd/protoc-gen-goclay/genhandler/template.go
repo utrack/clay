@@ -313,9 +313,9 @@ It conforms to the github.com/utrack/clay/v2/transport Service interface.
 */
 package {{ .GoPkg.Name }}
 import (
-    {{ range $i := .Imports }}{{ if $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
+	{{ range $i := .Imports }}{{ if $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
 
-    {{ range $i := .Imports }}{{ if not $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
+	{{ range $i := .Imports }}{{ if not $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
 )
 
 // Update your shared lib or downgrade generator to v1 if there's an error
@@ -382,51 +382,51 @@ var (
 {{ range $svc := .Services }}
 // marshalers for {{ $svc.GetName | goTypeName }}
 var (
-{{ range $m := $svc.Methods }}
-{{ range $b := $m.Bindings }}
+	{{ range $m := $svc.Methods }}
+	{{ range $b := $m.Bindings }}
 
-    unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) func(interface{})(error) {
-    return func(rif interface{}) error {
-        req := rif.(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }})
+	unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) func(interface{})(error) {
+		return func(rif interface{}) error {
+			req := rif.(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }})
 
-        {{ if not (hasAsterisk $b.ExplicitParams) }}
-            if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(req, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
+			{{ if not (hasAsterisk $b.ExplicitParams) }}
+			if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(req, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
 				return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
 			}
-        {{ end }}
-        {{- if $b.Body -}}
-    {{- range $t := createBindingBodyTree $b $.Registry "req" $.GoPkg.Path }}
-    {{ $t }}
-    {{- end }}
+			{{ end }}
+			{{- if $b.Body -}}
+			{{- range $t := createBindingBodyTree $b $.Registry "req" $.GoPkg.Path }}
+			{{ $t }}
+			{{- end }}
 
-    inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
-    if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
-        return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
-    }
-        {{- end -}}
-        {{- if $b.PathParams -}}
-            {{- template "unmpath" . -}}
-        {{ end }}
-        return nil
-    }
-    }
-{{ end }}
-{{ end }}
+			inbound,_ := {{ pkg "httpruntime" }}MarshalerForRequest(r)
+			if err := {{ pkg "errors" }}Wrap(inbound.Unmarshal(r.Body,&{{.Body.AssignableExpr "req"}}),"couldn't read request JSON"); err != nil {
+				return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
+			}
+			{{- end -}}
+			{{- if $b.PathParams -}}
+			{{- template "unmpath" . -}}
+			{{ end }}
+			return nil
+		}
+	}
+	{{ end }}
+	{{ end }}
 )
 {{ end }}
 {{ end }}
 {{ define "unmbody" }}
 {{ end }}
 {{ define "unmpath" }}
-    rctx := {{ pkg "chi" }}RouteContext(r.Context())
-    if rctx == nil {
-        panic("Only chi router is supported for GETs atm")
-    }
-    for pos,k := range rctx.URLParams.Keys {
-        if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
-            return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
-        }
-    }
+rctx := {{ pkg "chi" }}RouteContext(r.Context())
+if rctx == nil {
+	panic("Only chi router is supported for GETs atm")
+}
+for pos,k := range rctx.URLParams.Keys {
+	if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
+		return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
+	}
+}
 {{ end }}
 `))
 
@@ -437,26 +437,26 @@ var (
 package  {{ .GoPkg.Name }}
 
 import (
-    {{ range $i := .Imports }}{{ if $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
+	{{ range $i := .Imports }}{{ if $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
 
-    {{ range $i := .Imports }}{{ if not $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
+	{{ range $i := .Imports }}{{ if not $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
 )
 
 {{ if .Method }}
 func (i *{{ .Method.Service | implTypeName }}) {{ .Method.Name | goTypeName }}(ctx {{ pkg "context" }}Context, req *{{ .Method.RequestType.GoType $.ImplGoPkgPath | goTypeName }}) (*{{ .Method.ResponseType.GoType $.ImplGoPkgPath | goTypeName }}, error) {
-    return nil, {{ pkg "errors" }}New("not implemented")
+	return nil, {{ pkg "errors" }}New("not implemented")
 }
 {{ else }}
 type {{ .Service | implTypeName}} struct {}
 
 // New{{ .Service.GetName | goTypeName }} create new {{ .Service | implTypeName}}
 func New{{ .Service.GetName | goTypeName }}() *{{ .Service | implTypeName}} {
-    return &{{ .Service | implTypeName}}{}
+	return &{{ .Service | implTypeName}}{}
 }
 // GetDescription is a simple alias to the ServiceDesc constructor.
 // It makes it possible to register the service implementation @ the server.
 func (i *{{ .Service | implTypeName}}) GetDescription() {{ pkg "transport" }}ServiceDesc {
-    return {{ pkg "desc" }}New{{ .Service.GetName | goTypeName }}ServiceDesc(i)
+	return {{ pkg "desc" }}New{{ .Service.GetName | goTypeName }}ServiceDesc(i)
 }
 {{ end }}
 `))
