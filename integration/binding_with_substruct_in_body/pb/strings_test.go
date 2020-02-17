@@ -18,7 +18,7 @@ func TestBindingSubstruct(t *testing.T) {
 	req, err := http.NewRequest("PUT", "/strings/123", bytes.NewReader(reqBody))
 
 	cctx := chi.NewRouteContext()
-	cctx.URLParams.Add("id", "123")
+	cctx.URLParams.Add("substruct.id", "123")
 	req = req.WithContext(context.WithValue(context.Background(), chi.RouteCtxKey, cctx))
 	so.Nil(err)
 
@@ -27,6 +27,6 @@ func TestBindingSubstruct(t *testing.T) {
 	f := unmarshaler_goclay_Strings_ToUpper_0(req)
 	err = f(&got)
 	so.Nil(err)
-	so.Equal(int32(123), got.Id)
+	so.Equal(int32(123), got.Substruct.Id)
 	so.Equal("success", got.Substruct.Reqs1.Req)
 }

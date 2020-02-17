@@ -346,33 +346,33 @@ var _ {{ pkg "utilities" }}DoubleArray
 {{ range $svc := .Services }}
 // patterns for {{ $svc.GetName | goTypeName }}
 var (
-{{ range $m := $svc.Methods }}
-{{ range $b := $m.Bindings }}
+	{{ range $m := $svc.Methods }}
+	{{ range $b := $m.Bindings }}
 
 	pattern_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }} = "{{ $b.PathTmpl.Template }}"
 
 	pattern_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_builder = func(in *{{ $m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }}) string {
 		values := url.Values{}
 		{{- if not (hasBody $b) }}
-			{{- range $f := $m.RequestType.Fields }}
-				{{- if not (inPathParams $f $b) }}
-					{{ addValueTyped $f }}
-				{{- end }}
-			{{- end }}
+		{{- range $f := $m.RequestType.Fields }}
+		{{- if not (inPathParams $f $b) }}
+		{{ addValueTyped $f }}
+		{{- end }}
+		{{- end }}
 		{{- end }}
 
 		u := url.URL{
-			Path: {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}" {{ range $p := $b.PathParams }}, in.{{ goTypeName $p.String }}{{ end }}),
+			Path: {{ pkg "fmt" }}Sprintf("{{ arrayToPathInterp $b.PathTmpl.Template }}" {{ range $p := $b.PathParams }}, {{ $p.FieldPath.AssignableExpr "in" }}{{ end }}),
 			RawQuery: values.Encode(),
 		}
 		return u.String()
 	}
 
 	{{ if not (hasAsterisk $b.ExplicitParams) }}
-		unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams = {{ NewQueryParamFilter $b }}
+	unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams = {{ NewQueryParamFilter $b }}
 	{{ end }}
-{{ end }}
-{{ end }}
+	{{ end }}
+	{{ end }}
 )
 {{ end }}
 `))
