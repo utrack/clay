@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/grpc-ecosystem/grpc-gateway/codegenerator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/genhandler"
 )
@@ -48,7 +48,7 @@ func main() {
 	}
 
 	glog.V(2).Info("Parsing code generator request")
-	req, err := codegenerator.ParseRequest(fs)
+	req, err := parseRequest(fs)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -73,6 +73,7 @@ func main() {
 	}
 	reg.SetAllowDeleteBody(*allowDeleteBody)
 	reg.SetPrefix(*importPrefix)
+	reg.SetDisableDefaultErrors(true)
 	for k, v := range pkgMap {
 		reg.AddPkgMap(k, v)
 	}
@@ -185,4 +186,17 @@ func emitResp(out io.Writer, resp *plugin.CodeGeneratorResponse) {
 	if _, err := out.Write(buf); err != nil {
 		glog.Fatal(err)
 	}
+}
+
+// extracted from grpc-gateway pre-1.13.0
+func parseRequest(r io.Reader) (*plugin.CodeGeneratorRequest, error) {
+	input, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read code generator request: %v", err)
+	}
+	req := new(plugin.CodeGeneratorRequest)
+	if err = proto.Unmarshal(input, req); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal code generator request: %v", err)
+	}
+	return req, nil
 }
