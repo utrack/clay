@@ -73,6 +73,7 @@ func main() {
 	}
 	reg.SetAllowDeleteBody(*allowDeleteBody)
 	reg.SetPrefix(*importPrefix)
+	reg.SetDisableDefaultErrors(true)
 	for k, v := range pkgMap {
 		reg.AddPkgMap(k, v)
 	}
