@@ -209,6 +209,7 @@ var (
 		".", "_",
 		"/", "_",
 		"-", "_",
+		"!", "_",
 	)
 	funcMap = template.FuncMap{
 		"hasAsterisk": func(ss []string) bool {
