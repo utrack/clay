@@ -199,6 +199,10 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 			Content: proto.String(string(formatted)),
 		}}
 
+		if !g.options.WithTests {
+			return result, nil
+		}
+
 		testCode, err := g.getTestImpl(file, svc, method)
 		if err != nil {
 			return nil, err
