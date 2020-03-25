@@ -347,7 +347,7 @@ func (g *Generator) getMethodImpl(f *descriptor.File, s *descriptor.Service, m *
 }
 
 func (g *Generator) getTestImpl(f *descriptor.File, s *descriptor.Service, m *descriptor.Method) (string, error) {
-	return applyTestTemplate(g.getImplParam(f, s, m, []string{"context", "testing"}))
+	return applyTestTemplate(g.getImplParam(f, s, m, []string{"context", "testing", "github.com/stretchr/testify/require"}))
 }
 
 func (g *Generator) getImplParam(f *descriptor.File, s *descriptor.Service, m *descriptor.Method, deps []string) implParam {
