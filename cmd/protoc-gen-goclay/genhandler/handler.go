@@ -140,7 +140,7 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 		} else {
 			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, nil))
 		}
-		implCode, err := g.getImplTemplate(file, svc, nil, false)
+		implCode, err := g.getServiceImpl(file, svc)
 
 		if err != nil {
 			return nil, err
@@ -182,7 +182,7 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, method))
 		}
 		output = filepath.Clean(output)
-		implCode, err := g.getImplTemplate(file, svc, method, false)
+		implCode, err := g.getMethodImpl(file, svc, method)
 		if err != nil {
 			return nil, err
 		}
@@ -199,7 +199,7 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 			Content: proto.String(string(formatted)),
 		}}
 
-		testCode, err := g.getImplTemplate(file, svc, method, true)
+		testCode, err := g.getTestImpl(file, svc, method)
 		if err != nil {
 			return nil, err
 		}
@@ -211,8 +211,8 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 		}
 
 		result = append(result, &plugin.CodeGeneratorResponse_File{
-			Name:                 proto.String(strings.TrimSuffix(output, ".go") + "_test.go"),
-			Content:              proto.String(string(formatted)),
+			Name:    proto.String(strings.TrimSuffix(output, ".go") + "_test.go"),
+			Content: proto.String(string(formatted)),
 		})
 
 		return result, nil
@@ -338,20 +338,24 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 	return applyDescTemplate(p)
 }
 
-func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m *descriptor.Method, useForTest bool) (string, error) {
+func (g *Generator) getServiceImpl(f *descriptor.File, s *descriptor.Service) (string, error) {
+	return applyImplTemplate(g.getImplParam(f, s, nil, []string{"github.com/utrack/clay/v2/transport"}))
+}
+
+func (g *Generator) getMethodImpl(f *descriptor.File, s *descriptor.Service, m *descriptor.Method) (string, error) {
+	return applyImplTemplate(g.getImplParam(f, s, m, []string{"context", "github.com/pkg/errors"}))
+}
+
+func (g *Generator) getTestImpl(f *descriptor.File, s *descriptor.Service, m *descriptor.Method) (string, error) {
+	return applyTestTemplate(g.getImplParam(f, s, m, []string{"context", "testing"}))
+}
+
+func (g *Generator) getImplParam(f *descriptor.File, s *descriptor.Service, m *descriptor.Method, deps []string) implParam {
 	pkgSeen := make(map[string]bool)
 	var imports []descriptor.GoPackage
 	for _, pkg := range g.imports {
 		pkgSeen[pkg.Path] = true
 		imports = append(imports, pkg)
-	}
-	deps := make([]string, 0)
-	if m == nil {
-		deps = append(deps, "github.com/utrack/clay/v2/transport")
-	} else if useForTest {
-		deps = append(deps, "context", "testing", "github.com/stretchr/testify/require")
-	} else {
-		deps = append(deps, "context", "github.com/pkg/errors")
 	}
 	for _, pkg := range deps {
 		pkgSeen[pkg] = true
@@ -406,12 +410,7 @@ func (g *Generator) getImplTemplate(f *descriptor.File, s *descriptor.Service, m
 	}
 
 	p.Imports = imports
-
-	if useForTest {
-		return applyTestTemplate(p)
-	}
-
-	return applyImplTemplate(p)
+	return p
 }
 
 func annotateString(str string) string {
