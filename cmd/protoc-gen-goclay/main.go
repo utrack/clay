@@ -28,6 +28,7 @@ var (
 	serviceSubDir        = flag.Bool("impl_service_sub_dir", false, "generate implementation for each service into sub directory")
 	implTypeNameTmpl     = flag.String("impl_type_name_tmpl", "{{ .ServiceName}}Implementation", "template for generating name of implementation structure")
 	implFileNameTmpl     = flag.String("impl_file_name_tmpl", "{{ if .MethodName }}{{ .MethodName }}{{ else }}{{ .ServiceName }}{{ end }}", "template for generating implementations filename")
+	withTests            = flag.Bool("tests", true, "generate simple unit tests for proto Services")
 )
 
 func main() {
@@ -99,6 +100,7 @@ func main() {
 		genhandler.Force(*forceImpl),
 		genhandler.ServiceSubDir(*serviceSubDir),
 		genhandler.ApplyDefaultMiddlewares(*applyHTTPMiddlewares),
+		genhandler.WithTests(*withTests),
 	}
 
 	if *withSwagger {

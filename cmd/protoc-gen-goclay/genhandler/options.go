@@ -9,6 +9,7 @@ type options struct {
 	ServiceSubDir           bool
 	ApplyDefaultMiddlewares bool
 	ImplFileNameTmpl        string
+	WithTests               bool
 }
 
 type Option func(*options)
@@ -60,5 +61,12 @@ func Force(force bool) Option {
 func ServiceSubDir(subDir bool) Option {
 	return func(o *options) {
 		o.ServiceSubDir = subDir
+	}
+}
+
+// WithTests sets if it needs for unit tests generation
+func WithTests(needTests bool) Option {
+	return func(o *options) {
+		o.WithTests = needTests
 	}
 }
