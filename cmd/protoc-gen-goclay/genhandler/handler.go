@@ -353,22 +353,22 @@ func (g *Generator) getServiceImpl(f *descriptor.File, s *descriptor.Service) (s
 
 func (g *Generator) getMethodImpl(s *descriptor.Service, m *descriptor.Method) (string, error) {
 	// restore orig GoPkg
-	savedPkg := m.RequestType.File.GoPkg
+	savedPkg := s.File.GoPkg
 	defer func() {
-		m.RequestType.File.GoPkg = savedPkg
+		s.File.GoPkg = savedPkg
 	}()
 
-	return applyImplTemplate(g.getImplParam(m.RequestType.File, s, m, []string{"context", "github.com/pkg/errors"}))
+	return applyImplTemplate(g.getImplParam(s.File, s, m, []string{"context", "github.com/pkg/errors"}))
 }
 
 func (g *Generator) getTestImpl(s *descriptor.Service, m *descriptor.Method) (string, error) {
 	// restore orig GoPkg
-	savedPkg := m.RequestType.File.GoPkg
+	savedPkg := s.File.GoPkg
 	defer func() {
-		m.RequestType.File.GoPkg = savedPkg
+		s.File.GoPkg = savedPkg
 	}()
 
-	return applyTestTemplate(g.getImplParam(m.RequestType.File, s, m, []string{"context", "testing", "github.com/stretchr/testify/require"}))
+	return applyTestTemplate(g.getImplParam(s.File, s, m, []string{"context", "testing", "github.com/stretchr/testify/require"}))
 }
 
 func (g *Generator) getImplParam(f *descriptor.File, s *descriptor.Service, m *descriptor.Method, deps []string) implParam {
