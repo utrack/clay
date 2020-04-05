@@ -182,7 +182,7 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, method))
 		}
 		output = filepath.Clean(output)
-		implCode, err := g.getMethodImpl(file, svc, method)
+		implCode, err := g.getMethodImpl(svc, method)
 		if err != nil {
 			return nil, err
 		}
@@ -203,7 +203,7 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 			return result, nil
 		}
 
-		testCode, err := g.getTestImpl(file, svc, method)
+		testCode, err := g.getTestImpl(svc, method)
 		if err != nil {
 			return nil, err
 		}
@@ -346,12 +346,24 @@ func (g *Generator) getServiceImpl(f *descriptor.File, s *descriptor.Service) (s
 	return applyImplTemplate(g.getImplParam(f, s, nil, []string{"github.com/utrack/clay/v2/transport"}))
 }
 
-func (g *Generator) getMethodImpl(f *descriptor.File, s *descriptor.Service, m *descriptor.Method) (string, error) {
-	return applyImplTemplate(g.getImplParam(f, s, m, []string{"context", "github.com/pkg/errors"}))
+func (g *Generator) getMethodImpl(s *descriptor.Service, m *descriptor.Method) (string, error) {
+	// restore orig GoPkg
+	savedPkg := m.RequestType.File.GoPkg
+	defer func() {
+		m.RequestType.File.GoPkg = savedPkg
+	}()
+
+	return applyImplTemplate(g.getImplParam(m.RequestType.File, s, m, []string{"context", "github.com/pkg/errors"}))
 }
 
-func (g *Generator) getTestImpl(f *descriptor.File, s *descriptor.Service, m *descriptor.Method) (string, error) {
-	return applyTestTemplate(g.getImplParam(f, s, m, []string{"context", "testing", "github.com/stretchr/testify/require"}))
+func (g *Generator) getTestImpl(s *descriptor.Service, m *descriptor.Method) (string, error) {
+	// restore orig GoPkg
+	savedPkg := m.RequestType.File.GoPkg
+	defer func() {
+		m.RequestType.File.GoPkg = savedPkg
+	}()
+
+	return applyTestTemplate(g.getImplParam(m.RequestType.File, s, m, []string{"context", "testing", "github.com/stretchr/testify/require"}))
 }
 
 func (g *Generator) getImplParam(f *descriptor.File, s *descriptor.Service, m *descriptor.Method, deps []string) implParam {
@@ -375,10 +387,6 @@ func (g *Generator) getImplParam(f *descriptor.File, s *descriptor.Service, m *d
 	if g.options.ImplPath != "" {
 		descImport := getDescImportPath(f)
 		p.ImplGoPkgPath = filepath.Join(descImport, g.options.ImplPath)
-		// restore orig f.GoPkg
-		defer func() {
-			f.GoPkg = fileGoPkg
-		}()
 
 		// Generate desc imports only if need
 		if m != nil &&
