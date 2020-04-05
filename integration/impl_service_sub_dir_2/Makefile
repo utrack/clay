@@ -14,6 +14,8 @@ clean:
 	rm -f ./strings-api/strings_api.go
 	rm -f ./strings-api/to_lower.go
 	rm -f ./strings-api/to_upper.go
+	rm -f ./strings-api/to_lower_test.go
+	rm -f ./strings-api/to_upper_test.go
 	rm -f main
 
 protoc: protoc-build
