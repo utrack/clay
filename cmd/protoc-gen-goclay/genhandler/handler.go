@@ -343,6 +343,11 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 }
 
 func (g *Generator) getServiceImpl(f *descriptor.File, s *descriptor.Service) (string, error) {
+	// restore orig GoPkg
+	savedPkg := f.GoPkg
+	defer func() {
+		f.GoPkg = savedPkg
+	}()
 	return applyImplTemplate(g.getImplParam(f, s, nil, []string{"github.com/utrack/clay/v2/transport"}))
 }
 
