@@ -4,6 +4,7 @@ type options struct {
 	ImplPath                string
 	DescPath                string
 	SwaggerDef              map[string][]byte
+	SwaggerPath             string
 	Impl                    bool
 	Force                   bool
 	ServiceSubDir           bool
@@ -18,6 +19,13 @@ type Option func(*options)
 func SwaggerDef(swaggerDef map[string][]byte) Option {
 	return func(o *options) {
 		o.SwaggerDef = swaggerDef
+	}
+}
+
+// SwaggerPath sets path to store separate swagger files
+func SwaggerPath(swaggerPath string) Option {
+	return func(o *options) {
+		o.SwaggerPath = swaggerPath
 	}
 }
 

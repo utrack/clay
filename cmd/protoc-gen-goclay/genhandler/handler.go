@@ -99,6 +99,31 @@ func (g *Generator) generateDesc(file *descriptor.File) (*plugin.CodeGeneratorRe
 	}, nil
 }
 
+func (g *Generator) generateSwaggerFile(file *descriptor.File) *plugin.CodeGeneratorResponse_File {
+	if g.options.SwaggerPath == "" || len(g.options.SwaggerDef) == 0 {
+		return nil
+	}
+
+	swaggerContent := g.options.SwaggerDef[file.GetName()]
+	if swaggerContent == nil {
+		return nil
+	}
+
+	name := filepath.Base(file.GetName())
+	ext := filepath.Ext(name)
+	base := strings.TrimSuffix(name, ext)
+
+	output := fmt.Sprintf(filepath.Join(g.options.SwaggerPath, "%s.json"), base)
+	output = filepath.Clean(output)
+
+	glog.V(1).Infof("Will emit %s", output)
+
+	return &plugin.CodeGeneratorResponse_File{
+		Name:    proto.String(output),
+		Content: proto.String(string(swaggerContent)),
+	}
+}
+
 func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGeneratorResponse_File, err error) {
 	guessModule()
 	var pkg *ast.Package
@@ -240,6 +265,10 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 			files = append(files, code)
 		} else {
 			return nil, err
+		}
+
+		if swaggerFile := g.generateSwaggerFile(file); swaggerFile != nil {
+			files = append(files, swaggerFile)
 		}
 
 		if g.options.Impl {
