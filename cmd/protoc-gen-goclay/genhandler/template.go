@@ -15,6 +15,10 @@ import (
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
 )
 
+const (
+	nullableOption = "65001:0"
+)
+
 var (
 	errNoTargetService = errors.New("no target service defined in the file")
 )
@@ -306,8 +310,7 @@ var (
 				}
 
 				t := fMsg.GoType(goPkg)
-				// nullable option = 65001:0
-				if f.Target.FieldDescriptorProto.GetOptions().String() != "65001:0" {
+				if f.Target.FieldDescriptorProto.GetOptions().String() != nullableOption {
 					t = "&" + t
 				}
 				ret = append(ret, fmt.Sprintf("%s = %s{}", aExpr.AssignableExpr(assignExpr), t))
