@@ -306,9 +306,8 @@ var (
 				}
 
 				t := fMsg.GoType(goPkg)
-				optionNums := strings.Split(f.Target.FieldDescriptorProto.GetOptions().String(), ":")
-				// nullable = 65001
-				if optionNums[0] != "65001" {
+				// nullable option = 65001:0
+				if f.Target.FieldDescriptorProto.GetOptions().String() != "65001:0" {
 					t = "&" + t
 				}
 				ret = append(ret, fmt.Sprintf("%s = %s{}", aExpr.AssignableExpr(assignExpr), t))
