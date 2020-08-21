@@ -11,6 +11,7 @@ type options struct {
 	ApplyDefaultMiddlewares bool
 	ImplFileNameTmpl        string
 	WithTests               bool
+	ModuleName              string
 }
 
 type Option func(*options)
@@ -26,6 +27,12 @@ func SwaggerDef(swaggerDef map[string][]byte) Option {
 func SwaggerPath(swaggerPath string) Option {
 	return func(o *options) {
 		o.SwaggerPath = swaggerPath
+	}
+}
+
+func ModuleName(name string) Option {
+	return func(o *options) {
+		o.ModuleName = name
 	}
 }
 
