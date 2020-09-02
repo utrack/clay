@@ -310,9 +310,10 @@ var (
 				}
 
 				t := fMsg.GoType(goPkg)
-				if f.Target.FieldDescriptorProto.GetOptions().String() != nullableOption {
+				if strings.Trim(f.Target.FieldDescriptorProto.GetOptions().String(), " ") != nullableOption {
 					t = "&" + t
 				}
+
 				ret = append(ret, fmt.Sprintf("%s = %s{}", aExpr.AssignableExpr(assignExpr), t))
 			}
 			return ret
