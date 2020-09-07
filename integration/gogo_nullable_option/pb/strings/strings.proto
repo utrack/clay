@@ -30,7 +30,7 @@ message Option {
 
 message EncodeRequest {
     string str = 1;
-    Option option = 2 [(gogoproto.nullable) = false];
+    Option option = 2 [(gogoproto.nullable) = false, (gogoproto.jsontag) = "option"];
 }
 
 message EncodeResponse {
@@ -39,7 +39,7 @@ message EncodeResponse {
 
 message DecodeRequest {
     string str = 1;
-    Option option = 2 [(gogoproto.nullable) = true];
+    Option option = 2 [(gogoproto.nullable) = true, (gogoproto.jsontag) = "option"];
 }
 
 message DecodeResponse {

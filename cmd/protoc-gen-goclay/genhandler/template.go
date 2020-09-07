@@ -310,7 +310,15 @@ var (
 				}
 
 				t := fMsg.GoType(goPkg)
-				if strings.Trim(f.Target.FieldDescriptorProto.GetOptions().String(), " ") != nullableOption {
+				isPointerType := true
+				options := strings.Split(strings.Trim(f.Target.FieldDescriptorProto.GetOptions().String(), " "), " ")
+				for _, o := range options {
+					if o == nullableOption {
+						isPointerType = false
+						break
+					}
+				}
+				if isPointerType {
 					t = "&" + t
 				}
 
