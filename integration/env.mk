@@ -19,6 +19,11 @@ GRPC_GATEWAY_VERSION:=$(shell go list -m all | grep github.com/grpc-ecosystem/gr
 GRPC_GATEWAY_PATH:=${FIRST_GOPATH}/pkg/mod/${GRPC_GATEWAY_PKG}@${GRPC_GATEWAY_VERSION}
 export GRPC_GATEWAY_PATH
 
+GRPC_GOGO_PROTO_PKG:=$(shell go list -m all | grep github.com/gogo/protobuf | awk '{print ($$4 != "" ? $$4 : $$1)}')
+GRPC_GOGO_PROTO_VERSION:=$(shell go list -m all | grep github.com/gogo/protobuf | awk '{print ($$5 != "" ? $$5 : $$2)}')
+GPRC_GOGO_PROTO_PATH:=${FIRST_GOPATH}/pkg/mod/${GRPC_GOGO_PROTO_PKG}@${GRPC_GOGO_PROTO_VERSION}/gogoproto
+export GPRC_GOGO_PROTO_PATH
+
 GREEN:=\033[0;32m
 RED:=\033[0;31m
 NC=:\033[0m

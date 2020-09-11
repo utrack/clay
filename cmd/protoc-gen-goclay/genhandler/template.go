@@ -15,6 +15,10 @@ import (
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
 )
 
+const (
+	nullableOption = "65001:0"
+)
+
 var (
 	errNoTargetService = errors.New("no target service defined in the file")
 )
@@ -65,8 +69,6 @@ func applyTestTemplate(p implParam) (string, error) {
 }
 
 func applyDescTemplate(p param) (string, error) {
-	// r := &http.Request{}
-	// r.URL.Query()
 	w := bytes.NewBuffer(nil)
 	if err := headerTemplate.Execute(w, p); err != nil {
 		return "", err
@@ -122,7 +124,7 @@ func implTypeName(service *descriptor.Service) string {
 		ServiceName string
 	}
 	var name bytes.Buffer
-	implTypeNameTmpl.Execute(&name, params{ServiceName: goTypeName(service.GetName())})
+	_ = implTypeNameTmpl.Execute(&name, params{ServiceName: goTypeName(service.GetName())})
 	return name.String()
 }
 
@@ -138,7 +140,7 @@ func implFileName(service *descriptor.Service, method *descriptor.Method) string
 	if method != nil {
 		p.MethodName = internal.SnakeCase(goTypeName(method.GetName()))
 	}
-	implFileNameTmpl.Execute(&name, p)
+	_ = implFileNameTmpl.Execute(&name, p)
 	return name.String()
 }
 
@@ -239,7 +241,7 @@ var (
 		// arrayToPathInterp replaces chi-style path to fmt.Sprint-style path.
 		"arrayToPathInterp": func(tpl string) string {
 			vv := strings.Split(tpl, "/")
-			ret := []string{}
+			var ret []string
 			for _, v := range vv {
 				if strings.HasPrefix(v, "{") {
 					ret = append(ret, "%v")
@@ -293,7 +295,7 @@ var (
 		},
 		// TODO move reg to map init
 		"createBindingBodyTree": func(b *descriptor.Binding, reg *descriptor.Registry, assignExpr, goPkg string) []string {
-			ret := []string{}
+			var ret []string
 			for i := 0; i < len(b.Body.FieldPath); i++ {
 				f := b.Body.FieldPath[i]
 				if f.Target.GetType() != pbdescriptor.FieldDescriptorProto_TYPE_MESSAGE ||
@@ -307,7 +309,20 @@ var (
 					panic(err)
 				}
 
-				ret = append(ret, aExpr.AssignableExpr(assignExpr)+" = &"+fMsg.GoType(goPkg)+"{}")
+				t := fMsg.GoType(goPkg)
+				isPointerType := true
+				options := strings.Split(strings.Trim(f.Target.FieldDescriptorProto.GetOptions().String(), " "), " ")
+				for _, o := range options {
+					if o == nullableOption {
+						isPointerType = false
+						break
+					}
+				}
+				if isPointerType {
+					t = "&" + t
+				}
+
+				ret = append(ret, fmt.Sprintf("%s = %s{}", aExpr.AssignableExpr(assignExpr), t))
 			}
 			return ret
 		},
