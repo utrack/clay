@@ -85,13 +85,6 @@ func TestEcho(t *testing.T) {
 			req:  strings_pb.Types{E: strings_pb.Enum_FOO},
 		},
 	}
-	for i := range tt {
-		if tt[i].req.Bytes == nil {
-			// HTTP Client doesn't skip nils, empty values are passed
-			// So we expect to send and recieve empty slice instead of nil
-			tt[i].req.Bytes = []byte{}
-		}
-	}
 
 	for _, tc := range tt {
 		t.Run(fmt.Sprintf("GET echo request for %s", tc.name), func(t *testing.T) {

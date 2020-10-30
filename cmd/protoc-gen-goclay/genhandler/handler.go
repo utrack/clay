@@ -88,7 +88,11 @@ func (g *Generator) generateDesc(file *descriptor.File) (*plugin.CodeGeneratorRe
 	ext := filepath.Ext(name)
 	base := strings.TrimSuffix(name, ext)
 
-	output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, "%s.pb.goclay.go"), base)
+	dir := file.GoPkg.Path
+	dir = strings.TrimPrefix(dir, g.options.ModuleName)
+	dir = strings.TrimPrefix(dir, "/")
+
+	output := fmt.Sprintf(filepath.Join(dir, "%s.pb.goclay.go"), base)
 	output = filepath.Clean(output)
 
 	glog.V(1).Infof("Will emit %s", output)
@@ -160,10 +164,15 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 
 	if exists := astTypeExists(implTypeName(svc), astPkg); !exists || g.options.Force {
 		var output string
+
+		dir := file.GoPkg.Path
+		dir = strings.TrimPrefix(dir, g.options.ModuleName)
+		dir = strings.TrimPrefix(dir, "/")
+
 		if g.options.ServiceSubDir {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, nil))
+			output = fmt.Sprintf(filepath.Join(dir, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, nil))
 		} else {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, nil))
+			output = fmt.Sprintf(filepath.Join(dir, g.options.ImplPath, "%s.go"), implFileName(svc, nil))
 		}
 		implCode, err := g.getServiceImpl(file, svc)
 
@@ -201,10 +210,15 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 	methodGoName := goTypeName(method.GetName())
 	if exists := astMethodExists(implTypeName(svc), methodGoName, astPkg); !exists || g.options.Force {
 		var output string
+
+		dir := file.GoPkg.Path
+		dir = strings.TrimPrefix(dir, g.options.ModuleName)
+		dir = strings.TrimPrefix(dir, "/")
+
 		if g.options.ServiceSubDir {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, method))
+			output = fmt.Sprintf(filepath.Join(dir, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, method))
 		} else {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, method))
+			output = fmt.Sprintf(filepath.Join(dir, g.options.ImplPath, "%s.go"), implFileName(svc, method))
 		}
 		output = filepath.Clean(output)
 		implCode, err := g.getMethodImpl(svc, method)

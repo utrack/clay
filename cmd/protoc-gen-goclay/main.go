@@ -21,6 +21,7 @@ var (
 	allowDeleteBody      = flag.Bool("allow_delete_body", false, "unless set, HTTP DELETE methods may not have a body")
 	grpcAPIConfiguration = flag.String("grpc_api_configuration", "", "path to gRPC API Configuration in YAML format")
 	withImpl             = flag.Bool("impl", false, "generate simple implementations for proto Services. Implementation will not be generated if it already exists. See also `force` option")
+	module               = flag.String("module", "", "current Go module's name")
 	withSwagger          = flag.Bool("swagger", true, "generate swagger.json")
 	withSwaggerPath      = flag.String("swagger_path", "", "in addition to swagger in pb.goclay.go, generate separate swagger file at provided path")
 	applyHTTPMiddlewares = flag.Bool("http_middlewares", true, "apply default HTTP millewares")
@@ -34,7 +35,7 @@ var (
 
 func main() {
 	flag.Parse()
-	flag.Lookup("logtostderr").Value.Set("true")
+	_ = flag.Lookup("logtostderr").Value.Set("true")
 	defer glog.Flush()
 
 	reg := descriptor.NewRegistry()
@@ -102,6 +103,9 @@ func main() {
 		genhandler.ServiceSubDir(*serviceSubDir),
 		genhandler.ApplyDefaultMiddlewares(*applyHTTPMiddlewares),
 		genhandler.WithTests(*withTests),
+	}
+	if *module != "" {
+		opts = append(opts, genhandler.ModuleName(*module))
 	}
 
 	if *withSwagger {
