@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"github.com/sirupsen/logrus"
-	"github.com/utrack/clay/doc/example/pb"
 	"google.golang.org/grpc"
+
+	"github.com/utrack/clay/doc/example/pb"
 )
 
 func main() {

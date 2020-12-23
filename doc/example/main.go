@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/utrack/clay/v2/transport"
 	"github.com/utrack/clay/v2/transport/middlewares/mwgrpc"
 	"github.com/utrack/clay/v2/transport/server"
-	"golang.org/x/net/context"
 
 	// We're using statik-compiled files of Swagger UI
 	// for the sake of example.
