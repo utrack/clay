@@ -7,7 +7,6 @@ replace github.com/utrack/clay/v2 => ../../
 require (
 	github.com/go-chi/chi v3.3.4+incompatible
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
-	github.com/golang/lint v0.0.0-20180702182130-06c8688daad7 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/grpc-ecosystem/grpc-gateway v1.14.2
 	github.com/pkg/errors v0.8.1
