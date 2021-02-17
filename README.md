@@ -9,6 +9,18 @@ complete Swagger defs with a few lines of code.
 This project provides the HTTP+Swagger handler generator and optional server that you
 can use to serve your handlers via any protocol.
 
+# Deprecation
+This project supports only legacy Protobuf API ([golang/protobuf](https://github.com/golang/protobuf) and protoc-gen-go <v1.20.0).
+These APIs were superseded by module [google.golang.org/protobuf](https://pkg.go.dev/mod/google.golang.org/protobuf).
+
+Read more about this migration here: https://blog.golang.org/protobuf-apiv2 .
+
+[grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) is an excellent alternative to clay.
+
+[golang/protobuf](https://github.com/golang/protobuf) >=v1.40.0 (a shim between APIs v1/v2) makes clay compatible with v2 APIs, though there's no promises on future compatibility.
+
+It is possible to upgrade clay to v2 APIs, but there's no other maintainers and my own work has gone elsewhere. PM me or fork the repo if you want to become a new maintainer.
+
 ## Requirements
 
 Since new [Semantic Import Versioning](https://research.swtch.com/vgo-import) is used, you are required to
