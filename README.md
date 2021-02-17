@@ -9,7 +9,7 @@ complete Swagger defs with a few lines of code.
 This project provides the HTTP+Swagger handler generator and optional server that you
 can use to serve your handlers via any protocol.
 
-# Deprecation
+# Deprecation / Looking for maintainers
 This project supports only legacy Protobuf API ([golang/protobuf](https://github.com/golang/protobuf) and protoc-gen-go <v1.20.0).
 These APIs were superseded by module [google.golang.org/protobuf](https://pkg.go.dev/mod/google.golang.org/protobuf).
 
