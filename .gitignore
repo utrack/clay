@@ -151,3 +151,6 @@ vendor/
 /integration/swagger_def_sam_json_case/strings/to_upper_test.go
 /integration/swagger_default_options/strings/to_lower_test.go
 /integration/swagger_default_options/strings/to_upper_test.go
+
+# ignore binaries for generating the example
+/doc/example/bin/**
