@@ -319,7 +319,6 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"github.com/go-chi/chi",
 		"github.com/pkg/errors",
 		"github.com/utrack/clay/v2/transport",
-		"github.com/golang/protobuf/proto",
 	}
 
 	if swagger != nil {

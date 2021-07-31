@@ -414,12 +414,9 @@ var (
 	unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) func(interface{})(error) {
 		return func(rif interface{}) error {
 			req := rif.(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }})
-			{{ if or ($b.PathParams) (not (hasAsterisk $b.ExplicitParams)) -}}
-			msg := {{ pkg "proto" }}MessageV2(req)
-			{{- end }}
 
 			{{ if not (hasAsterisk $b.ExplicitParams) }}
-			if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(msg, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
+			if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(req, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
 				return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
 			}
 			{{ end }}
@@ -452,7 +449,7 @@ if rctx == nil {
 	panic("Only chi router is supported for GETs atm")
 }
 for pos,k := range rctx.URLParams.Keys {
-	if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(msg, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
+	if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
 		return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
 	}
 }
