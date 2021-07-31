@@ -131,6 +131,7 @@ func getTestSvc() (*StringsImplementation, *httptest.Server) {
 
 type StringsImplementation struct {
 	f func(ctx context.Context, req *String) (*String, error)
+	UnimplementedStringsServer
 }
 
 func NewStrings() *StringsImplementation {

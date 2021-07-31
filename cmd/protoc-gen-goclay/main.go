@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/genhandler"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/descriptor"
+	"google.golang.org/protobuf/proto"
+	plugin "google.golang.org/protobuf/types/pluginpb"
 )
 
 var (
@@ -30,12 +30,16 @@ var (
 	implTypeNameTmpl     = flag.String("impl_type_name_tmpl", "{{ .ServiceName}}Implementation", "template for generating name of implementation structure")
 	implFileNameTmpl     = flag.String("impl_file_name_tmpl", "{{ if .MethodName }}{{ .MethodName }}{{ else }}{{ .ServiceName }}{{ end }}", "template for generating implementations filename")
 	withTests            = flag.Bool("tests", true, "generate simple unit tests for proto Services")
+	pathsParam           = flag.String("paths", "", "if you want to use source_relative instead of import which is default (see google.golang.org/protobuf@v1.27.1/compiler/protogen/protogen.go:177 for more details)")
 )
 
 func main() {
 	flag.Parse()
 	flag.Lookup("logtostderr").Value.Set("true")
 	defer glog.Flush()
+
+	// for debugging, set it to something like 5
+	flag.Lookup("v").Value.Set("0")
 
 	reg := descriptor.NewRegistry()
 
@@ -111,6 +115,16 @@ func main() {
 			return
 		}
 		opts = append(opts, genhandler.SwaggerDef(swagBuf))
+	}
+
+	if *pathsParam != "" {
+		switch *pathsParam {
+		case genhandler.PathsParamTypeImport:
+		case genhandler.PathsParamTypeSourceRelative:
+			opts = append(opts, genhandler.PathsType(*pathsParam))
+		default:
+			emitError(fmt.Errorf("unexpected value for paths option: %q, expected one of `import`, `source_relative`", *pathsParam))
+		}
 	}
 
 	if *withSwaggerPath != "" {

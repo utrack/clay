@@ -5,6 +5,7 @@ pwd:
 
 clean:
 	rm -f ./pb/strings.pb.go
+	rm -f ./pb/strings_grpc.pb.go
 	rm -f ./pb/strings.pb.goclay.go
 	rm -f ./strings/strings.go
 	rm -f ./strings/to_upper.go
@@ -14,9 +15,15 @@ clean:
 protoc: protoc-build
 	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:. --gofast_out=plugins=grpc:. --goclay_out=impl_service_sub_dir=true,force=false,impl=true,impl_path=..:. pb/strings.proto
 
-build:
-	go build -o main main.go
+protoc: protoc-build
+	protoc \
+		--plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --goclay_out=. --goclay_opt=impl_service_sub_dir=true,force=false,impl=true,impl_path=..,paths=source_relative \
+		--plugin=protoc-gen-go=$(GEN_GO_BIN) --go_out=. --go_opt=paths=source_relative \
+		--plugin=protoc-gen-go-grpc=$(GEN_GO_GRPC_BIN) --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		-I/usr/local/include:${THIRD_PARTY_PROTO_PATH}:. \
+		pb/strings.proto
 
+build: .build
 
 test: pwd clean protoc build
-	go test -v ./strings
+	go test -v ./...

@@ -54,7 +54,7 @@ func TestToUpper(t *testing.T) {
 		}
 		var s = &spec.Swagger{}
 		if err = s.UnmarshalJSON(body); err != nil {
-			t.Fatalf("expected err <nil> during unmarshal swagger json, got: %s, swagger.json: %s", err, body)
+			t.Fatalf("expected err <nil> during unmarshal swagger json, got: %s, swagger.json: %q", err, body)
 		}
 		var schemaType *string
 		func() {

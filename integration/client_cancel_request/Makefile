@@ -5,16 +5,21 @@ pwd:
 
 clean:
 	rm -f ./pkg/strings/strings.pb.go
+	rm -f ./pkg/strings/strings_grpc.pb.go
 	rm -f ./pkg/strings/strings.pb.goclay.go
 	rm -f ./app/strings/strings.go
 	rm -f main
 
 protoc: protoc-build
-	cd pkg/strings && protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I../../api:/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis --gofast_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../../app/strings:. ../../api/strings.proto
+	cd pkg/strings && \
+	protoc \
+		--plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --goclay_out=impl=true,impl_path=../../app/strings:. \
+		--plugin=protoc-gen-go=$(GEN_GO_BIN) --go_out=. --go_opt=paths=source_relative \
+		--plugin=protoc-gen-go-grpc=$(GEN_GO_GRPC_BIN) --go-grpc_out=. --go-grpc_opt paths=source_relative \
+		-I../../api:/usr/local/include:${THIRD_PARTY_PROTO_PATH}:. \
+		strings.proto
 
-build:
-	go build -o main main.go
-
+build: .build
 
 test: pwd clean protoc build
-	go test -v .
+	go test -v ./...

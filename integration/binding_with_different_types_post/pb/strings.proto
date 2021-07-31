@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "./pb;strings";
+
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";

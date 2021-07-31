@@ -15,11 +15,12 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/descriptor"
+	"golang.org/x/tools/imports"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
+	plugin "google.golang.org/protobuf/types/pluginpb"
 )
 
 type Generator struct {
@@ -79,23 +80,26 @@ func (g *Generator) generateDesc(file *descriptor.File) (*plugin.CodeGeneratorRe
 	if err != nil {
 		return nil, err
 	}
-	formatted, err := format.Source([]byte(descCode))
-	if err != nil {
-		glog.Errorf("%v: %s", err, annotateString(descCode))
-		return nil, err
-	}
 	name := filepath.Base(file.GetName())
 	ext := filepath.Ext(name)
 	base := strings.TrimSuffix(name, ext)
 
-	output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, "%s.pb.goclay.go"), base)
+	prefix := g.pathPrefixFor(file)
+	output := fmt.Sprintf(filepath.Join(prefix, "%s.pb.goclay.go"), base)
 	output = filepath.Clean(output)
+
+	// removing redundant imports from desc files (tested while generating integration/no_bindings/pb/strings.pb.goclay.go)
+	descCode, err = prettifyCode(output, descCode)
+	if err != nil {
+		glog.Errorf("%v: %s", err, annotateString(descCode))
+		return nil, err
+	}
 
 	glog.V(1).Infof("Will emit %s", output)
 
 	return &plugin.CodeGeneratorResponse_File{
 		Name:    proto.String(output),
-		Content: proto.String(string(formatted)),
+		Content: proto.String(descCode),
 	}, nil
 }
 
@@ -126,11 +130,13 @@ func (g *Generator) generateSwaggerFile(file *descriptor.File) *plugin.CodeGener
 
 func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGeneratorResponse_File, err error) {
 	guessModule()
+	prefix := g.pathPrefixFor(file)
+
 	var pkg *ast.Package
 	if !g.options.ServiceSubDir {
 		pkg, err = astPkg(descriptor.GoPackage{
 			Name: file.GoPkg.Name,
-			Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath),
+			Path: filepath.Join(prefix, g.options.ImplPath),
 		})
 		if err != nil {
 			return nil, err
@@ -140,7 +146,7 @@ func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGen
 		if g.options.ServiceSubDir {
 			pkg, err = astPkg(descriptor.GoPackage{
 				Name: file.GoPkg.Name,
-				Path: filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName())),
+				Path: filepath.Join(prefix, g.options.ImplPath, internal.KebabCase(svc.GetName())),
 			})
 			if err != nil {
 				return nil, err
@@ -159,11 +165,12 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 	var files []*plugin.CodeGeneratorResponse_File
 
 	if exists := astTypeExists(implTypeName(svc), astPkg); !exists || g.options.Force {
+		prefix := g.pathPrefixFor(file)
 		var output string
 		if g.options.ServiceSubDir {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, nil))
+			output = fmt.Sprintf(filepath.Join(prefix, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, nil))
 		} else {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, nil))
+			output = fmt.Sprintf(filepath.Join(prefix, g.options.ImplPath, "%s.go"), implFileName(svc, nil))
 		}
 		implCode, err := g.getServiceImpl(file, svc)
 
@@ -200,18 +207,19 @@ func (g *Generator) generateImplService(file *descriptor.File, svc *descriptor.S
 func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descriptor.Service, method *descriptor.Method, astPkg *ast.Package) ([]*plugin.CodeGeneratorResponse_File, error) {
 	methodGoName := goTypeName(method.GetName())
 	if exists := astMethodExists(implTypeName(svc), methodGoName, astPkg); !exists || g.options.Force {
+		prefix := g.pathPrefixFor(file)
 		var output string
 		if g.options.ServiceSubDir {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, method))
+			output = fmt.Sprintf(filepath.Join(prefix, g.options.ImplPath, internal.KebabCase(svc.GetName()), "%s.go"), implFileName(svc, method))
 		} else {
-			output = fmt.Sprintf(filepath.Join(file.GoPkg.Path, g.options.ImplPath, "%s.go"), implFileName(svc, method))
+			output = fmt.Sprintf(filepath.Join(prefix, g.options.ImplPath, "%s.go"), implFileName(svc, method))
 		}
 		output = filepath.Clean(output)
 		implCode, err := g.getMethodImpl(svc, method)
 		if err != nil {
 			return nil, err
 		}
-		formatted, err := format.Source([]byte(implCode))
+		implCode, err = prettifyCode(output, implCode)
 		if err != nil {
 			glog.Errorf("%v: %s", err, annotateString(implCode))
 			return nil, err
@@ -221,7 +229,7 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 
 		result := []*plugin.CodeGeneratorResponse_File{{
 			Name:    proto.String(output),
-			Content: proto.String(string(formatted)),
+			Content: proto.String(implCode),
 		}}
 
 		if !g.options.WithTests {
@@ -233,7 +241,8 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 			return nil, err
 		}
 
-		formatted, err = format.Source([]byte(testCode))
+		// removing redundant imports from test files (tested while generating integration/google_empty/strings/empty_response_test.go)
+		testCode, err = prettifyCode(output, testCode)
 		if err != nil {
 			glog.Errorf("%v: %s", err, annotateString(testCode))
 			return nil, err
@@ -241,7 +250,7 @@ func (g *Generator) generateImplServiceMethod(file *descriptor.File, svc *descri
 
 		result = append(result, &plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(strings.TrimSuffix(output, ".go") + "_test.go"),
-			Content: proto.String(string(formatted)),
+			Content: proto.String(testCode),
 		})
 
 		return result, nil
@@ -285,10 +294,10 @@ func (g *Generator) Generate(targets []*descriptor.File) ([]*plugin.CodeGenerato
 
 func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string, error) {
 	pkgSeen := make(map[string]bool)
-	var imports []descriptor.GoPackage
+	var allImports []descriptor.GoPackage
 	for _, pkg := range g.imports {
 		pkgSeen[pkg.Path] = true
-		imports = append(imports, pkg)
+		allImports = append(allImports, pkg)
 	}
 
 	pkgs := []string{
@@ -304,12 +313,13 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		"github.com/utrack/clay/v2/transport/httpruntime",
 		"github.com/utrack/clay/v2/transport/httptransport",
 		"github.com/utrack/clay/v2/transport/swagger",
-		"github.com/grpc-ecosystem/grpc-gateway/runtime",
-		"github.com/grpc-ecosystem/grpc-gateway/utilities",
+		"github.com/grpc-ecosystem/grpc-gateway/v2/runtime",
+		"github.com/grpc-ecosystem/grpc-gateway/v2/utilities",
 		"google.golang.org/grpc",
 		"github.com/go-chi/chi",
 		"github.com/pkg/errors",
 		"github.com/utrack/clay/v2/transport",
+		"github.com/golang/protobuf/proto",
 	}
 
 	if swagger != nil {
@@ -318,7 +328,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 
 	for _, pkg := range pkgs {
 		pkgSeen[pkg] = true
-		imports = append(imports, g.newGoPackage(pkg))
+		allImports = append(allImports, g.newGoPackage(pkg))
 	}
 
 	httpmw := g.newGoPackage("github.com/utrack/clay/v2/transport/httpruntime/httpmw")
@@ -339,7 +349,7 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 					pkgSeen[pkg.Path] = false
 				}
 
-				imports = append(imports, pkg)
+				allImports = append(allImports, pkg)
 			}
 
 			checkedAppend(m.RequestType.File.GoPkg)
@@ -347,19 +357,19 @@ func (g *Generator) getDescTemplate(swagger []byte, f *descriptor.File) (string,
 		}
 
 		if hasBindings(svc) && !pkgSeen[httpcli.Path] {
-			imports = append(imports, httpcli)
+			allImports = append(allImports, httpcli)
 			pkgSeen[httpcli.Path] = true
 		}
 
 		if g.options.ApplyDefaultMiddlewares && hasBindings(svc) && !pkgSeen[httpmw.Path] {
-			imports = append(imports, httpmw)
+			allImports = append(allImports, httpmw)
 			pkgSeen[httpmw.Path] = true
 		}
 	}
 
 	p := param{
 		File:             f,
-		Imports:          imports,
+		Imports:          allImports,
 		ApplyMiddlewares: g.options.ApplyDefaultMiddlewares,
 		Registry:         g.reg,
 	}
@@ -422,12 +432,21 @@ func (g *Generator) getImplParam(f *descriptor.File, s *descriptor.Service, m *d
 		descImport := getDescImportPath(f)
 		p.ImplGoPkgPath = filepath.Join(descImport, g.options.ImplPath)
 
+		var (
+			cleanedPkgPathRequest  string
+			cleanedPkgPathResponse string
+		)
+		if m != nil {
+			// fixing relative paths in proto file (like option go_package = "./pb;strings";).
+			cleanedPkgPathRequest = strings.TrimPrefix(m.RequestType.File.GoPkg.Path, "./")
+			cleanedPkgPathResponse = strings.TrimPrefix(m.ResponseType.File.GoPkg.Path, "./")
+		}
+
 		// Generate desc imports only if need
 		if m != nil &&
-			strings.Index(m.RequestType.File.GoPkg.Path, "/") >= 0 && !strings.HasSuffix(descImport, m.RequestType.File.GoPkg.Path) &&
-			strings.Index(m.ResponseType.File.GoPkg.Path, "/") >= 0 && !strings.HasSuffix(descImport, m.ResponseType.File.GoPkg.Path) {
+			strings.Index(cleanedPkgPathRequest, "/") >= 0 && !strings.HasSuffix(descImport, cleanedPkgPathRequest) &&
+			strings.Index(cleanedPkgPathResponse, "/") >= 0 && !strings.HasSuffix(descImport, cleanedPkgPathResponse) {
 		} else {
-
 			// set relative f.GoPkg for proper determining package for types from desc import
 			// f.GoPkg uses in function .Method.RequestType.GoType
 			f.GoPkg = g.newGoPackage(descImport, "desc")
@@ -459,12 +478,36 @@ func (g *Generator) getImplParam(f *descriptor.File, s *descriptor.Service, m *d
 	return p
 }
 
+// protobuf-v2 has an option to store generated pb relative to protofile path, which is widely used.
+// 	More on implementation details - google.golang.org/protobuf@v1.27.1/compiler/protogen/protogen.go:432.
+func (g *Generator) pathPrefixFor(file *descriptor.File) string {
+	if g.options.PathsParamType == PathsParamTypeSourceRelative {
+		return strings.TrimSuffix(file.GeneratedFilenamePrefix, filepath.Base(file.GeneratedFilenamePrefix))
+	}
+	return file.GoPkg.Path
+}
+
 func annotateString(str string) string {
 	strs := strings.Split(str, "\n")
 	for pos := range strs {
 		strs[pos] = fmt.Sprintf("%v: %v", pos, strs[pos])
 	}
 	return strings.Join(strs, "\n")
+}
+
+// prettifyCode is applying gofmt and goimports to the file contents given.
+func prettifyCode(filePath string, code string) (string, error) {
+	formatted, err := format.Source([]byte(code))
+	if err != nil {
+		return "", err
+	}
+
+	formatted, err = imports.Process(filePath, formatted, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(formatted), nil
 }
 
 func getDescImportPath(file *descriptor.File) string {

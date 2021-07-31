@@ -7,12 +7,12 @@ import (
 	"strings"
 	"text/template"
 
-	pbdescriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/generator"
-	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
-	"github.com/grpc-ecosystem/grpc-gateway/utilities"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pkg/errors"
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/casing"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/descriptor"
+	pbdescriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 
 const (
@@ -106,7 +106,7 @@ func goTypeName(s string) string {
 		i = 1
 	}
 	for pos := range toks[i:] {
-		toks[pos+i] = generator.CamelCase(toks[pos+i])
+		toks[pos+i] = casing.Camel(toks[pos+i])
 	}
 	return strings.Join(toks, ".")
 }
@@ -414,9 +414,12 @@ var (
 	unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }} = func(r *{{ pkg "http" }}Request) func(interface{})(error) {
 		return func(rif interface{}) error {
 			req := rif.(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }})
+			{{ if or ($b.PathParams) (not (hasAsterisk $b.ExplicitParams)) -}}
+			msg := {{ pkg "proto" }}MessageV2(req)
+			{{- end }}
 
 			{{ if not (hasAsterisk $b.ExplicitParams) }}
-			if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(req, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
+			if err := {{ pkg "errors" }}Wrap({{ pkg "runtime" }}PopulateQueryParameters(msg, r.URL.Query(), unmarshaler_goclay_{{ $svc.GetName | goTypeName }}_{{ $m.GetName }}_{{ $b.Index }}_boundParams),"couldn't populate query parameters"); err != nil {
 				return {{ pkg "httpruntime" }}TransformUnmarshalerError(err)
 			}
 			{{ end }}
@@ -449,7 +452,7 @@ if rctx == nil {
 	panic("Only chi router is supported for GETs atm")
 }
 for pos,k := range rctx.URLParams.Keys {
-	if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(req, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
+	if err := {{ pkg "errors" }}Wrapf({{ pkg "runtime" }}PopulateFieldFromPath(msg, k, rctx.URLParams.Values[pos]), "can't read '%v' from path",k); err != nil {
 		return {{ pkg "httptransport" }}NewMarshalerError({{ pkg "httpruntime" }}TransformUnmarshalerError(err))
 	}
 }
@@ -473,7 +476,9 @@ func (i *{{ .Method.Service | implTypeName }}) {{ .Method.Name | goTypeName }}(c
 	return nil, {{ pkg "errors" }}New("{{ .Method.Name | goTypeName }} not implemented")
 }
 {{ else }}
-type {{ .Service | implTypeName}} struct {}
+type {{ .Service | implTypeName}} struct {
+	{{ pkg "desc" }}Unimplemented{{ .Service.GetName | goTypeName }}Server
+}
 
 // New{{ .Service.GetName | goTypeName }} create new {{ .Service | implTypeName}}
 func New{{ .Service.GetName | goTypeName }}() *{{ .Service | implTypeName}} {

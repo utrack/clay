@@ -1,5 +1,11 @@
 package genhandler
 
+// protobuf-v2 has an option to store generated pb near protofile (google.golang.org/protobuf@v1.27.1/compiler/protogen/protogen.go:432).
+const (
+	PathsParamTypeImport         = "import"
+	PathsParamTypeSourceRelative = "source_relative"
+)
+
 type options struct {
 	ImplPath                string
 	DescPath                string
@@ -11,6 +17,7 @@ type options struct {
 	ApplyDefaultMiddlewares bool
 	ImplFileNameTmpl        string
 	WithTests               bool
+	PathsParamType          string
 }
 
 type Option func(*options)
@@ -76,5 +83,12 @@ func ServiceSubDir(subDir bool) Option {
 func WithTests(needTests bool) Option {
 	return func(o *options) {
 		o.WithTests = needTests
+	}
+}
+
+// PathsType is for compatibility with google.golang.org/protobuf (aka protobuf-v2).
+func PathsType(pathsParamType string) Option {
+	return func(o *options) {
+		o.PathsParamType = pathsParamType
 	}
 }

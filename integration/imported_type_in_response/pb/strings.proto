@@ -1,7 +1,10 @@
 syntax = "proto3";
 
+option go_package="./pb;strings";
+
 import "google/api/annotations.proto";
-import "github.com/utrack/clay/integration/imported_type_in_request/test/test.proto";
+// FIXME revert bullgare back to utrack
+import "github.com/bullgare/clay/integration/imported_type_in_response/test/test.proto";
 
 service Strings {
     rpc ToUpper (String) returns (test.String1) {

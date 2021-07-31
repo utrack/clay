@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package="./pb;my_lovely_strings";
+
 package my.lovely.strings;
 
 import "google/api/annotations.proto";

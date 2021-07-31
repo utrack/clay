@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package="./pb;strings";
+
 service Strings {
     rpc ToUpper (String) returns (String) {}
     rpc ToLower (String) returns (String) {}

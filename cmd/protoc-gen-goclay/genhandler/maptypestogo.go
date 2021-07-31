@@ -1,7 +1,7 @@
 package genhandler
 
 import (
-	pbdescriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	pbdescriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // copied from genswagger

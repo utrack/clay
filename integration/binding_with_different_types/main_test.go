@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	strings_pb "github.com/utrack/clay/integration/binding_with_different_types/pb"
 	strings_srv "github.com/utrack/clay/integration/binding_with_different_types/strings"
 )
@@ -85,13 +86,14 @@ func TestEcho(t *testing.T) {
 			req:  strings_pb.Types{E: strings_pb.Enum_FOO},
 		},
 	}
-	for i := range tt {
-		if tt[i].req.Bytes == nil {
-			// HTTP Client doesn't skip nils, empty values are passed
-			// So we expect to send and recieve empty slice instead of nil
-			tt[i].req.Bytes = []byte{}
-		}
-	}
+
+	// for i := range tt {
+	// 	if tt[i].req.Bytes == nil {
+	// 		// HTTP Client doesn't skip nils, empty values are passed
+	// 		// So we expect to send and recieve empty slice instead of nil
+	// 		tt[i].req.Bytes = []byte{}
+	// 	}
+	// }
 
 	for _, tc := range tt {
 		t.Run(fmt.Sprintf("GET echo request for %s", tc.name), func(t *testing.T) {
@@ -106,9 +108,8 @@ func TestEcho(t *testing.T) {
 				t.Fatalf("expected non-nil response, got nil")
 			}
 
-			if !reflect.DeepEqual(*resp, tc.req) {
-				t.Fatalf("expected %#v\n"+
-					"got: %#v", tc.req, *resp)
+			if diff := cmp.Diff(tc.req, *resp, cmpopts.IgnoreUnexported(strings_pb.Types{})); diff != "" {
+				t.Fatalf("unexpected response (-want +got):\n%s", diff)
 			}
 		})
 	}

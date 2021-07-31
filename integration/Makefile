@@ -3,7 +3,7 @@ all: test
 include env.mk
 
 SUBDIRS := $(wildcard */)
-SUBDIRS := $(filter-out bin/, $(SUBDIRS))
+SUBDIRS := $(filter-out bin/ third_party/, $(SUBDIRS))
 SUBCLEAN = $(addsuffix .clean,$(SUBDIRS))
 
 
@@ -13,6 +13,7 @@ clean: $(SUBCLEAN)
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
+	$(info #Running $@...)
 	cd $@ && $(MAKE) -C . test
 
 .PHONY: $(SUBCLEAN)
