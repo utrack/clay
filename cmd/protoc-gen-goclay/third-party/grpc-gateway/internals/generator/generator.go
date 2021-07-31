@@ -2,7 +2,7 @@
 package generator
 
 import (
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/descriptor"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/descriptor"
 )
 
 // Generator is an abstraction of code generators.

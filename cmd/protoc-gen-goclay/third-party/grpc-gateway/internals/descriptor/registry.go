@@ -6,8 +6,8 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/codegenerator"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/descriptor/openapiconfig"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/codegenerator"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/descriptor/openapiconfig"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/descriptorpb"

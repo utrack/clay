@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/casing"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/httprule"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/casing"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/httprule"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/pluginpb"
 )

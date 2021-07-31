@@ -10,8 +10,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pkg/errors"
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/casing"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/descriptor"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/casing"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/descriptor"
 	pbdescriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 

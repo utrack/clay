@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/genhandler"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/descriptor"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/descriptor"
 	"google.golang.org/protobuf/proto"
 	plugin "google.golang.org/protobuf/types/pluginpb"
 )

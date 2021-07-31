@@ -16,7 +16,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/outer/grpc-gateway/descriptor"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/descriptor"
 	"golang.org/x/tools/imports"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
