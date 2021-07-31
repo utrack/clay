@@ -15,9 +15,6 @@ clean:
 	rm -f ./strings/to_upper_test.go
 	rm -f main
 
-#protoc: protoc-build
-#	protoc --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I/usr/local/include:. --gofast_out=. test/test.proto
-#	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:../../../../..:. --gofast_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../strings:. pb/strings.proto
 protoc: protoc-build
 	protoc \
 		--plugin=protoc-gen-go=$(GEN_GO_BIN) --go_out=. --go_opt=paths=source_relative \

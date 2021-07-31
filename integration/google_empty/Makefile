@@ -32,14 +32,6 @@ clean:
 	rm -f ./strings/without_desc_and_option_test.go
 	rm -f main
 
-#protoc: protoc-build
-#	protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) \
-#--plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) \
-#-I/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis:. \
-#--gofast_out=$(PKGMAP),plugins=grpc:../../../../.. \
-#--goclay_out=$(PKGMAP),impl=true,impl_path=../../strings,impl_type_name_tmpl=Implementation:../../../../.. \
-#pb/strings/strings.proto
-
 protoc: protoc-build
 	protoc \
 		--plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --goclay_out=. --goclay_opt=$(PKGMAP),impl=true,impl_type_name_tmpl=Implementation,impl_path=../../strings,paths=source_relative \

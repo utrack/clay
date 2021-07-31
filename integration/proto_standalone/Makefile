@@ -15,9 +15,6 @@ clean:
 	rm -f main
 
 protoc: protoc-build
-	cd pb/strings && protoc --plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --plugin=protoc-gen-gofast=$(GEN_GOFAST_BIN) -I../../proto:/usr/local/include:${GRPC_GATEWAY_PATH}/third_party/googleapis --gofast_out=plugins=grpc:. --goclay_out=impl=true,impl_path=../../strings:. ../../proto/strings.proto
-
-protoc: protoc-build
 	cd pb/strings && \
 	protoc \
 		--plugin=protoc-gen-goclay=$(GEN_CLAY_BIN) --goclay_out=. --goclay_opt=impl=true,impl_path=../../strings,paths=source_relative \
