@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-option go_package="./pb/strings;strings";
+option go_package="github.com/utrack/clay/integration/swagger_def_sam_json_case/pb/strings;strings";
+// or just
+//option go_package="./pb/strings;strings";
 
 import "google/api/annotations.proto";
 

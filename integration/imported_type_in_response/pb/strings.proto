@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-option go_package="./pb;strings";
+option go_package="github.com/utrack/clay/integration/imported_type_in_response/pb;strings";
+// or just
+//option go_package="./pb;strings";
 
 import "google/api/annotations.proto";
 // FIXME revert bullgare back to utrack
