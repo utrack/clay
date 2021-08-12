@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+option go_package="github.com/utrack/clay/integration/impl_file_name_tmpl/pb;strings";
+// or just
+//option go_package="./pb;strings";
+
 import "google/api/annotations.proto";
 
 service Strings {

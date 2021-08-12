@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option go_package="github.com/utrack/clay/integration/no_panic_in_response_marshaler_for_timestamp/pb;strings";
+// or just
+//option go_package="./pb;strings";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+// There used to be a panic
+// with errors:
+// main_test.go:39: expected response: `{"stdtime":`, got: `{"stdtime":"2018-01-01T01:01:01.000000001Z"}`
+// main_test.go:46: expected panic: `interface conversion: *time.Time is not proto.Message: missing method ProtoMessage`, got: `<nil>`
+//
+// unless you uncomment these lines:
+// option (gogoproto.goproto_registration) = true;
+// option (gogoproto.gogoproto_import) = true;
+
+service Strings {
+    rpc Echo (EchoReq) returns (EchoResp) {
+        option (google.api.http) = {
+            post: "/echo"
+            body: "*"
+        };
+    }
+}
+
+message EchoReq {
+}
+
+message EchoResp {
+    google.protobuf.Timestamp stdtime = 19 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+}

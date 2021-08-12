@@ -80,6 +80,7 @@ _testmain.go
 # Ignore vendor, needed for better local development
 vendor/
 /integration/additional_bindings/strings/to_lower_test.go
+/integration/binding_with_substruct_in_body/strings/to_upper_test.go
 /integration/go_package/strings/to_lower_test.go
 /integration/go_package/strings/to_upper_test.go
 /integration/go_package_alias/strings/to_lower_test.go
@@ -108,8 +109,11 @@ vendor/
 /integration/google_empty/strings/without_desc_test.go
 /integration/http_headers_passthru/strings/to_lower_test.go
 /integration/http_headers_response/strings/to_lower_test.go
+/integration/impl_service_sub_dir/strings/to_upper_test.go
 /integration/impl_service_sub_dir_2/strings/to_lower_test.go
 /integration/impl_service_sub_dir_2/strings/to_upper_test.go
+/integration/impl_service_sub_dir_2/strings-api/to_lower_test.go
+/integration/impl_service_sub_dir_2/strings-api/to_upper_test.go
 /integration/impl_standalone/strings/to_lower_test.go
 /integration/impl_standalone/strings/to_upper_test.go
 /integration/impl_standalone_without_swagger/strings/to_lower_test.go
@@ -141,5 +145,12 @@ vendor/
 /integration/snake_case_message/strings/to_upper_test.go
 /integration/snake_case_method/strings/to_upper_test.go
 /integration/snake_case_service/strings/to_upper_test.go
+/integration/swagger_comments/strings/to_lower_test.go
+/integration/swagger_comments/strings/to_upper_test.go
 /integration/swagger_def_sam_json_case/strings/to_lower_test.go
 /integration/swagger_def_sam_json_case/strings/to_upper_test.go
+/integration/swagger_default_options/strings/to_lower_test.go
+/integration/swagger_default_options/strings/to_upper_test.go
+
+# ignore binaries for generating the example
+/doc/example/bin/**

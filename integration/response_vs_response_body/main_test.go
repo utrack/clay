@@ -15,6 +15,8 @@ import (
 	"github.com/gogo/protobuf/types"
 	strings_pb "github.com/utrack/clay/integration/response_vs_response_body/pb"
 	strings_srv "github.com/utrack/clay/integration/response_vs_response_body/strings"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestEcho(t *testing.T) {
@@ -93,11 +95,25 @@ func TestEcho(t *testing.T) {
 		},
 		{
 			name: "time",
-			req:  strings_pb.Types{Time: types.TimestampNow()},
+			req: strings_pb.Types{Time: timestamppb.New(func() time.Time {
+				now := types.TimestampNow()
+				t, err := types.TimestampFromProto(now)
+				if err != nil {
+					panic(err)
+				}
+				return t
+			}())},
 		},
 		{
 			name: "duration",
-			req:  strings_pb.Types{Duration: types.DurationProto(3 * time.Second)},
+			req: strings_pb.Types{Duration: durationpb.New(func() time.Duration {
+				d := types.DurationProto(3 * time.Second)
+				dur, err := types.DurationFromProto(d)
+				if err != nil {
+					panic(err)
+				}
+				return dur
+			}())},
 		},
 		// {
 		// 	name: "stdtime",
@@ -147,9 +163,9 @@ func TestEcho(t *testing.T) {
 					"got: %#v", tc.req, *resp2.List[0])
 			}
 
-			if "[" +string(echoBody)+"]" != string(echoBody2) {
+			if "["+string(echoBody)+"]" != string(echoBody2) {
 				t.Fatalf("expected <response from echo2> = `[` + <response from echo> +`]`, got\n"+
-					"<response from echo>  = %s\n" +
+					"<response from echo>  = %s\n"+
 					"<response from echo2> = %s", echoBody, echoBody2)
 			}
 		})

@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+option go_package="github.com/utrack/clay/integration/snake_case_message/pb/strings;strings";
+// or just
+//option go_package="./pb/strings;strings";
+
 import "google/api/annotations.proto";
 
 service Strings {

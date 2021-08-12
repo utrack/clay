@@ -8,7 +8,9 @@ import (
 	"github.com/utrack/clay/v2/transport"
 )
 
-type StringsImplementation struct{}
+type StringsImplementation struct {
+	desc.UnimplementedStringsServer
+}
 
 func NewStrings() *StringsImplementation {
 	return &StringsImplementation{}

@@ -1,12 +1,13 @@
 syntax = "proto3";
 
+option go_package="github.com/utrack/clay/integration/response_vs_response_body/pb;strings";
+// or just
+//option go_package="./pb;strings";
+
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "gogoproto/gogo.proto";
-
-option (gogoproto.goproto_registration) = true;
-option (gogoproto.gogoproto_import) = true;
 
 service Strings {
     rpc Echo (Types) returns (Types) {

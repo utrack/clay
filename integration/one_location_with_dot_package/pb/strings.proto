@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+option go_package="github.com/utrack/clay/integration/one_location_with_dot_package/pb;my_lovely_strings";
+// or just
+//option go_package="./pb;my_lovely_strings";
+
 package my.lovely.strings;
 
 import "google/api/annotations.proto";

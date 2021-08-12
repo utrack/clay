@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package="github.com/utrack/clay/integration/imported_type_in_response/test;test";
+
 package test;
 
 message String1 {

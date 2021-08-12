@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	strings_pb "github.com/utrack/clay/integration/binding_with_different_types_post/pb"
 	strings_srv "github.com/utrack/clay/integration/binding_with_different_types_post/strings"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestEcho(t *testing.T) {
@@ -88,27 +90,20 @@ func TestEcho(t *testing.T) {
 		},
 		{
 			name: "time",
-			req:  strings_pb.Types{Time: types.TimestampNow()},
+			req:  strings_pb.Types{Time: timestamppb.Now()},
 		},
 		{
 			name: "duration",
-			req:  strings_pb.Types{Duration: types.DurationProto(3 * time.Second)},
+			req:  strings_pb.Types{Duration: durationpb.New(3 * time.Second)},
 		},
 		{
 			name: "stdtime",
-			req:  strings_pb.Types{Stdtime: time.Now().UTC()},
+			req:  strings_pb.Types{Stdtime: timestamppb.New(time.Now().UTC())},
 		},
 		{
 			name: "stdduration",
-			req:  strings_pb.Types{Stdduration: 3 * time.Second},
+			req:  strings_pb.Types{Stdduration: durationpb.New(3 * time.Second)},
 		},
-	}
-	for i := range tt {
-		if tt[i].req.Bytes == nil {
-			// HTTP Client doesn't skip nils, empty values are passed
-			// So we expect to send and recieve empty slice instead of nil
-			tt[i].req.Bytes = []byte{}
-		}
 	}
 
 	for _, tc := range tt {
@@ -124,9 +119,9 @@ func TestEcho(t *testing.T) {
 				t.Fatalf("expected non-nil response, got nil")
 			}
 
-			if !reflect.DeepEqual(*resp, tc.req) {
-				t.Fatalf("expected %#v\n"+
-					"got: %#v", tc.req, *resp)
+			opts := cmpopts.IgnoreUnexported(strings_pb.Types{}, timestamppb.Timestamp{}, durationpb.Duration{})
+			if diff := cmp.Diff(tc.req, *resp, opts); diff != "" {
+				t.Fatalf("unexpected response (-want +got):\n%s", diff)
 			}
 		})
 	}

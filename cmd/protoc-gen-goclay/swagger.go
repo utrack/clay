@@ -2,13 +2,13 @@ package main
 
 import (
 	"github.com/golang/glog"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
-	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/genswagger"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/descriptor"
+	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/protoc-gen-openapiv2/internals/genopenapi"
+	plugin "google.golang.org/protobuf/types/pluginpb"
 )
 
 func genSwaggerDef(reg *descriptor.Registry, req *plugin.CodeGeneratorRequest) (map[string][]byte, error) {
-	gsw := genswagger.New(reg)
+	gsw := genopenapi.New(reg)
 	var targets []*descriptor.File
 	for _, target := range req.FileToGenerate {
 		f, err := reg.LookupFile(target)
