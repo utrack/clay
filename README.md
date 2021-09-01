@@ -21,6 +21,7 @@ Read more about this migration here: https://blog.golang.org/protobuf-apiv2 .
 
 Migration from v2 to v3 is intended to be as straightforward as possible - just replace generator v2 with v3 and you're good to go.
 Don't forget to change your protobuf generator as well - see previous section for details.
+
 NB: to use new protobuf generator, you need to change `go_package` directives to be an absolute module path (i.e. `github.com/foo/bar/baz` instead of `baz`).
 
 ## Requirements
