@@ -17,7 +17,7 @@ NC=:\033[0m
 
 .protoc-build:
 	$(info #Installing binary dependencies...)
-	GOBIN=$(LOCAL_BIN) go install -mod=mod github.com/utrack/clay/v2/cmd/protoc-gen-goclay
+	GOBIN=$(LOCAL_BIN) go install -mod=mod github.com/utrack/clay/v3/cmd/protoc-gen-goclay
 	GOBIN=$(LOCAL_BIN) go install -mod=mod google.golang.org/protobuf/cmd/protoc-gen-go
 	GOBIN=$(LOCAL_BIN) go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc
 

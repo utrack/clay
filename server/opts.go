@@ -3,11 +3,11 @@ package server
 import (
 	"net/http"
 
-	"github.com/utrack/clay/v2/server/middlewares/mwhttp"
-	"github.com/utrack/clay/v2/transport"
+	"github.com/utrack/clay/v3/server/middlewares/mwhttp"
+	"github.com/utrack/clay/v3/transport"
 
 	"github.com/go-chi/chi"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 )
 

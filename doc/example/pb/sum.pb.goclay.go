@@ -4,7 +4,7 @@
 /*
 Package sum is a self-registering gRPC and JSON+Swagger service definition.
 
-It conforms to the github.com/utrack/clay/v2/transport Service interface.
+It conforms to the github.com/utrack/clay/v3/transport Service interface.
 */
 package sum
 
@@ -23,12 +23,12 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pkg/errors"
-	"github.com/utrack/clay/v2/transport"
-	"github.com/utrack/clay/v2/transport/httpclient"
-	"github.com/utrack/clay/v2/transport/httpruntime"
-	"github.com/utrack/clay/v2/transport/httpruntime/httpmw"
-	"github.com/utrack/clay/v2/transport/httptransport"
-	"github.com/utrack/clay/v2/transport/swagger"
+	"github.com/utrack/clay/v3/transport"
+	"github.com/utrack/clay/v3/transport/httpclient"
+	"github.com/utrack/clay/v3/transport/httpruntime"
+	"github.com/utrack/clay/v3/transport/httpruntime/httpmw"
+	"github.com/utrack/clay/v3/transport/httptransport"
+	"github.com/utrack/clay/v3/transport/swagger"
 	"google.golang.org/grpc"
 )
 

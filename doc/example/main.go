@@ -8,9 +8,9 @@ import (
 	"github.com/sirupsen/logrus"
 	sum "github.com/utrack/clay/doc/example/implementation"
 
-	"github.com/utrack/clay/v2/log"
-	"github.com/utrack/clay/v2/transport/middlewares/mwgrpc"
-	"github.com/utrack/clay/v2/transport/server"
+	"github.com/utrack/clay/v3/log"
+	"github.com/utrack/clay/v3/transport/middlewares/mwgrpc"
+	"github.com/utrack/clay/v3/transport/server"
 
 	// We're using statik-compiled files of Swagger UI
 	// for the sake of example.

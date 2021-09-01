@@ -9,9 +9,9 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pkg/errors"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/internal"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/casing"
-	"github.com/utrack/clay/v2/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/descriptor"
+	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/internal"
+	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/casing"
+	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/descriptor"
 	pbdescriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -335,7 +335,7 @@ var (
 /*
 Package {{ .GoPkg.Name }} is a self-registering gRPC and JSON+Swagger service definition.
 
-It conforms to the github.com/utrack/clay/v2/transport Service interface.
+It conforms to the github.com/utrack/clay/v3/transport Service interface.
 */
 package {{ .GoPkg.Name }}
 import (

@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/utrack/clay/v2/server/log"
+	"github.com/utrack/clay/v3/server/log"
 )
 
 // Logrus is the default logger, using sirupsen/logrus as a backend.

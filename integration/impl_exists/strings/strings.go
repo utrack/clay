@@ -5,7 +5,7 @@ package strings
 
 import (
 	desc "github.com/utrack/clay/integration/impl_exists/pb"
-	"github.com/utrack/clay/v2/transport"
+	"github.com/utrack/clay/v3/transport"
 )
 
 type StringsImplementation struct {
