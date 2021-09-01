@@ -9,7 +9,7 @@ SUBCLEAN = $(addsuffix .clean,$(SUBDIRS))
 
 test: protoc-build $(SUBDIRS)
 clean: $(SUBCLEAN)
-
+	rm -rf ./bin
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
