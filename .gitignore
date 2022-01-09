@@ -93,6 +93,7 @@ vendor/
 /integration/go_package_proto_in_root/strings/to_upper_test.go
 /integration/go_package_proto_standalone/strings/to_lower_test.go
 /integration/go_package_proto_standalone/strings/to_upper_test.go
+/integration/go_package_separate_impl_exists/internal/app/strings/to_upper_test.go
 /integration/go_package_with_alias/strings/to_lower_test.go
 /integration/go_package_with_alias/strings/to_upper_test.go
 /integration/go_package_with_alias_proto_in_root/strings/to_lower_test.go
