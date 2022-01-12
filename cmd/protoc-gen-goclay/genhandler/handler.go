@@ -131,6 +131,7 @@ func (g *Generator) generateSwaggerFile(file *descriptor.File) *plugin.CodeGener
 func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGeneratorResponse_File, err error) {
 	guessModule()
 	prefix := g.pathPrefixFor(file)
+	implPathRelative := g.implPathRelativeFor(file)
 
 	var pkg *ast.Package
 	if !g.options.ServiceSubDir {
@@ -141,6 +142,15 @@ func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGen
 		if err != nil {
 			return nil, err
 		}
+		if pkg == nil {
+			pkg, err = astPkg(descriptor.GoPackage{
+				Name: file.GoPkg.Name,
+				Path: filepath.Join(prefix, implPathRelative),
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 	for _, svc := range file.Services {
 		if g.options.ServiceSubDir {
@@ -150,6 +160,15 @@ func (g *Generator) generateImpl(file *descriptor.File) (files []*plugin.CodeGen
 			})
 			if err != nil {
 				return nil, err
+			}
+			if pkg == nil {
+				pkg, err = astPkg(descriptor.GoPackage{
+					Name: file.GoPkg.Name,
+					Path: filepath.Join(prefix, implPathRelative, internal.KebabCase(svc.GetName())),
+				})
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 		if code, err := g.generateImplService(file, svc, pkg); err == nil {
@@ -484,6 +503,13 @@ func (g *Generator) pathPrefixFor(file *descriptor.File) string {
 		return strings.TrimSuffix(file.GeneratedFilenamePrefix, filepath.Base(file.GeneratedFilenamePrefix))
 	}
 	return file.GoPkg.Path
+}
+
+func (g *Generator) implPathRelativeFor(file *descriptor.File) string {
+	if g.options.PathsParamType == PathsParamTypeSourceRelative {
+		return filepath.Join(file.GoPkg.Path, g.options.ImplPath)
+	}
+	return g.options.ImplPath
 }
 
 func annotateString(str string) string {
