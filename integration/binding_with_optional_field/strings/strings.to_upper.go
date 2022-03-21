@@ -11,7 +11,7 @@ import (
 
 func (i *StringsImplementation) ToUpper(ctx context.Context, req *desc.String) (rsp *desc.String, err error) {
 	rsp = &desc.String{}
-	if nil == req.Str {
+	if req.Str == nil {
 		rsp.Str = nil
 	} else {
 		upperStr := strings.ToUpper(*req.Str)
