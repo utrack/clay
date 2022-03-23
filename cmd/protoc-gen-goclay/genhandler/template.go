@@ -203,17 +203,30 @@ func addValueTyped(f *descriptor.Field) string {
 		if valueFormatter != "" {
 			return fmt.Sprintf(valueFormatter, getter)
 		}
+
+		if f.GetProto3Optional() {
+			getter = fmt.Sprintf("*%s", getter)
+		}
+
 		return fmt.Sprintf(`fmt.Sprintf("%s", %s)`, valueVerb, getter)
 	}
 
-	if !isRepeated {
+	if isRepeated {
+		format := `for _, v := range in.%s {
+	values.Add(%q, %s)
+}`
+		return fmt.Sprintf(format, goName, f.GetName(), valueTemplater("v"))
+	}
+
+	if !f.GetProto3Optional() {
 		return fmt.Sprintf(`values.Add(%q, %s)`, f.GetName(), valueTemplater("in."+goName))
 	}
 
-	format := `for _, v := range in.%s {
-	values.Add(%q, %s)
+	format := `if in.%s != nil {
+values.Add(%q, %s)
 }`
-	return fmt.Sprintf(format, goName, f.GetName(), valueTemplater("v"))
+	return fmt.Sprintf(format, goName, f.GetName(), valueTemplater("in."+goName))
+
 }
 
 var (

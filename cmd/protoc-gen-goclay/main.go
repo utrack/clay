@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/codegenerator"
 	"io"
 	"io/ioutil"
 	"os"
@@ -192,7 +193,9 @@ func parseReqParam(param string, f *flag.FlagSet, pkgMap map[string]string) erro
 }
 
 func emitFiles(w io.Writer, out []*plugin.CodeGeneratorResponse_File) {
-	emitResp(w, &plugin.CodeGeneratorResponse{File: out})
+	responseFile := &plugin.CodeGeneratorResponse{File: out}
+	codegenerator.SetSupportedFeaturesOnCodeGeneratorResponse(responseFile)
+	emitResp(w, responseFile)
 }
 
 func emitError(err error) {

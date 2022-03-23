@@ -70,6 +70,7 @@ _testmain.go
 !/integration/additional_bindings/strings/strings.to_upper.go
 !/integration/binding_with_body_and_response/strings/strings.go
 !/integration/binding_with_body_and_response/strings/strings.to_upper.go
+!/integration/binding_with_optional_field/strings/strings.to_upper.go
 !/integration/binding_with_repeated_field/strings/strings.to_upper.go
 !/integration/client_cancel_request/app/strings/strings.to_upper.go
 !/integration/impl_file_name_tmpl/strings/strings.to_upper.go
