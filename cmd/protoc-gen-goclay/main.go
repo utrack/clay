@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/codegenerator"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/codegenerator"
 
 	"github.com/golang/glog"
 	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/genhandler"
@@ -23,6 +24,7 @@ var (
 	grpcAPIConfiguration = flag.String("grpc_api_configuration", "", "path to gRPC API Configuration in YAML format")
 	withImpl             = flag.Bool("impl", false, "generate simple implementations for proto Services. Implementation will not be generated if it already exists. See also `force` option")
 	withSwagger          = flag.Bool("swagger", true, "generate swagger.json")
+	withSwaggerTitle     = flag.String("swagger_title", "", "title to be used for the swagger being generated")
 	withSwaggerPath      = flag.String("swagger_path", "", "in addition to swagger in pb.goclay.go, generate separate swagger file at provided path")
 	applyHTTPMiddlewares = flag.Bool("http_middlewares", true, "apply default HTTP millewares")
 	implPath             = flag.String("impl_path", "", "path where the implementation is generated (for impl = true)")
@@ -110,7 +112,7 @@ func main() {
 	}
 
 	if *withSwagger {
-		swagBuf, err := genSwaggerDef(reg, req)
+		swagBuf, err := genSwaggerDef(reg, req, *withSwaggerTitle)
 		if err != nil {
 			emitError(err)
 			return

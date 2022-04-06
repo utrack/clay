@@ -28,7 +28,8 @@ var (
 )
 
 type generator struct {
-	reg *descriptor.Registry
+	reg   *descriptor.Registry
+	title string
 }
 
 type wrapper struct {
@@ -42,8 +43,8 @@ type GeneratorOptions struct {
 }
 
 // New returns a new generator which generates grpc gateway files.
-func New(reg *descriptor.Registry) gen.Generator {
-	return &generator{reg: reg}
+func New(reg *descriptor.Registry, title string) gen.Generator {
+	return &generator{reg: reg, title: title}
 }
 
 // Merge a lot of OpenAPI file (wrapper) to single one OpenAPI file
@@ -191,7 +192,7 @@ func (g *generator) Generate(targets []*descriptor.File) ([]*descriptor.Response
 	var openapis []*wrapper
 	for _, file := range targets {
 		glog.V(1).Infof("Processing %s", file.GetName())
-		swagger, err := applyTemplate(param{File: file, reg: g.reg})
+		swagger, err := applyTemplate(param{File: file, reg: g.reg, title: g.title})
 		if err == errNoTargetService {
 			glog.V(1).Infof("%s: %v", file.GetName(), err)
 			continue

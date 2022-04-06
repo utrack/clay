@@ -7,8 +7,8 @@ import (
 	plugin "google.golang.org/protobuf/types/pluginpb"
 )
 
-func genSwaggerDef(reg *descriptor.Registry, req *plugin.CodeGeneratorRequest) (map[string][]byte, error) {
-	gsw := genopenapi.New(reg)
+func genSwaggerDef(reg *descriptor.Registry, req *plugin.CodeGeneratorRequest, swaggerTitle string) (map[string][]byte, error) {
+	gsw := genopenapi.New(reg, swaggerTitle)
 	var targets []*descriptor.File
 	for _, target := range req.FileToGenerate {
 		f, err := reg.LookupFile(target)

@@ -10,7 +10,8 @@ import (
 
 type param struct {
 	*descriptor.File
-	reg *descriptor.Registry
+	reg   *descriptor.Registry
+	title string
 }
 
 // http://swagger.io/specification/#infoObject

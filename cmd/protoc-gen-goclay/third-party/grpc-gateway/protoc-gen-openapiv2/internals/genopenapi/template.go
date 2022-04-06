@@ -1277,6 +1277,11 @@ func renderServices(services []*descriptor.Service, paths openapiPathsObject, re
 
 // This function is called with a param which contains the entire definition of a method.
 func applyTemplate(p param) (*openapiSwaggerObject, error) {
+	title := *p.Name
+	if p.title != "" {
+		title = p.title
+	}
+
 	// Create the basic template object. This is the object that everything is
 	// defined off of.
 	s := openapiSwaggerObject{
@@ -1287,7 +1292,7 @@ func applyTemplate(p param) (*openapiSwaggerObject, error) {
 		Paths:       make(openapiPathsObject),
 		Definitions: make(openapiDefinitionsObject),
 		Info: openapiInfoObject{
-			Title:   *p.File.Name,
+			Title:   title,
 			Version: "version not set",
 		},
 	}
