@@ -12,7 +12,8 @@ import (
 )
 
 // DefaultChain is a chain that gets applied to the generated handlers.
-func DefaultChain(next http.HandlerFunc) http.HandlerFunc {
+// It is a singleton, so you can update it if you want and know what you are doing.
+var DefaultChain = func(next http.HandlerFunc) http.HandlerFunc {
 	return InjectTransportStream(
 		HeadersToGRPCMD(
 			next,
