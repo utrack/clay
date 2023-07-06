@@ -7,14 +7,12 @@ replace github.com/utrack/clay/v3 => ../../
 require (
 	github.com/go-chi/chi v3.3.4+incompatible
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
-	github.com/pkg/errors v0.8.1
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
+	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/utrack/clay/v3 v3.0.1
-	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
-	google.golang.org/grpc v1.38.0
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0 // indirect
-	google.golang.org/protobuf v1.27.1
-	gopkg.in/yaml.v2 v2.2.3 // indirect
+	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
+	google.golang.org/grpc v1.53.0
+	google.golang.org/protobuf v1.28.1
 )
