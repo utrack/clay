@@ -16,8 +16,8 @@ require (
 	github.com/peterbourgon/mergemap v0.0.0-20130613134717-e21c03b7a721
 	github.com/pkg/errors v0.9.1
 	github.com/soheilhy/cmux v0.1.4
-	golang.org/x/net v0.7.0
-	golang.org/x/tools v0.3.0
+	golang.org/x/net v0.17.0
+	golang.org/x/tools v0.6.0
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
 	google.golang.org/grpc v1.53.0
 	google.golang.org/grpc/examples v0.0.0-20210723173718-1ddab338690a // indirect
