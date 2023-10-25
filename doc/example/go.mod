@@ -12,7 +12,7 @@ require (
 	github.com/rakyll/statik v0.1.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/utrack/clay/v3 v3.0.1
-	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
-	google.golang.org/grpc v1.53.0
-	google.golang.org/protobuf v1.28.1
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
+	google.golang.org/grpc v1.56.3
+	google.golang.org/protobuf v1.30.0
 )
