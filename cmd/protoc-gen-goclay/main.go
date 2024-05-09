@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/codegenerator"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/third-party/grpc-gateway/internals/codegenerator"
 
 	"github.com/golang/glog"
 	"github.com/utrack/clay/v3/cmd/protoc-gen-goclay/genhandler"
@@ -32,6 +33,7 @@ var (
 	implFileNameTmpl     = flag.String("impl_file_name_tmpl", "{{ if .MethodName }}{{ .MethodName }}{{ else }}{{ .ServiceName }}{{ end }}", "template for generating implementations filename")
 	withTests            = flag.Bool("tests", true, "generate simple unit tests for proto Services")
 	pathsParam           = flag.String("paths", "", "if you want to use source_relative instead of import which is default (see google.golang.org/protobuf@v1.27.1/compiler/protogen/protogen.go:177 for more details)")
+	genUnboundMethods    = flag.Bool("generate_unbound_methods", false, "gRPC API generate_unbound_methods (for swagger = true)")
 )
 
 func main() {
@@ -81,6 +83,7 @@ func main() {
 	reg.SetAllowDeleteBody(*allowDeleteBody)
 	reg.SetPrefix(*importPrefix)
 	reg.SetDisableDefaultErrors(true)
+	reg.SetGenerateUnboundMethods(*genUnboundMethods)
 	for k, v := range pkgMap {
 		reg.AddPkgMap(k, v)
 	}
