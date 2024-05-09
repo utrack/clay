@@ -24,6 +24,8 @@ type serverOpts struct {
 
 	GRPCOpts             []grpc.ServerOption
 	GRPCUnaryInterceptor grpc.UnaryServerInterceptor
+
+	EnableReflection bool
 }
 
 func defaultServerOpts(mainPort int) *serverOpts {
@@ -86,5 +88,11 @@ func WithHTTPMux(mux *chi.Mux) Option {
 func WithHTTPRouterMux(mux transport.Router) Option {
 	return func(o *serverOpts) {
 		o.HTTPMux = mux
+	}
+}
+
+func EnableReflection(enable bool) Option {
+	return func(o *serverOpts) {
+		o.EnableReflection = enable
 	}
 }

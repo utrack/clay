@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/go-chi/chi"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type serverSet struct {
@@ -17,8 +18,13 @@ func newServerSet(listeners *listenerSet, opts *serverOpts) *serverSet {
 	}
 	http.Mount("/", opts.HTTPMux)
 
+	grpcServer := grpc.NewServer(opts.GRPCOpts...)
+	if opts.EnableReflection {
+		reflection.Register(grpcServer)
+	}
+
 	srv := &serverSet{
-		grpc: grpc.NewServer(opts.GRPCOpts...),
+		grpc: grpcServer,
 		http: http,
 	}
 	return srv
