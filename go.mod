@@ -8,9 +8,9 @@ require (
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
 	github.com/go-openapi/swag v0.17.2 // indirect
 	github.com/gogo/protobuf v1.3.2
-	github.com/golang/glog v1.1.0
+	github.com/golang/glog v1.2.4
 	github.com/golang/protobuf v1.5.3
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
 	github.com/peterbourgon/mergemap v0.0.0-20130613134717-e21c03b7a721
